@@ -1,0 +1,8 @@
+package analyser.result
+
+/**
+  * Created by Erik on 5-4-2017.
+  */
+trait Result {
+
+}

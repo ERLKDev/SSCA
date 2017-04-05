@@ -1,4 +1,4 @@
-package analyzer.Compiler
+package analyser.Compiler
 
 import scala.reflect.internal.util.{Position, SourceFile}
 import scala.tools.nsc.{Settings, util}
@@ -26,6 +26,9 @@ class Compiler {
   }
 }
 
+/**
+  * Helper trait to define parse functions for the compiler
+  */
 trait CompilerHelper {
   val global: scala.tools.nsc.interactive.Global
 

@@ -1,4 +1,4 @@
-package analyzer.Compiler
+package analyser.Compiler
 
 import scala.reflect.internal.util.SourceFile
 
