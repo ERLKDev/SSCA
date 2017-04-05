@@ -7,5 +7,5 @@ import analyser.result.MetricResult
   */
 trait FunctionMetric extends Metric{
   import global._
-  def run(tree: DefDef, code: List[String], projectTrees: Array[Tree], projectCode: List[String]): List[MetricResult]
+  def run(tree: DefDef, code: List[String]): List[MetricResult]
 }

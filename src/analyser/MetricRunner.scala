@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 class MetricRunner extends CompilerProvider with TreeUtil{
   import global._
 
-  def run(metrics : List[Metric], tree: Tree, projectTree : Array[global.Tree]): List[MetricResult] ={
+  def run(metrics : List[Metric], tree: Array[Tree], projectTree : Array[global.Tree]): List[MetricResult] ={
     def traverse(tree: Tree) : List[MetricResult] = tree match {
       case ModuleDef(_, _, content : Tree) =>
         traverse(content) ++ executeObjectMetrics(metrics, tree)
@@ -36,9 +36,9 @@ class MetricRunner extends CompilerProvider with TreeUtil{
         case x: ObjectMetric =>
           tree match {
             case tree: ModuleDef =>
-              results ++= x.run(tree.asInstanceOf[x.global.ModuleDef], code, projectTree.asInstanceOf[Array[x.global.Tree]], null)
+              results ++= x.run(tree.asInstanceOf[x.global.ModuleDef], code)
             case tree: ClassDef =>
-              results ++= x.run(tree.asInstanceOf[x.global.ClassDef], code, projectTree.asInstanceOf[Array[x.global.Tree]], null)
+              results ++= x.run(tree.asInstanceOf[x.global.ClassDef], code)
           }
         case _ =>
 
@@ -55,14 +55,17 @@ class MetricRunner extends CompilerProvider with TreeUtil{
       val results = new ListBuffer[MetricResult]
       metrics.foreach {
         case x: FunctionMetric =>
-          results ++= x.run(tree.asInstanceOf[x.global.DefDef], code, projectTree.asInstanceOf[Array[x.global.Tree]], null)
+          results ++= x.run(tree.asInstanceOf[x.global.DefDef], code)
         case _ =>
 
       }
       results.toList
     }
 
-    traverse(tree)
-  }
+    /* Init metrics*/
+    metrics.foreach(f => f.init(projectTree.asInstanceOf[Array[f.global.Tree]], getOriginalSourceCode(projectTree)))
 
+    /* Start traversal*/
+    tree.foldLeft(List[MetricResult]())((a, b) => a ++ traverse(b))
+  }
 }

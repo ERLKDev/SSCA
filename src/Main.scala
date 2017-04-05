@@ -1,19 +1,21 @@
 import analyser.Compiler.CompilerProvider
-import analyser.MetricRunner
+import analyser.util.PrintUtil
+import analyser.{Analyser, MetricRunner}
 import metrics.Loc
 
 /**
   * Created by Erik on 5-4-2017.
   */
-object Main extends CompilerProvider {
-
+object Main extends CompilerProvider with PrintUtil{
+  import global._
 
   def main (args: Array[String] ): Unit = {
     val a = "D:\\Master project 2017\\code\\SSCA\\src\\analyser\\MetricRunner.scala"
-    val b = treeFromFile(a)
-    val mrunner = new MetricRunner
-    val c = mrunner.run(List(new Loc), b.asInstanceOf[mrunner.global.Tree], null)
-    println(c)
+
+    val an = new Analyser("D:\\Master project 2017\\code\\SSCA\\src")
+    printresults(an.analyse(a))
+    println()
+    printresults(an.analyse())
     println("done")
   }
 }

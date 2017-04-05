@@ -42,6 +42,10 @@ import global._
     tree.pos.source.content.array.subSequence(pos.start, pos.end).toString.split("\n").toList
   }
 
+  def getOriginalSourceCode(tree : Array[Tree]): List[String]  = {
+    tree.foldLeft(List[String]())((a, b) => a ++ getOriginalSourceCode(b))
+  }
+
   def isTrait(tree: ClassDef): Boolean = {
     tree.mods.isTrait
   }

@@ -8,7 +8,7 @@ import analyser.result.MetricResult
   */
 trait ObjectMetric extends Metric{
   import global._
-  def run(tree: ModuleDef, code: List[String], projectTrees: Array[Tree], projectCode: List[String]): List[MetricResult]
+  def run(tree: ModuleDef, code: List[String]): List[MetricResult]
 
-  def run(tree: ClassDef, code: List[String], projectTrees: Array[Tree], projectCode: List[String]): List[MetricResult]
+  def run(tree: ClassDef, code: List[String]): List[MetricResult]
 }
