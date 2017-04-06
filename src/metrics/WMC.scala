@@ -37,6 +37,7 @@ class WMC extends ObjectMetric with ComplexUtil{
       case _ =>
         tree.children.foreach(x => allFunctions(x, level))
     }
+
     allFunctions(tree, 0)
     List(
       MetricResult(getRangePos(tree), UnitType.Object, name,"WMCnormal", wmcNormal),

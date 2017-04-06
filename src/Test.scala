@@ -7,7 +7,7 @@ object Test {
     for( a <- 1 to 10){
       println( "Value of a: " + a )
     }
-
+    // Test comment
     val l = List(1, 2, 3)
 
     l match {
@@ -16,13 +16,15 @@ object Test {
       case x::tail =>
         println(x)
     }
-
+    /* enkel deze */
     if (true) {
 
     }else if(false) {
 
     }
 
+    /* double
+    * line */
     while (true) {
 
     }

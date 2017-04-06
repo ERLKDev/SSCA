@@ -14,7 +14,6 @@ object Main extends CompilerProvider with PrintUtil{
     val metrics = List(new Loc, new Complex, new WMC)
     val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src", metrics)
 
-    val c = treeFromFile(a)
 
     println(an.analyse(a))
  /*   c.foreach(x => println("\n"  + x))*/
