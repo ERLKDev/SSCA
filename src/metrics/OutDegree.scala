@@ -16,7 +16,6 @@ class OutDegree extends FunctionMetric{
       case _ =>
         tree.children.foldLeft(List[String]())((a,b) => a ::: countFunctionCalls(b))
     }
-    println(countFunctionCalls(tree))
 
     val functionCalls = countFunctionCalls(tree)
     List(

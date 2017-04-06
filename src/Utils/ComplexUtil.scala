@@ -10,28 +10,25 @@ trait ComplexUtil extends CompilerProvider{
 
 
   def measureComplexity(tree: Tree): Int = {
-    var complex : Int = 1
 
-    def recursive(tree: Tree): Unit = tree match {
+    def recursive(tree: Tree): Int = tree match {
       case Select(_, x) => {
         x.toString match {
           case "foreach" =>
-            complex += 1
+            1
           case _ =>
+            0
         }
       }
       case Match(_, x) =>
-        complex += x.size
-        tree.children.foreach(x => recursive(x))
+        tree.children.foldLeft(x.size)((a, b) => a + recursive(b))
       case _: If =>
-        complex += 1
-        tree.children.foreach(x => recursive(x))
+        tree.children.foldLeft(1)((a, b) => a + recursive(b))
       case _ =>
-        tree.children.foreach(x => recursive(x))
+        tree.children.foldLeft(0)((a, b) => a + recursive(b))
     }
 
-    recursive(tree)
-    complex
+    1 + recursive(tree)
   }
 
 }
