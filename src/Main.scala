@@ -1,21 +1,23 @@
 import analyser.Compiler.CompilerProvider
 import analyser.util.PrintUtil
 import analyser.{Analyser, MetricRunner}
-import metrics.Loc
 
 /**
   * Created by Erik on 5-4-2017.
   */
-object Main extends CompilerProvider with PrintUtil{
+object Main extends CompilerProvider with PrintUtil with ResultUtil{
   import global._
-
   def main (args: Array[String] ): Unit = {
-    val a = "D:\\Master project 2017\\code\\SSCA\\src\\Test.scala"
+    val a = "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala"
 
-    val an = new Analyser("D:\\Master project 2017\\code\\SSCA\\src")
-    printresults(an.analyse(a))
-    println()
-    printresults(an.analyse())
+    val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src")
+    val c = an.analyse(a).getObjects
+    c.foreach(x => println("\n"  + x))
+
+/*    println(showRaw(treeFromFile(a)))
+    val c = an.analyse()
+    println("startGroup")*/
+/*    val g = groupResultsByObject(an.analyse())*/
     println("done")
   }
 }

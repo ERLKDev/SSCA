@@ -1,7 +1,7 @@
 package metrics
 
 import analyser.metric.{FunctionMetric, ObjectMetric, ProjectMetric}
-import analyser.result.{FunctionResult, MetricResult, ObjectResult}
+import analyser.result.{MetricResult, UnitType}
 import analyser.util.SourceCodeUtil
 
 
@@ -13,17 +13,15 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
   import global._
 
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
-    val a = removeWhiteLines(code)
-    List(new FunctionResult(getRangePos(tree), getName(tree), "loc", removeWhiteLines(code).size))
+    List(new MetricResult(getRangePos(tree), UnitType.Function ,getName(tree), "loc", removeWhiteLines(code).size))
   }
 
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
-    List(new ObjectResult(getRangePos(tree), getName(tree), "loc", removeWhiteLines(code).size))
+    List(new MetricResult(getRangePos(tree), UnitType.Object, getName(tree), "loc", removeWhiteLines(code).size))
   }
 
   override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
-    val c = tree.mods.isAbstractOverride
-    List(new ObjectResult(getRangePos(tree), getName(tree), "loc", removeWhiteLines(code).size))
+    List(new MetricResult(getRangePos(tree), UnitType.Object, getName(tree), "loc", removeWhiteLines(code).size))
   }
 
 }

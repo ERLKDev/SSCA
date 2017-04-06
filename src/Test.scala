@@ -5,8 +5,16 @@ object Test {
   def test(): Unit = {
     println("kajsdf")
 
+    println("dskalfj")
+  }
 
-
+  def hoi(): Unit = {
+    println("kajsdf")
+    println("dskalfj")
+    println("dskalfj")
+    println("dskalfj")
+    println("dskalfj")
+    println("dskalfj")
     println("dskalfj")
   }
 }

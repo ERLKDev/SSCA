@@ -3,7 +3,7 @@ package analyser
 import java.io.File
 
 import analyser.Compiler.CompilerProvider
-import analyser.result.MetricResult
+import analyser.result.{MetricResult, Result}
 import analyser.util.ProjectUtil
 import metrics.Loc
 
@@ -18,11 +18,11 @@ class Analyser(projectPath: String) extends CompilerProvider with ProjectUtil{
 
   def getProjectTree: Array[Tree] = projectTree
 
-  def analyse(path: String) : List[MetricResult] = {
+  def analyse(path: String): Result = {
     metricRunner.run(List(new Loc), Array(treeFromFile(path).asInstanceOf[metricRunner.global.Tree]), projectTree.asInstanceOf[Array[metricRunner.global.Tree]])
   }
 
-  def analyse() : List[MetricResult] = {
+  def analyse(): Result  = {
     metricRunner.run(List(new Loc), projectTree.asInstanceOf[Array[metricRunner.global.Tree]], projectTree.asInstanceOf[Array[metricRunner.global.Tree]])
   }
 }
