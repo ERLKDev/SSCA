@@ -3,28 +3,29 @@
   */
 object Test {
   def test(): Unit = {
-    println("kajsdf")
+    println("hoi")
+    for( a <- 1 to 10){
+      println( "Value of a: " + a )
+    }
 
-    println("dskalfj")
+    val l = List(1, 2, 3)
+
+    l match {
+      case Nil =>
+
+      case x::tail =>
+        println(x)
+    }
+
+    if (true) {
+
+    }else if(false) {
+
+    }
+
+    while (true) {
+
+    }
   }
-
-  def hoi(): Unit = {
-    println("kajsdf")
-    println("dskalfj")
-    println("dskalfj")
-    println("dskalfj")
-    println("dskalfj")
-    println("dskalfj")
-    println("dskalfj")
-  }
 }
-
-trait Test2 {
-
-}
-
-abstract class Test3 {
-
-}
-
 

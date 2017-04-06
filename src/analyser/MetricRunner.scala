@@ -16,13 +16,13 @@ class MetricRunner extends CompilerProvider with TreeUtil{
   def run(metrics : List[Metric], tree: Array[Tree], projectTree : Array[global.Tree]): Result ={
     def traverse(tree: Tree) : Result = tree match {
       case ModuleDef(_, _, content : Tree) =>
-        new UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ModuleDef]), traverse(content) :: executeObjectMetrics(metrics, tree))
+        UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ModuleDef]), traverse(content) :: executeObjectMetrics(metrics, tree))
       case ClassDef(_, _, _, impl) =>
-        new UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ClassDef]), traverse(impl) :: executeObjectMetrics(metrics, tree))
+        UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ClassDef]), traverse(impl) :: executeObjectMetrics(metrics, tree))
       case DefDef(_, _, _, _, tpt, rhs) =>
-        new UnitResult(getRangePos(tree), UnitType.Function, getName(tree.asInstanceOf[DefDef]), traverse(tpt) :: traverse(rhs) :: executeFunctionMetrics(metrics, tree))
+        UnitResult(getRangePos(tree), UnitType.Function, getName(tree.asInstanceOf[DefDef]), traverse(tpt) :: traverse(rhs) :: executeFunctionMetrics(metrics, tree))
       case x: PackageDef =>
-        new UnitResult(getRangePos(tree), UnitType.File, x.pos.source.path, tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b))).getList)
+        UnitResult(getRangePos(tree), UnitType.File, x.pos.source.path, tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b))).getList)
       case _ =>
         tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
     }
