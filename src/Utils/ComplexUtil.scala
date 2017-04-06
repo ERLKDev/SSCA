@@ -19,7 +19,6 @@ trait ComplexUtil extends CompilerProvider{
             complex += 1
           case _ =>
         }
-        tree.children.foreach(x => recursive(x))
       }
       case Match(_, x) =>
         complex += x.size

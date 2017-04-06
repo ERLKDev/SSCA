@@ -3,31 +3,17 @@
   */
 object Test {
   def test(): Unit = {
-    println("hoi")
-    for( a <- 1 to 10){
-      println( "Value of a: " + a )
-    }
-    // Test comment
-    val l = List(1, 2, 3)
+    print("hoi")
+    a()
 
-    l match {
-      case Nil =>
-
-      case x::tail =>
-        println(x)
-    }
-    /* enkel deze */
-    if (true) {
-
-    }else if(false) {
+    if(true) {
 
     }
+  }
 
-    /* double
-    * line */
-    while (true) {
 
-    }
+  def a(): Unit ={
+    val a = 5 + 6
   }
 }
 
