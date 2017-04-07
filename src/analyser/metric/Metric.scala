@@ -1,6 +1,7 @@
 package analyser.metric
 
 import analyser.Compiler.CompilerProvider
+import analyser.context.ProjectContext
 import analyser.util.TreeUtil
 
 /**
@@ -8,19 +9,17 @@ import analyser.util.TreeUtil
   */
 trait Metric extends CompilerProvider with TreeUtil{
   import global._
-  var projectTree : Array[Tree] = _
-  var projectCode : List[String]  = _
+  var projectContext : ProjectContext  = projectContext
 
-  def init(projectTree: Array[Tree], projectCode: List[String]): Unit = {
-    this.projectTree = projectTree
-    this.projectCode = projectCode
+  def init(projectContext: ProjectContext): Unit = {
+    this.projectContext = projectContext
   }
 
-  def getProjectTree: Array[global.Tree] = {
-    projectTree
+  def getProjectTree: Array[Tree] = {
+    projectContext.getProjectTree.asInstanceOf[Array[Tree]]
   }
 
   def getProjectCode: List[String] = {
-    projectCode
+    projectContext.getProjectCode
   }
 }

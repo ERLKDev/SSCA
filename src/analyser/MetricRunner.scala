@@ -1,6 +1,7 @@
 package analyser
 
 import analyser.Compiler.CompilerProvider
+import analyser.context.ProjectContext
 import analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import analyser.result._
 import analyser.util.TreeUtil
@@ -13,7 +14,7 @@ import scala.collection.mutable.ListBuffer
 class MetricRunner extends CompilerProvider with TreeUtil{
   import global._
 
-  def run(metrics : List[Metric], tree: Array[Tree], projectTree : Array[global.Tree]): Result ={
+  def run(metrics : List[Metric], tree: Array[Tree], projectContext: ProjectContext): Result ={
     def traverse(tree: Tree) : Result = tree match {
       case ModuleDef(_, _, content : Tree) =>
         UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ModuleDef]), traverse(content) :: executeObjectMetrics(metrics, tree))
@@ -63,10 +64,11 @@ class MetricRunner extends CompilerProvider with TreeUtil{
       results.toList
     }
 
+
     /* Init metrics*/
-    metrics.foreach(f => f.init(projectTree.asInstanceOf[Array[f.global.Tree]], getOriginalSourceCode(projectTree)))
+    metrics.foreach(f => f.init(projectContext))
 
     /* Start traversal*/
-    new UnitResult(null, UnitType.Project, "project", tree.foldLeft(List[Result]())((a, b) =>  a ::: List(traverse(b))))
+    UnitResult(null, UnitType.Project, "project", tree.foldLeft(List[Result]())((a, b) =>  a ::: List(traverse(b))))
   }
 }

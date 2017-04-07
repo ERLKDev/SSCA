@@ -17,8 +17,7 @@ object Main extends CompilerProvider {
     //println(showRaw(treeFromFile(a)))
     val result = an.analyse()
     val file =result.getFile("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala")
-
-    file.getFun
+/*    println(result)*/
 
  /*   c.foreach(x => println("\n"  + x))*/
 
