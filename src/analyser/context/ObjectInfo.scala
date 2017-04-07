@@ -17,7 +17,7 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
 
   def init(tree: ClassDef): Unit = {
     pos = getRangePos(tree)
-    name = tree.name.toString
+    name = getName(tree)
     parents = checkExtends(tree)
     isTraitB = tree.symbol.isTrait
     isClassB = !tree.symbol.isTrait
@@ -25,7 +25,7 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
 
   def init(tree: ModuleDef): Unit = {
     pos = getRangePos(tree)
-    name = tree.name.toString
+    name = getName(tree)
     parents = checkExtends(tree)
     isObjectB = true
   }
@@ -51,8 +51,8 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
     case y: TypeTree =>
       y.tpe.toString()
     case Select(_, y) =>
-      y.toString
+      getPackage(x.symbol) + y.toString
     case Ident(y) =>
-      y.toString
+      getPackage(x.symbol) + y.toString
   }
 }

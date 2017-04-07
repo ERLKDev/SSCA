@@ -22,4 +22,6 @@ trait Metric extends CompilerProvider with TreeUtil{
   def getProjectCode: List[String] = {
     projectContext.getProjectCode
   }
+
+  def getContext: ProjectContext = projectContext
 }

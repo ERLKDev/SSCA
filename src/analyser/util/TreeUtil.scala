@@ -15,11 +15,30 @@ import global._
   }
 
   def getName(tree: ModuleDef) : String = {
-    tree.name.toString
+    def recursive(symbol: Symbol) : String = symbol.owner match {
+      case x: PackageClassSymbol =>
+        if (x.isRoot || x.isEmptyPackageClass)
+          ""
+        else
+          recursive(x)+ x.nameString + "."
+      case _ =>
+        ""
+    }
+    recursive(tree.symbol) + tree.name.toString
   }
 
   def getName(tree: ClassDef) : String = {
-    tree.name.toString
+    getPackage(tree.symbol) + tree.name.toString
+  }
+
+  def getPackage(symbol: Symbol) : String = symbol.owner match {
+    case x: PackageClassSymbol =>
+      if (x.isRoot || x.isEmptyPackageClass)
+        ""
+      else
+        getPackage(x)+ x.nameString + "."
+    case _ =>
+      ""
   }
 
   def getPosition(tree : Tree): Position = {

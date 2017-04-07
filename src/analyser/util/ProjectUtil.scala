@@ -20,7 +20,13 @@ trait ProjectUtil extends CompilerProvider {
   }
 
   def getProjectTree(projectPath: String): Array[Tree] = {
-    getProjectFiles(projectPath).foldLeft(Array[Tree]())((a, f) => a :+ treeFromFile(f.getAbsolutePath))
+    getProjectFiles(projectPath).foldLeft(Array[Tree]()){
+      (a, f) =>
+        val tree = treeFromFile(f.getAbsolutePath)
+        if (tree == null)
+          return a
+        a :+ tree
+    }
   }
 
 }

@@ -3,6 +3,7 @@ package analyser
 import java.io.File
 
 import analyser.Compiler.CompilerProvider
+import analyser.context.ProjectContext
 import analyser.metric.Metric
 import analyser.result.{MetricResult, Result}
 import analyser.util.ProjectUtil
@@ -16,7 +17,7 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
   val projectFiles: Array[File] = getProjectFiles(projectPath)
   val projectTree: Array[global.Tree] = getProjectTree(projectPath)
   val metricRunner = new MetricRunner
-  val projectContext = PreRunner.run(projectTree.asInstanceOf[Array[PreRunner.global.Tree]])
+  val projectContext: ProjectContext = PreRunner.run(projectTree.asInstanceOf[Array[PreRunner.global.Tree]])
 
   def getProjectTree: Array[Tree] = projectTree
 

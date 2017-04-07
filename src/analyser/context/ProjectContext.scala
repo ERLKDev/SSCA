@@ -39,4 +39,15 @@ class ProjectContext extends CompilerProvider{
     func.init(tree.asInstanceOf[func.global.DefDef])
     functions = functions ::: List(func)
   }
+
+  def getObjectByName(name: String) : ObjectInfo = {
+    def recursive(objects: List[ObjectInfo]) : ObjectInfo = objects match {
+      case Nil =>
+        null
+      case x::tail =>
+        if (x.getName.equals(name)) x else recursive(tail)
+    }
+
+    recursive(objects)
+  }
 }

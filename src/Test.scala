@@ -1,7 +1,7 @@
 /**
   * Created by Erik on 4-4-2017.
   */
-object Test {
+object Test{
   def test(): Unit = {
     print("hoi")
     a()
