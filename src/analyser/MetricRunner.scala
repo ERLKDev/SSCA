@@ -14,13 +14,22 @@ import scala.collection.mutable.ListBuffer
 class MetricRunner extends CompilerProvider with TreeUtil{
   import global._
 
-  def run(metrics : List[Metric], tree: Array[Tree], projectContext: ProjectContext): Result ={
+  def run(metrics : List[Metric], trees: Array[Tree], projectContext: ProjectContext): Result ={
     def traverse(tree: Tree) : Result = tree match {
       case ModuleDef(_, _, content : Tree) =>
+        if(tree.symbol.isAnonymousClass){
+          return tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
+        }
         UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ModuleDef]), traverse(content) :: executeObjectMetrics(metrics, tree))
       case ClassDef(_, _, _, impl) =>
+        if(tree.symbol.isAnonymousClass){
+          return tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
+        }
         UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ClassDef]), traverse(impl) :: executeObjectMetrics(metrics, tree))
       case DefDef(_, _, _, _, tpt, rhs) =>
+        if(tree.symbol.isAnonymousFunction){
+          return tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
+        }
         UnitResult(getRangePos(tree), UnitType.Function, getName(tree.asInstanceOf[DefDef]), traverse(tpt) :: traverse(rhs) :: executeFunctionMetrics(metrics, tree))
       case x: PackageDef =>
         UnitResult(getRangePos(tree), UnitType.File, x.pos.source.path, tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b))).getList)
@@ -37,10 +46,10 @@ class MetricRunner extends CompilerProvider with TreeUtil{
       metrics.foreach {
         case x: ObjectMetric =>
           tree match {
-            case tree: ModuleDef =>
-              results ++= x.run(tree.asInstanceOf[x.global.ModuleDef], code)
-            case tree: ClassDef =>
-              results ++= x.run(tree.asInstanceOf[x.global.ClassDef], code)
+            case y: ModuleDef =>
+              results ++= x.run(y.asInstanceOf[x.global.ModuleDef], code)
+            case y: ClassDef =>
+              results ++= x.run(y.asInstanceOf[x.global.ClassDef], code)
           }
         case _ =>
 
@@ -69,6 +78,6 @@ class MetricRunner extends CompilerProvider with TreeUtil{
     metrics.foreach(f => f.init(projectContext))
 
     /* Start traversal*/
-    UnitResult(null, UnitType.Project, "project", tree.foldLeft(List[Result]())((a, b) =>  a ::: List(traverse(b))))
+    UnitResult(null, UnitType.Project, "project", trees.foldLeft(List[Result]())((a, b) =>  a ::: List(traverse(b))))
   }
 }

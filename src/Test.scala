@@ -1,19 +1,8 @@
+import scala.collection.AbstractSeq
+
 /**
   * Created by Erik on 4-4-2017.
   */
-object Test{
-  def test(): Unit = {
-    print("hoi")
-    a()
+class Test extends Enumeration{
 
-    if(true) {
-
-    }
-  }
-
-
-  def a(): Unit ={
-    val a = 5 + 6
-  }
 }
-

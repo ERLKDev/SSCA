@@ -9,7 +9,7 @@ import analyser.util.TreeUtil
 class ObjectInfo extends CompilerProvider with TreeUtil{
   import global._
   private var name: String = _
-  private var parents: List[String] = _
+  private var parents: List[Tree] = _
   private var pos: Position = _
   private var isTraitB: Boolean = false
   private var isObjectB: Boolean = false
@@ -18,7 +18,7 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
   def init(tree: ClassDef): Unit = {
     pos = getRangePos(tree)
     name = getName(tree)
-    parents = checkExtends(tree)
+    parents = tree.impl.parents
     isTraitB = tree.symbol.isTrait
     isClassB = !tree.symbol.isTrait
   }
@@ -26,33 +26,34 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
   def init(tree: ModuleDef): Unit = {
     pos = getRangePos(tree)
     name = getName(tree)
-    parents = checkExtends(tree)
+    parents = tree.impl.parents
     isObjectB = true
   }
 
   def getPos: Position = pos
   def getName: String = name
-  def getParents: List[String] = parents
+  def getParents: List[Tree] = parents
   def isTrait: Boolean = isTraitB
   def isObject: Boolean = isObjectB
   def isClass: Boolean = isClassB
+  def DIT: Int = countInherDepth()
 
 
-
-  private def checkExtends(tree: ClassDef): List[String] = {
-    tree.impl.parents.foldLeft(List[String]())((a,b) => getParent(b) :: a)
-  }
-
-  private def checkExtends(tree: ModuleDef): List[String] = {
-    tree.impl.parents.foldLeft(List[String]())((a,b) => getParent(b) :: a)
-  }
-
-  private def getParent(x: Tree) : String = x match {
-    case y: TypeTree =>
-      y.tpe.toString()
-    case Select(_, y) =>
-      getPackage(x.symbol) + y.toString
-    case Ident(y) =>
-      getPackage(x.symbol) + y.toString
+  private def countInherDepth() : Int = {
+    def recursive(x: Symbol) : Int = {
+      x.parentSymbols.foldLeft(0){ (a, b) =>
+        if (b.isClass && !b.isTraitOrInterface) {
+          recursive(b) + 1
+        }else
+          a
+      }
+    }
+    parents.foldLeft(1){
+      (a, b) =>
+        if (b.symbol.isClass && !b.symbol.isTraitOrInterface) {
+          recursive(b.symbol)
+        }else
+          a
+    }
   }
 }

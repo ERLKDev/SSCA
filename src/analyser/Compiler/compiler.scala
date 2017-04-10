@@ -46,7 +46,6 @@ trait CompilerHelper {
   def treeFromFile(file: String): global.Tree = {
     val code = AbstractFile.getFile(file)
     val bfs = new util.BatchSourceFile(code, code.toCharArray)
-    println(file)
     treeFromFile(bfs)
   }
 }

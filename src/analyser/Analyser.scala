@@ -17,16 +17,22 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
   val projectFiles: Array[File] = getProjectFiles(projectPath)
   val projectTree: Array[global.Tree] = getProjectTree(projectPath)
   val metricRunner = new MetricRunner
+
   val projectContext: ProjectContext = PreRunner.run(projectTree.asInstanceOf[Array[PreRunner.global.Tree]])
+
 
   def getProjectTree: Array[Tree] = projectTree
 
   def analyse(path: String): Result = {
-    metricRunner.run(metrics, Array(treeFromFile(path).asInstanceOf[metricRunner.global.Tree]), projectContext)
+    global.ask { () =>
+      metricRunner.run(metrics, Array(treeFromFile(path).asInstanceOf[metricRunner.global.Tree]), projectContext)
+    }
   }
 
   def analyse(): Result  = {
-    metricRunner.run(metrics, projectTree.asInstanceOf[Array[metricRunner.global.Tree]], projectContext)
+    global.ask { () =>
+      metricRunner.run(metrics, projectTree.asInstanceOf[Array[metricRunner.global.Tree]], projectContext)
+    }
   }
 }
 
