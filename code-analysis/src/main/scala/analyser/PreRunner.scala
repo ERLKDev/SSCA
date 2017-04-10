@@ -14,26 +14,28 @@ object PreRunner extends CompilerProvider with TreeUtil{
     val projectContext = new ProjectContext
 
     global.ask { () =>
-      projectContext.init(trees.asInstanceOf[Array[projectContext.global.Tree]], getOriginalSourceCode(trees))
-
-      def recursive(tree: Tree): Unit = tree match {
+      def recursiveInit(tree: Tree): Unit = tree match {
         case x: ModuleDef =>
           if (!x.symbol.isAnonymousClass)
             projectContext.addObjectInfo(x.asInstanceOf[projectContext.global.ModuleDef])
-          tree.children.foreach(recursive)
+          tree.children.foreach(recursiveInit)
         case x: ClassDef =>
           if (!x.symbol.isAnonymousClass)
             projectContext.addObjectInfo(x.asInstanceOf[projectContext.global.ClassDef])
-          tree.children.foreach(recursive)
+          tree.children.foreach(recursiveInit)
         case x: DefDef =>
           if (!x.symbol.isAnonymousFunction)
             projectContext.addFunctionInfo(x.asInstanceOf[projectContext.global.DefDef])
-          tree.children.foreach(recursive)
+          tree.children.foreach(recursiveInit)
         case _ =>
-          tree.children.foreach(recursive)
+          tree.children.foreach(recursiveInit)
       }
-      trees.foreach(recursive)
+
+      projectContext.init(trees.asInstanceOf[Array[projectContext.global.Tree]], getOriginalSourceCode(trees))
+      trees.foreach(recursiveInit)
+
     }
     projectContext
   }
+
 }
