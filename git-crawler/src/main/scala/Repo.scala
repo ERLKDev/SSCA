@@ -1,67 +1,68 @@
 package main.scala
 
-import dispatch.github.{GhCommit, GhCommitSummary, GhIssue, GhIssueSummary}
+import dispatch.github.{GhCommit, GhCommitSummary, GhIssue}
 
 /**
   * Created by ErikL on 4/11/2017.
   */
-class Repo(userName: String, repoName: String, token: String) {
+class Repo(userName: String, repoName: String, token: String, labels: List[String]) {
 
   val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token)
 
-  lazy val issueCommits: List[Commit] = getIssueCommits
-  lazy val issuesNumbers: List[Int] = getIssueNumbers
+  val commits: List[Commit] = getCommits
+  val issues: List[Issue] = getIssues
+  val faults: List[Fault] = getFaults
 
-  private def getIssueCommits: List[Commit] = {
+  private def getCommits: List[Commit] = {
     def recursive(page: Int) : List[Commit] = {
       val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token))()
-      val commits = commitsRes.foldLeft(List[Commit]()){
-        (a, b) =>
-          if (isIssue(b))
-            a ::: List(new Commit(b, getIssueNumbers(b), repoInfo))
-          else
-            a
-      }
-      if (commits.nonEmpty)
-        commits ::: recursive(page + 1)
-      else
+      val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, repoInfo)))
+      if (commits.isEmpty)
         commits
+      else
+        commits ::: recursive(page + 1)
     }
     recursive(1)
   }
 
-  private def isIssue(commitSummary: GhCommitSummary) : Boolean = {
+  private def getIssues: List[Issue] = {
+    def recursive(page: Int, label: String) : List[Issue] = {
+      val issuesRes = GhIssue.get_issues(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label))()
+      val issues = issuesRes.foldLeft(List[Issue]())((a, b) => a ::: List(new Issue(b)))
+      if (issues.isEmpty)
+        issues
+      else
+        issues ::: recursive(page + 1, label)
+    }
+
+    labels.foldLeft(List[Issue]())((a,b) => a ::: recursive(1, b))
+  }
+
+  private def getFaults: List[Fault] = {
+    commits.filter(isIssue).foldLeft(List[Fault]())((a, b) => a ::: List(new Fault(b, getIssues(b))))
+  }
+
+
+  private def isIssue(commit: Commit) : Boolean = {
     val pattern = """(?i)(clos(e[sd]?|ing)|fix(e[sd]|ing)?|resolv(e[sd]?)|#(\d+))""".r
 
-    if ((pattern findAllIn commitSummary.commit.message).isEmpty)
+    if ((pattern findAllIn commit.message).isEmpty)
       return false
 
-    if (getIssueNumbers(commitSummary).isEmpty)
+    if (getIssues(commit).isEmpty)
       return false
     true
   }
 
-  private def getIssueNumbers(commitSummary: GhCommitSummary) : List[Int] = {
-    val pattern2 = """#(\d+)""".r
-    val possibleNumbers = pattern2 findAllIn commitSummary.commit.message
+  private def getIssues(commit: Commit) : List[Issue] = {
+    val pattern = """#(\d+)""".r
+    val possibleNumbers = pattern findAllIn commit.message
+
     if (possibleNumbers.isEmpty)
-      return List[Int]()
-    val ints = possibleNumbers.matchData.map(x => x.group(1).toInt).toList
-    val b = ints.filter(x => issuesNumbers.contains(x))
-    val c = issuesNumbers.contains(ints(0))
-    b
-  }
+      return List[Issue]()
 
-  private def getIssueNumbers: List[Int] = {
-    def recursive(page: Int, label: String) : List[Int] = {
-      val issuesRes = GhIssue.get_issues(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label))()
-      val issueNumbers = issuesRes.foldLeft(List[Int]())((a, b) => a ::: List(b.number))
-      if (issueNumbers.nonEmpty)
-        issueNumbers ::: recursive(page + 1, label)
-      else
-        issueNumbers
-    }
-    recursive(1, "bug") ::: recursive(1, "failed") ::: recursive(1, "needs-attention")
-  }
+    val numbers = possibleNumbers.matchData.map(x => x.group(1).toInt).toList
 
+    issues.filter(x => numbers contains x.number)
+  }
 }
