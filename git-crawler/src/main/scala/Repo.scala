@@ -90,6 +90,6 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
 
 
   def checkoutPreviousCommit(commit: Commit): Unit = {
-    git.checkout.setName(commit.commitData.parents.head.sha)
+    git.checkout.setName(commit.commitData.parents.head.sha).call
   }
 }
