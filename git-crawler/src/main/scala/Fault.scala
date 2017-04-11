@@ -5,5 +5,5 @@ package main.scala
 class Fault(commitV: Commit, issuesV: List[Issue]) {
 
   val commit: Commit = commitV
-  def issues: List[Issue] = issuesV
+  val issues: List[Issue] = issuesV
 }
