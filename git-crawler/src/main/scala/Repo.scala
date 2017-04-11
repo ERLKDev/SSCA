@@ -85,7 +85,6 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
 
   def checkoutCommit(commit: Commit): Unit = {
     git.checkout.setName(commit.sha).call
-    println(commit.sha)
   }
 
 
