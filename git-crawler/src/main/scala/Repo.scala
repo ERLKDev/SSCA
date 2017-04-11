@@ -4,6 +4,7 @@ import java.io.File
 
 import dispatch.github.{GhCommit, GhIssue}
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.util.FileUtils
 
 /**
   * Created by ErikL on 4/11/2017.
@@ -11,7 +12,7 @@ import org.eclipse.jgit.api.Git
 class Repo(userName: String, repoName: String, token: String, labels: List[String], repoPath: String) {
 
   val debug = true
-  val debugTreshhold = 10
+  val debugTreshhold = 5
 
   val git: Git = initGitRepo
   val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token)
@@ -91,4 +92,5 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   def checkoutPreviousCommit(commit: Commit): Unit = {
     git.checkout.setName(commit.commitData.parents.head.sha).call
   }
+
 }

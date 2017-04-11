@@ -10,31 +10,8 @@ object Main {
   implicit val formats = net.liftweb.json.DefaultFormats
   def main(args: Array[String]): Unit = {
 
-    val repo = new Repo("akka", "akka", "aa5065d38b6ea9e9865b176920b315ba9e63250f", List("bug", "failed", "needs-attention "), "test")
-/*
-    val repo = new Repo("akka", "akka", "aa5065d38b6ea9e9865b176920b315ba9e63250f", List("bug", "failed", "needs-attention "))
-    val faults = repo.faults
+    val repo = new Repo("akka", "akka", "aa5065d38b6ea9e9865b176920b315ba9e63250f", List("bug", "failed", "needs-attention "), "tmpGitDir")
 
-    faults.foreach{
-      x =>
-        println(x.commit.commitData.sha)
-    }
-
-*/
-    val f = new File("test")
-    val git = Git.open(f)
-/*    val f = new File("test")
-    val git = Git.cloneRepository()
-      .setURI("git@github.com:akka/akka.git")
-      .setDirectory(f)
-      .call*/
-
-/*    git.fetch.setRemote("git@github.com:akka/akka.git").set.call*/
-/*    git.checkout().
-      setCreateBranch(true).
-      setName("master").
-      setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-      call()*/
     println("checkout 1")
     repo.faults(0).commit
     repo.checkoutCommit(repo.faults(0).commit)
@@ -62,5 +39,6 @@ object Main {
 
 
     println("done getting commits")
+    exit(1)
   }
 }
