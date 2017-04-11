@@ -4,7 +4,6 @@ import java.io.File
 
 import dispatch.github.{GhCommit, GhIssue}
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.util.FileUtils
 
 /**
   * Created by ErikL on 4/11/2017.

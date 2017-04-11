@@ -1,4 +1,6 @@
-import scala.collection.AbstractSeq
+package main.scala
+
+
 
 /**
   * Created by Erik on 4-4-2017.

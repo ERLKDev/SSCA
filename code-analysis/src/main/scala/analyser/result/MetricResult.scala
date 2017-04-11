@@ -1,8 +1,8 @@
-package analyser.result
+package main.scala.analyser.result
 
 
 
-import analyser.result.UnitType.UnitType
+import main.scala.analyser.result.UnitType.UnitType
 
 import scala.reflect.internal.util.RangePosition
 

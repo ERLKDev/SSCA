@@ -1,6 +1,6 @@
-package analyser.util
+package main.scala.analyser.util
 
-import analyser.Compiler.CompilerProvider
+import main.scala.analyser.Compiler.CompilerProvider
 
 import scala.reflect.internal.util.RangePosition
 

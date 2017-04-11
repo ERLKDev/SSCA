@@ -1,7 +1,7 @@
-package metrics
+package main.scala.metrics
 
-import analyser.metric.FunctionMetric
-import analyser.result.{MetricResult, UnitResult, UnitType}
+import main.scala.analyser.metric.FunctionMetric
+import main.scala.analyser.result.{MetricResult, UnitResult, UnitType}
 
 /**
   * Created by ErikL on 4/6/2017.

@@ -1,13 +1,13 @@
-import analyser.Compiler.CompilerProvider
-import analyser.util.TreeUtil
-import analyser.{Analyser, MetricRunner}
-import metrics._
+package main.scala
+
+import main.scala.analyser.Analyser
+import main.scala.analyser.Compiler.CompilerProvider
+import main.scala.metrics._
 
 /**
   * Created by Erik on 5-4-2017.
   */
 object Main extends CompilerProvider {
-  import global._
   def main (args: Array[String] ): Unit = {
     //val a = "C:\\Users\\ErikL\\IdeaProjects\\ScalaCodeProjects\\akka"
 

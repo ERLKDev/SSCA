@@ -1,4 +1,4 @@
-package analyser.Compiler
+package main.scala.analyser.Compiler
 
 import scala.reflect.internal.util.{Position, SourceFile}
 import scala.tools.nsc.{Settings, util}

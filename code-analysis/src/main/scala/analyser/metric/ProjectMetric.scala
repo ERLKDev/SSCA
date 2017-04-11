@@ -1,4 +1,4 @@
-package analyser.metric
+package main.scala.analyser.metric
 
 
 /**

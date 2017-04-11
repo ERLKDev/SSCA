@@ -1,8 +1,8 @@
-package metrics
+package main.scala.metrics
 
-import Utils.ComplexUtil
-import analyser.metric.{FunctionMetric, ObjectMetric}
-import analyser.result.{MetricResult, UnitType}
+import main.scala.Utils.ComplexUtil
+import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
+import main.scala.analyser.result.{MetricResult, UnitType}
 
 /**
   * Created by ErikL on 4/6/2017.

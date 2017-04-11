@@ -1,6 +1,6 @@
-package Utils
+package main.scala.Utils
 
-import analyser.Compiler.CompilerProvider
+import main.scala.analyser.Compiler.CompilerProvider
 
 /**
   * Created by ErikL on 4/6/2017.

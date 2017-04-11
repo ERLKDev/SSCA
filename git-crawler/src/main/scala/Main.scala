@@ -1,13 +1,12 @@
 import java.io.File
 
 import main.scala.Repo
-import org.eclipse.jgit.api.{CreateBranchCommand, Git}
-import org.eclipse.jgit.lib.Constants
 /**
   * Created by ErikL on 4/11/2017.
   */
 object Main {
   implicit val formats = net.liftweb.json.DefaultFormats
+
   def main(args: Array[String]): Unit = {
 
     val repo = new Repo("akka", "akka", "aa5065d38b6ea9e9865b176920b315ba9e63250f", List("bug", "failed", "needs-attention "), "tmpGitDir")
@@ -39,6 +38,5 @@ object Main {
 
 
     println("done getting commits")
-    exit(1)
   }
 }

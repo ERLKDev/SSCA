@@ -1,4 +1,4 @@
-package Utils
+package main.scala.Utils
 
 /**
   * Created by Erik on 5-4-2017.

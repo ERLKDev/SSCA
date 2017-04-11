@@ -1,10 +1,10 @@
-package analyser
+package main.scala.analyser
 
-import analyser.Compiler.CompilerProvider
-import analyser.context.ProjectContext
-import analyser.metric.{FunctionMetric, Metric, ObjectMetric}
-import analyser.result._
-import analyser.util.TreeUtil
+import main.scala.analyser.Compiler.CompilerProvider
+import main.scala.analyser.context.ProjectContext
+import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
+import main.scala.analyser.result._
+import main.scala.analyser.util.TreeUtil
 
 import scala.collection.mutable.ListBuffer
 
@@ -74,7 +74,7 @@ class MetricRunner extends CompilerProvider with TreeUtil{
     }
 
 
-    /* Init metrics*/
+    /* Init main.scala.metrics*/
     metrics.foreach(f => f.init(projectContext))
 
     /* Start traversal*/

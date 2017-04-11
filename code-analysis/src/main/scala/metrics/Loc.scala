@@ -1,9 +1,9 @@
-package metrics
+package main.scala.metrics
 
-import Utils.SourceCodeUtil
-import analyser.metric.{FunctionMetric, ObjectMetric, ProjectMetric}
-import analyser.result.UnitType.UnitType
-import analyser.result.{MetricResult, UnitType}
+import main.scala.Utils.SourceCodeUtil
+import main.scala.analyser.metric.{FunctionMetric, ObjectMetric, ProjectMetric}
+import main.scala.analyser.result.UnitType.UnitType
+import main.scala.analyser.result.{MetricResult, UnitType}
 
 
 /**

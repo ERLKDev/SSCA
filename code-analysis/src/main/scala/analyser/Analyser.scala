@@ -1,13 +1,13 @@
-package analyser
+package main.scala.analyser
 
 import java.io.File
 
-import analyser.Compiler.CompilerProvider
-import analyser.context.ProjectContext
-import analyser.metric.Metric
-import analyser.result.{MetricResult, Result}
-import analyser.util.ProjectUtil
-import metrics.{Complex, Loc}
+import main.scala.analyser.Compiler.CompilerProvider
+import main.scala.analyser.context.ProjectContext
+import main.scala.analyser.metric.Metric
+import main.scala.analyser.result.{MetricResult, Result}
+import main.scala.analyser.util.ProjectUtil
+import main.scala.metrics.{Complex, Loc}
 
 /**
   * Created by Erik on 5-4-2017.

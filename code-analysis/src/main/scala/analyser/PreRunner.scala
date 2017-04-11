@@ -1,8 +1,8 @@
-package analyser
+package main.scala.analyser
 
-import analyser.Compiler.CompilerProvider
-import analyser.context.ProjectContext
-import analyser.util.TreeUtil
+import main.scala.analyser.Compiler.CompilerProvider
+import main.scala.analyser.context.ProjectContext
+import main.scala.analyser.util.TreeUtil
 
 /**
   * Created by ErikL on 4/7/2017.

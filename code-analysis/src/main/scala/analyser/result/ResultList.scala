@@ -1,4 +1,4 @@
-package analyser.result
+package main.scala.analyser.result
 
 /**
   * Created by ErikL on 4/6/2017.

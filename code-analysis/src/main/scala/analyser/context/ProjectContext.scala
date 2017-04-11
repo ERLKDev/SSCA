@@ -1,6 +1,6 @@
-package analyser.context
+package main.scala.analyser.context
 
-import analyser.Compiler.CompilerProvider
+import main.scala.analyser.Compiler.CompilerProvider
 
 /**
   * Created by ErikL on 4/7/2017.

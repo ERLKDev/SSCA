@@ -1,7 +1,7 @@
-package analyser.result
+package main.scala.analyser.result
 
-import analyser.result.UnitType.UnitType
-import analyser.util.ResultUtil
+import main.scala.analyser.result.UnitType.UnitType
+import main.scala.analyser.util.ResultUtil
 
 import scala.reflect.internal.util.{Position, RangePosition}
 

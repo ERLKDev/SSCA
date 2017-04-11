@@ -1,8 +1,8 @@
-package analyser.util
+package main.scala.analyser.util
 
 import java.io.File
 
-import analyser.Compiler.CompilerProvider
+import main.scala.analyser.Compiler.CompilerProvider
 /**
   * Created by Erik on 5-4-2017.
   */

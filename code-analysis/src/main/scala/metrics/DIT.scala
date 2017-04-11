@@ -1,8 +1,8 @@
-package metrics
+package main.scala.metrics
 
-import analyser.metric.ObjectMetric
-import analyser.result.{MetricResult, UnitType}
-import analyser.util.TreeUtil
+import main.scala.analyser.metric.ObjectMetric
+import main.scala.analyser.result.{MetricResult, UnitType}
+import main.scala.analyser.util.TreeUtil
 
 /**
   * Created by ErikL on 4/7/2017.

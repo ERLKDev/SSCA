@@ -1,4 +1,4 @@
-package analyser.util
+package main.scala.analyser.util
 
 import scala.reflect.internal.util.RangePosition
 import scala.tools.nsc.io.AbstractFile
