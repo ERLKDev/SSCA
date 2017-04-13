@@ -31,8 +31,8 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
     val cd = (codeWithComments.size - codeWithoutComments.size).asInstanceOf[Double] / codeWithComments.size
     List(
       MetricResult(getRangePos(tree), uType, name, "loc", codeWithComments.size),
-      MetricResult(getRangePos(tree), uType, name, "sloc", codeWithoutComments.size),
-      MetricResult(getRangePos(tree), uType, name, "cd", cd))
+      MetricResult(getRangePos(tree), uType, name, "sloc", codeWithoutComments.size), //TODO fix sloc
+      MetricResult(getRangePos(tree), uType, name, "cd", cd)) //TODO fix cd
   }
 
 }

@@ -1,11 +1,13 @@
 package main.scala.analyser.context
 
+import java.io.File
+
 import main.scala.analyser.Compiler.CompilerProvider
 
 /**
   * Created by ErikL on 4/7/2017.
   */
-class ProjectContext extends CompilerProvider{
+class ProjectContext(files: List[File]) extends CompilerProvider{
   import global._
 
   var tree: Array[Tree] = _
@@ -15,6 +17,8 @@ class ProjectContext extends CompilerProvider{
   def init(tree: Array[Tree]): Unit = {
     this.tree = tree
   }
+
+  def getFiles : List[File] = files
 
   def getProjectTree: Array[Tree] = tree
 

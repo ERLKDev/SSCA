@@ -3,7 +3,7 @@ package main.scala
 import java.io.File
 
 import dispatch.github.{GhCommit, GhIssue}
-import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.{Git, ResetCommand}
 
 /**
   * Created by ErikL on 4/11/2017.
@@ -88,11 +88,13 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
 
 
   def checkoutCommit(commit: Commit): Unit = {
+    git.reset().setMode(ResetCommand.ResetType.HARD).call
     git.checkout.setName(commit.sha).call
   }
 
 
   def checkoutPreviousCommit(commit: Commit): Unit = {
+    git.reset().setMode(ResetCommand.ResetType.HARD).call
     git.checkout.setName(commit.commitData.parents.head.sha).setForce(true).call
   }
 

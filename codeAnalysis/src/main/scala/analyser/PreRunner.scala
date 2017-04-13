@@ -11,7 +11,7 @@ object PreRunner extends CompilerProvider with TreeUtil{
   import global._
 
   def run(trees: Array[Tree]) : ProjectContext = {
-    val projectContext = new ProjectContext
+    val projectContext = new ProjectContext(null)
 
     global.ask { () =>
       def recursiveInit(tree: Tree): Unit = tree match {

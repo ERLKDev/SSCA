@@ -14,6 +14,12 @@ object Main {
     val an = new Analyser("..\\tmpGitDir", metrics)
     println("Done init analyser")
 
+    /*
+
+     deze
+     */
+
+    //dezewel
     repo.faults.foreach{
       x =>
         repo.checkoutPreviousCommit(x.commit)

@@ -1,15 +1,30 @@
 package main.scala.Utils
 
+import java.io.File
+
 /**
   * Created by Erik on 5-4-2017.
   */
 trait SourceCodeUtil {
+  def linesToString(code: List[String]) : String = {
+    code.foldLeft("")((a, b) => a + b + "\n")
+  }
+
+  def stringToLines(code: String) : List[String] = {
+    code.toString.split("\n").toList
+  }
+
   def removeWhiteLines(code: List[String]): List[String] = {
-    code.filter(s => !"""(?m)^\s+$""".r.pattern.matcher(s).matches())
+    val a = code.filter(s => ("""^\s*$""".r findFirstIn s).isEmpty)
+    a
   }
 
   def removeComments(code: List[String]): List[String] = {
-    val newcode = code.filter(s => !"""(.*\/\*(.|\n)*?\*\/)""".r.pattern.matcher(s).matches())
-    removeWhiteLines(newcode)
+    val codeWMC = stringToLines("""\/\*([\s\S]*?)\*\/""".r.replaceAllIn(linesToString(code), ""))
+    removeWhiteLines(codeWMC.filter(s =>("""^((\s)*\/\/.*)""".r findFirstIn s).isEmpty))
+  }
+
+  def getFilesOccurrence(files: List[File], search: String): List[File] = {
+    files.filter(x => (search.r findFirstIn scala.io.Source.fromFile(x).mkString).nonEmpty)
   }
 }

@@ -7,7 +7,6 @@ import main.scala.analyser.Compiler.CompilerProvider
   * Created by Erik on 5-4-2017.
   */
 trait ProjectUtil extends CompilerProvider {
-  import global._
 
   def getProjectFiles(projectPath: String): Array[File] = {
     def listFiles(f: File): Array[File] = {

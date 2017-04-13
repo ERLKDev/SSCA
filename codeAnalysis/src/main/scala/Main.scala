@@ -9,12 +9,12 @@ import main.scala.metrics._
   */
 object Main extends CompilerProvider {
   def main (args: Array[String] ): Unit = {
-    //val a = "C:\\Users\\ErikL\\IdeaProjects\\ScalaCodeProjects\\akka"
+    val a = "C:\\Users\\Erik\\IdeaProjects\\SSCA\\src\\main\\scala\\Main.scala"
 
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val an = new Analyser("C:\\Users\\Erik\\IdeaProjects\\SSCA", metrics)
 
-    val result = an.analyse()
+    val result = an.analyse(a)
 
 
 /*    val file =result.getFile("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala")*/

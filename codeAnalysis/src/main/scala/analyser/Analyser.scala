@@ -26,13 +26,13 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
   def analyse(path: String): Result = {
     global.ask { () =>
       val a = new File(path)
-      metricRunner.run(metrics, List(a), null)
+      metricRunner.run(metrics, List(a), new ProjectContext(projectFiles))
     }
   }
 
   def analyse(): Result  = {
     global.ask { () =>
-      metricRunner.run(metrics, projectFiles, null)
+      metricRunner.run(metrics, projectFiles, new ProjectContext(projectFiles))
     }
   }
 }
