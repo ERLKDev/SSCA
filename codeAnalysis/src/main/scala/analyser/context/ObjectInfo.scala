@@ -42,7 +42,7 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
   private def countInherDepth() : Int = {
     def recursive(x: Symbol) : Int = {
       x.parentSymbols.foldLeft(0){ (a, b) =>
-        if (b.isClass && !b.isTraitOrInterface) {
+        if (b.isClass && !b.isTrait) {
           recursive(b) + 1
         }else
           a
@@ -50,7 +50,7 @@ class ObjectInfo extends CompilerProvider with TreeUtil{
     }
     parents.foldLeft(1){
       (a, b) =>
-        if (b.symbol.isClass && !b.symbol.isTraitOrInterface) {
+        if (b.symbol.isClass && !b.symbol.isTrait) {
           recursive(b.symbol)
         }else
           a

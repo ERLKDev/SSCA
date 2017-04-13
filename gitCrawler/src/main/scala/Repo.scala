@@ -22,7 +22,9 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
 
 
   private def initGitRepo: Git = {
-    Git.cloneRepository().setURI("git@github.com:" + userName + "/" + repoName + ".git").setDirectory(new File(repoPath)).call
+    Git.open(new File(repoPath))
+
+    //Git.cloneRepository().setURI("git@github.com:" + userName + "/" + repoName + ".git").setDirectory(new File(repoPath)).call
   }
 
 

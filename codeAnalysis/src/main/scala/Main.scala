@@ -12,7 +12,7 @@ object Main extends CompilerProvider {
     //val a = "C:\\Users\\ErikL\\IdeaProjects\\ScalaCodeProjects\\akka"
 
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
-    val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\", metrics)
+    val an = new Analyser("C:\\Users\\Erik\\IdeaProjects\\SSCA", metrics)
 
     val result = an.analyse()
 
