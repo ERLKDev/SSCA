@@ -8,5 +8,5 @@ object UnitType extends Enumeration {
   val Object, Function, File, Project = Value
 
 
-  override def toString = s"$Object, $Function, $Project)"
+  override def toString: String= s"$Object, $Function, $Project)"
 }

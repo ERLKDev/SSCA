@@ -23,6 +23,7 @@ object Main {
     repo.faults.foreach{
       x =>
         repo.checkoutPreviousCommit(x.commit)
+        an.refresh()
         x.commit.files.foreach{
           y =>
             println(an.analyse("..\\tmpGitDir\\" + y))

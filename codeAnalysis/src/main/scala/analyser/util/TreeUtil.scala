@@ -24,10 +24,11 @@ import global._
 
   def getPackage(symbol: Symbol) : String = symbol.owner match {
     case x: PackageClassSymbol =>
-      if (x.isRoot || x.isEmptyPackageClass)
+      if (x.isRoot || x.isEmptyPackageClass) {
         ""
-      else
-        getPackage(x)+ x.nameString + "."
+      }else {
+        getPackage(x) + x.nameString + "."
+      }
     case _ =>
       ""
   }
@@ -50,6 +51,7 @@ import global._
     if (pos == null)
       return null
     tree.pos.source.content.array.subSequence(pos.start, pos.end).toString.split("\n").toList
+
   }
 
   def getOriginalSourceCode(tree : Array[Tree]): List[String]  = {

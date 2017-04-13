@@ -41,47 +41,47 @@ class MetricRunner extends CompilerProvider with TreeUtil{
         tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
     }
 
-    def executeObjectMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] ={
-      val code = getOriginalSourceCode(tree)
-      if (code == null)
-        return List[MetricResult]()
-
-      val results = new ListBuffer[MetricResult]
-      metrics.foreach {
-        case x: ObjectMetric =>
-          tree match {
-            case y: ModuleDef =>
-              results ++= x.run(y.asInstanceOf[x.global.ModuleDef], code)
-            case y: ClassDef =>
-              results ++= x.run(y.asInstanceOf[x.global.ClassDef], code)
-          }
-        case _ =>
-
-      }
-      results.toList
-    }
-
-
-    def executeFunctionMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] ={
-      val code = getOriginalSourceCode(tree)
-      if (code == null)
-        return List[MetricResult]()
-
-      val results = new ListBuffer[MetricResult]
-      metrics.foreach {
-        case x: FunctionMetric =>
-          results ++= x.run(tree.asInstanceOf[x.global.DefDef], code)
-        case _ =>
-
-      }
-      results.toList
-    }
-
-
     /* Init main.scala.metrics*/
     metrics.foreach(f => f.init(projectContext))
 
     /* Start traversal*/
     UnitResult(null, UnitType.Project, "project", files.foldLeft(List[Result]())((a, b) =>  a ::: List(traverse(treeFromFile(b)))))
+  }
+
+
+  private def executeObjectMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] ={
+    val code = getOriginalSourceCode(tree)
+    if (code == null)
+      return List[MetricResult]()
+
+    val results = new ListBuffer[MetricResult]
+    metrics.foreach {
+      case x: ObjectMetric =>
+        tree match {
+          case y: ModuleDef =>
+            results ++= x.run(y.asInstanceOf[x.global.ModuleDef], code)
+          case y: ClassDef =>
+            results ++= x.run(y.asInstanceOf[x.global.ClassDef], code)
+        }
+      case _ =>
+
+    }
+    results.toList
+  }
+
+
+  private def executeFunctionMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] ={
+    val code = getOriginalSourceCode(tree)
+    if (code == null)
+      return List[MetricResult]()
+
+    val results = new ListBuffer[MetricResult]
+    metrics.foreach {
+      case x: FunctionMetric =>
+        results ++= x.run(tree.asInstanceOf[x.global.DefDef], code)
+      case _ =>
+
+    }
+    results.toList
   }
 }
