@@ -58,7 +58,80 @@ import global._
     tree.foldLeft(List[String]())((a, b) => a ++ getOriginalSourceCode(b))
   }
 
-  def isTrait(tree: ClassDef): Boolean = {
-    tree.mods.isTrait
+  def isTrait(tree: Tree): Boolean = tree match {
+    case x: ClassDef =>
+      x.mods.isTrait
+    case _ =>
+      false
+  }
+
+  def isClass(tree: Tree): Boolean = tree match  {
+    case x: ModuleDef =>
+      !x.mods.isTrait
+    case _ =>
+      false
+  }
+
+  def isObject(tree: Tree): Boolean = tree match {
+    case _: ModuleDef =>
+      true
+    case _ =>
+      false
+  }
+
+  def isFunction(tree: Tree): Boolean = tree match {
+    case _: DefDef =>
+      true
+    case _ =>
+      false
+  }
+
+  def isAnonymousFunction(tree: Tree): Boolean = tree match {
+    case x: Function =>
+      x.symbol.isAnonymousFunction
+    case _ =>
+      false
+  }
+
+  def isFunctionCall(tree: Tree): Boolean = tree match {
+    case x: Apply =>
+      true
+    case _ =>
+      false
+  }
+
+  def isAssignment(tree: Tree): Boolean = tree match  {
+    case _: Assign =>
+      true
+    case _ =>
+      false
+  }
+
+  def isValDef(tree: Tree): Boolean = tree match  {
+    case x: ValDef =>
+      !x.symbol.isMutable
+    case _ =>
+      false
+  }
+
+  def isVarDef(tree: Tree): Boolean = tree match {
+    case x: ValDef =>
+      x.symbol.isMutable
+    case _ =>
+      false
+  }
+
+  def isVar(tree: Tree): Boolean = tree match {
+    case x: Ident =>
+      x.symbol.isVar
+    case _ =>
+      false
+  }
+
+  def isVal(tree: Tree): Boolean = tree match {
+    case x: Ident =>
+      x.symbol.isVal
+    case _ =>
+      false
   }
 }
