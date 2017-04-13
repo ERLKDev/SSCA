@@ -15,8 +15,7 @@ trait SourceCodeUtil {
   }
 
   def removeWhiteLines(code: List[String]): List[String] = {
-    val a = code.filter(s => ("""^\s*$""".r findFirstIn s).isEmpty)
-    a
+    code.filter(s => ("""^\s*$""".r findFirstIn s).isEmpty)
   }
 
   def removeComments(code: List[String]): List[String] = {

@@ -18,7 +18,6 @@ class DIT extends ObjectMetric with TreeUtil{
   }
 
 
-  //TODO fix DIT
   def countInheritanceDepth(parents: List[Tree]) : Int = {
     def recursive(x: Symbol) : Int = {
       x.parentSymbols.foldLeft(0){ (a, b) =>
