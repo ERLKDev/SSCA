@@ -5,13 +5,7 @@ class Test {
   val a: List[Int] = List[Int]()
 
   def test(): Unit = {
-    var g = 10 + 5
-    g = 8
-
-    val b = 10
-
-    koe(g)
-    koe(b)
+    a.foreach(koe)
   }
 
   def test2(): Unit = {

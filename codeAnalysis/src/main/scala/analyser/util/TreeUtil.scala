@@ -134,4 +134,11 @@ import global._
     case _ =>
       false
   }
+
+  def isFor(tree: Tree): Boolean = tree match {
+    case x: Apply =>
+      x.fun.symbol.name.toString == "foreach"
+    case _ =>
+      false
+  }
 }
