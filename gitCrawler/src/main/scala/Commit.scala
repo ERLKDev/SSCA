@@ -7,7 +7,7 @@ import dispatch.github.{GhCommit, GhCommitSummary}
   * Created by ErikL on 4/11/2017.
   */
 class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String]) {
-  lazy val commitData: GhCommit = GhCommit.get_commit("akka", "akka", commitSummary.sha, Map[String, String]())()
+  lazy val commitData: GhCommit = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
 
   def message: String = commitSummary.commit.message
   def sha: String = commitSummary.sha

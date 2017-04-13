@@ -1,5 +1,7 @@
 package main.scala.analyser.Compiler
 
+import java.io.File
+
 import scala.reflect.internal.util.{Position, SourceFile}
 import scala.tools.nsc.{Settings, util}
 import scala.tools.nsc.interactive.{Global, Response}
@@ -43,7 +45,16 @@ trait CompilerHelper {
     }
   }
 
-  def treeFromFile(file: String): global.Tree = {
+  def treeFromFile(path: String): global.Tree = {
+    val code = AbstractFile.getFile(path)
+    val bfs = new util.BatchSourceFile(code, code.toCharArray)
+    treeFromFile(bfs)
+  }
+
+  def treeFromFile(file: File): global.Tree = {
+    if (!file.exists())
+     return null
+
     val code = AbstractFile.getFile(file)
     val bfs = new util.BatchSourceFile(code, code.toCharArray)
     treeFromFile(bfs)

@@ -9,17 +9,14 @@ class ProjectContext extends CompilerProvider{
   import global._
 
   var tree: Array[Tree] = _
-  var code: List[String] = _
   var objects: List[ObjectInfo] = List[ObjectInfo]()
   var functions: List[FunctionInfo] = List[FunctionInfo]()
 
-  def init(tree: Array[Tree], code: List[String]): Unit = {
+  def init(tree: Array[Tree]): Unit = {
     this.tree = tree
-    this.code = code
   }
 
   def getProjectTree: Array[Tree] = tree
-  def getProjectCode: List[String] = code
 
   def addObjectInfo(tree: ClassDef): Unit = {
     val obj = new ObjectInfo()

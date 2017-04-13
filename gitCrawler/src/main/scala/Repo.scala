@@ -22,15 +22,17 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
 
 
   private def initGitRepo: Git = {
-    Git.open(new File(repoPath))
-
-    //Git.cloneRepository().setURI("git@github.com:" + userName + "/" + repoName + ".git").setDirectory(new File(repoPath)).call
+    val file = new File(repoPath)
+    if (file.exists())
+      Git.open(file)
+    else
+      Git.cloneRepository().setURI("git@github.com:" + userName + "/" + repoName + ".git").setDirectory(new File(repoPath)).call
   }
 
 
   private def getCommits: List[Commit] = {
     def recursive(page: Int) : List[Commit] = {
-      val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token))()
+      val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100"))()
       val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, repoInfo)))
       if (commits.isEmpty || (debug && page > debugTreshhold))
         commits
@@ -91,7 +93,7 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
 
 
   def checkoutPreviousCommit(commit: Commit): Unit = {
-    git.checkout.setName(commit.commitData.parents.head.sha).call
+    git.checkout.setName(commit.commitData.parents.head.sha).setForce(true).call
   }
 
 }

@@ -10,10 +10,28 @@ import main.scala.analyser.util.TreeUtil
 class DIT extends ObjectMetric with TreeUtil{
   import global._
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
-    List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", getContext.getObjectByName(getName(tree)).DIT))
+    List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
   }
 
   override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
-    List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", getContext.getObjectByName(getName(tree)).DIT))
+    List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
+  }
+
+  def countInheritanceDepth(parents: List[Tree]) : Int = {
+    def recursive(x: Symbol) : Int = {
+      x.parentSymbols.foldLeft(0){ (a, b) =>
+        if (b.isClass && !b.isTrait) {
+          recursive(b) + 1
+        }else
+          a
+      }
+    }
+    parents.foldLeft(1){
+      (a, b) =>
+        if (b.symbol.isClass && !b.symbol.isTrait) {
+          recursive(b.symbol)
+        }else
+          a
+    }
   }
 }

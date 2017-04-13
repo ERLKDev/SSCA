@@ -18,15 +18,4 @@ trait ProjectUtil extends CompilerProvider {
 
     listFiles(new File(projectPath))
   }
-
-  def getProjectTree(projectPath: String): Array[Tree] = {
-    getProjectFiles(projectPath).foldLeft(Array[Tree]()){
-      (a, f) =>
-        val tree = treeFromFile(f.getAbsolutePath)
-        if (tree == null)
-          return a
-        a :+ tree
-    }
-  }
-
 }

@@ -31,8 +31,8 @@ object PreRunner extends CompilerProvider with TreeUtil{
           tree.children.foreach(recursiveInit)
       }
 
-      projectContext.init(trees.asInstanceOf[Array[projectContext.global.Tree]], getOriginalSourceCode(trees))
-      trees.foreach(recursiveInit)
+      projectContext.init(trees.asInstanceOf[Array[projectContext.global.Tree]])
+      //trees.foreach(recursiveInit)
 
     }
     projectContext

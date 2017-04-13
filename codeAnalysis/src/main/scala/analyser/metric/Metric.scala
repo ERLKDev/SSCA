@@ -19,9 +19,5 @@ trait Metric extends CompilerProvider with TreeUtil{
     projectContext.getProjectTree.asInstanceOf[Array[Tree]]
   }
 
-  def getProjectCode: List[String] = {
-    projectContext.getProjectCode
-  }
-
   def getContext: ProjectContext = projectContext
 }
