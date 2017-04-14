@@ -19,7 +19,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
       case null =>
         tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
 
-      case ObjectDefinition(x, _) =>
+      case ObjectDefinition(x, _, _) =>
         UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
 
       case (_: ClassDefinition) | (_: TraitDefinition) | (_: AbstractClassDefinition)=>

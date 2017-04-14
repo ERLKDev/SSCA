@@ -13,7 +13,7 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
   case class TraitDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
   case class ClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
   case class AbstractClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class ObjectDefinition(tree: ModuleDef, name: String) extends AstNode
+  case class ObjectDefinition(tree: ModuleDef, name: String, pack: String) extends AstNode
   case class AnonymousClass(tree: ClassDef) extends AstNode
   case class FunctionDef(tree: DefDef, name: String, owner: String) extends AstNode
   case class AnonymousFunction(tree: DefDef) extends AstNode
@@ -40,10 +40,10 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
       null
 
     case x: ClassDef =>
-      if (isAbstractClass(x))
-        return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
       if (isTrait(x))
         return TraitDefinition(x, getName(x), getObjectPackage(x.symbol))
+      if (isAbstractClass(x))
+        return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
       if (isClass(x))
         return ClassDefinition(x, getName(x), getObjectPackage(x.symbol))
       if (isAnonymousClass(x))
@@ -52,7 +52,7 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
     case x: ModuleDef =>
       if (isObject(x))
-        return ObjectDefinition(x, getName(x))
+        return ObjectDefinition(x, getName(x), getObjectPackage(x.symbol))
       null
 
     case x: DefDef =>

@@ -2,7 +2,7 @@ package main.scala
 
 import main.scala.analyser.Analyser
 import main.scala.analyser.Compiler.CompilerProvider
-import main.scala.metrics._
+import metrics._
 
 /**
   * Created by Erik on 5-4-2017.
@@ -10,9 +10,9 @@ import main.scala.metrics._
 object Main extends CompilerProvider {
   import global._
   def main (args: Array[String] ): Unit = {
-    val a = "C:\\Users\\Erik\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\metrics\\WMC.scala"
+    val a = "C:\\Users\\Erik\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\analyser\\metric\\Metric.scala"
 
-    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
+    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT, new NOC)
     val an = new Analyser("C:\\Users\\Erik\\IdeaProjects\\SSCA", metrics)
 
     println(showRaw(treeFromFile(a)))
