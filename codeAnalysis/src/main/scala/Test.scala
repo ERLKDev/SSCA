@@ -7,13 +7,9 @@ import main.scala.analyser.util.TreeSyntaxUtil
   */
 class Test extends TreeSyntaxUtil {
   def test(): Unit = {
-    val a: AstNode = IfStatement(null)
-
-    a match {
-      case IfStatement(_) =>
-        println("a")
-      case _ =>
-        println("b")
+    for( a <- 1 to 3; b <- 1 to 3){
+      println( "Value of a: " + a );
+      println( "Value of b: " + b );
     }
   }
 }

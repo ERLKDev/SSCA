@@ -11,22 +11,28 @@ trait TreeUtil extends CompilerProvider{
 import global._
 
   def getName(tree: DefDef) : String = {
-    getPackage(tree.symbol) + tree.name.toString
+    tree.name.toString
   }
 
   def getName(tree: ModuleDef) : String = {
-    getPackage(tree.symbol) + tree.name.toString + "$Object"
+    tree.name.toString
   }
 
   def getName(tree: ClassDef) : String = {
-    getPackage(tree.symbol) + tree.name.toString + (if (tree.symbol.isTrait) "$Trait" else "$Class")
+    tree.name.toString
   }
 
-  def getFunctionCallOwner(owner: Symbol) : String = {
+  def getOwner(owner: Symbol) : String = {
     getPackage(owner) + owner.name.toString
   }
 
-  def getPackage(symbol: Symbol) : String = symbol.owner match {
+  def getObjectPackage(symbol: Symbol): String = {
+    val pack = getPackage(symbol)
+    val (result, _) = pack.splitAt(pack.length - 1)
+    result
+  }
+
+  private def getPackage(symbol: Symbol) : String = symbol.owner match {
     case x: PackageClassSymbol =>
       if (x.isRoot || x.isEmptyPackageClass) {
         ""

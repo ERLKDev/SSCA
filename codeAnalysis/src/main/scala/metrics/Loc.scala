@@ -1,18 +1,28 @@
 package main.scala.metrics
 
+import Utils.FunctionalUtil
 import main.scala.Utils.SourceCodeUtil
 import main.scala.analyser.metric.{FunctionMetric, ObjectMetric, ProjectMetric}
 import main.scala.analyser.result.UnitType.UnitType
 import main.scala.analyser.result.{MetricResult, UnitType}
+import main.scala.analyser.util.TreeSyntaxUtil
 
 
 /**
   * Created by Erik on 5-4-2017.
   */
-class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with SourceCodeUtil{
+class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with SourceCodeUtil with TreeSyntaxUtil with FunctionalUtil{
   import global._
 
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
+    def test(tree: Tree): Unit = {
+      val a = isRecursive(tree)
+      tree.children.foreach{
+        x =>
+          test(x)
+      }
+    }
+    test(tree)
     countLocs(code, tree, getName(tree), UnitType.Function)
   }
 

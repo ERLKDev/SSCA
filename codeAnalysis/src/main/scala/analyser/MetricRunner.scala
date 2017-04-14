@@ -22,11 +22,22 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
       case ObjectDefinition(x, _) =>
         UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
 
-      case ClassDefinition(_, _) | TraitDefinition(_, _) | AbstractClassDefinition(_, _)=>
+      case y: ClassDefinition =>
+        val x = tree.asInstanceOf[ClassDef]
+        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+      case y: TraitDefinition =>
+        val x = tree.asInstanceOf[ClassDef]
+        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+      case y: AbstractClassDefinition=>
+        println(y)
         val x = tree.asInstanceOf[ClassDef]
         UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
 
-      case FunctionDef(x, _) =>
+  /*    case (_: ClassDefinition) | (_: TraitDefinition) | (_: AbstractClassDefinition)=>
+        val x = tree.asInstanceOf[ClassDef]
+        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+*/
+      case FunctionDef(x, _, _) =>
         UnitResult(getRangePos(x), UnitType.Function, getName(x), traverse(x.tpt) :: traverse(x.rhs) :: executeFunctionMetrics(metrics, x))
 
       case PackageDefinition(x) =>

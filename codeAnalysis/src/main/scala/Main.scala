@@ -10,7 +10,7 @@ import main.scala.metrics._
 object Main extends CompilerProvider {
   import global._
   def main (args: Array[String] ): Unit = {
-    val a = "C:\\Users\\Erik\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\Test.scala"
+    val a = "C:\\Users\\Erik\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\Utils\\FunctionalUtil.scala"
 
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val an = new Analyser("C:\\Users\\Erik\\IdeaProjects\\SSCA", metrics)

@@ -10,14 +10,14 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   trait AstNode
   case class PackageDefinition(tree: PackageDef) extends AstNode
-  case class TraitDefinition(tree: ClassDef, name: String) extends AstNode
-  case class ClassDefinition(tree: ClassDef, name: String) extends AstNode
-  case class AbstractClassDefinition(tree: ClassDef, name: String) extends AstNode
+  case class TraitDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
+  case class ClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
+  case class AbstractClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
   case class ObjectDefinition(tree: ModuleDef, name: String) extends AstNode
   case class AnonymousClass(tree: ClassDef) extends AstNode
-  case class FunctionDef(tree: DefDef, name: String) extends AstNode
+  case class FunctionDef(tree: DefDef, name: String, owner: String) extends AstNode
   case class AnonymousFunction(tree: DefDef) extends AstNode
-  case class NestedFunction(tree: DefDef, name: String) extends AstNode
+  case class NestedFunction(tree: DefDef, name: String, owner: String) extends AstNode
   case class FunctionCall(tree: Apply, name: String, owner: String) extends AstNode
   case class ValAssignment(tree: Assign, variable: String) extends AstNode
   case class VarAssignment(tree: Assign, variable: String) extends AstNode
@@ -41,11 +41,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
     case x: ClassDef =>
       if (isAbstractClass(x))
-        return AbstractClassDefinition(x, getName(x))
+        return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
       if (isTrait(x))
-        return TraitDefinition(x, getName(x))
+        return TraitDefinition(x, getName(x), getObjectPackage(x.symbol))
       if (isClass(x))
-        return ClassDefinition(x, getName(x))
+        return ClassDefinition(x, getName(x), getObjectPackage(x.symbol))
       if (isAnonymousClass(x))
         return AnonymousClass(x)
       null
@@ -59,9 +59,9 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
       if (isAnonymousFunction(x))
         return AnonymousFunction(x)
       if (isNestedFunction(x))
-        return NestedFunction(x, getName(x))
+        return NestedFunction(x, getName(x), getOwner(x.symbol.owner))
       if (isFunction(x))
-        return FunctionDef(x, getName(x))
+        return FunctionDef(x, getName(x), getOwner(x.symbol.owner))
       null
 
     case x: ValDef =>
@@ -99,7 +99,7 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
       if (isFor(x))
         return For(x)
       if (isFunctionCall(x)){
-        val a = FunctionCall(x, x.fun.symbol.name.toString, getFunctionCallOwner(x.fun.symbol.owner))
+        val a = FunctionCall(x, x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
         return a
       }
       null
