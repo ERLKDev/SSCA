@@ -9,23 +9,33 @@ import main.scala.analyser.util.TreeSyntaxUtil
 trait FunctionalUtil extends CompilerProvider with TreeSyntaxUtil{
   import global._
 
-  def isRecursive(tree: Tree): Boolean = getAstNode(tree) match {
-    case x: FunctionDef =>
-      recursive(x.tree, x.owner + "." + x.name)
-    case x: NestedFunction =>
-      recursive(x.tree, x.name)
-    case _ =>
-      false
-  }
 
-  private def recursive(tree: Tree, functionName: String) : Boolean = getAstNode(tree) match {
-    case FunctionCall(_, name, owner) =>
-      if(owner + "." + name == functionName)
-        true
-      else
+  def isRecursive(tree: Tree): Boolean ={
+    def recursive(tree: Tree, functionName: String) : Boolean = getAstNode(tree) match {
+      case FunctionCall(_, name, owner) =>
+        if(owner + "." + name == functionName)
+          true
+        else
+          tree.children.exists(x => recursive(x, functionName))
+      case _ =>
         tree.children.exists(x => recursive(x, functionName))
-    case _ =>
-      tree.children.exists(x => recursive(x, functionName))
+    }
+
+    getAstNode(tree) match {
+      case x: FunctionDef =>
+        recursive(x.tree, x.owner + "." + x.name)
+      case x: NestedFunction =>
+        recursive(x.tree, x.owner + "." + x.name)
+      case _ =>
+        false
+    }
   }
 
+
+  def countSideEffects(tree: Tree) : Int = getAstNode(tree) match {
+    case (_: Var) | (_: VarAssignment) | (_: VarDefinition) =>
+      1
+    case _ =>
+      tree.children.foldLeft(0)((a, b) => a + countSideEffects(b))
+  }
 }

@@ -15,14 +15,6 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
   import global._
 
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
-    def test(tree: Tree): Unit = {
-      val a = isRecursive(tree)
-      tree.children.foreach{
-        x =>
-          test(x)
-      }
-    }
-    test(tree)
     countLocs(code, tree, getName(tree), UnitType.Function)
   }
 
