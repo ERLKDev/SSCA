@@ -15,9 +15,7 @@ object Main extends CompilerProvider {
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val an = new Analyser("C:\\Users\\Erik\\IdeaProjects\\SSCA", metrics)
 
-    println(showRaw(treeFromFile(a)))
-
-    val result = an.analyse(a)
+    val result = an.analyse()
 
 
 /*    val file =result.getFile("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala")*/

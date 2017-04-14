@@ -11,7 +11,7 @@ trait TreeUtil extends CompilerProvider{
 import global._
 
   def getName(tree: DefDef) : String = {
-    tree.name.toString
+    getPackage(tree.symbol) + tree.name.toString
   }
 
   def getName(tree: ModuleDef) : String = {
@@ -20,6 +20,10 @@ import global._
 
   def getName(tree: ClassDef) : String = {
     getPackage(tree.symbol) + tree.name.toString + (if (tree.symbol.isTrait) "$Trait" else "$Class")
+  }
+
+  def getFunctionCallOwner(owner: Symbol) : String = {
+    getPackage(owner) + owner.name.toString
   }
 
   def getPackage(symbol: Symbol) : String = symbol.owner match {

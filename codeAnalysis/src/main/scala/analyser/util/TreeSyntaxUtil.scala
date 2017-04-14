@@ -1,7 +1,6 @@
 package main.scala.analyser.util
 
 import main.scala.analyser.Compiler.CompilerProvider
-import main.scala.analyser.util.TreeUtil
 
 /**
   * Created by Erik on 14-4-2017.
@@ -98,8 +97,10 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
     case x: Apply =>
       if (isFor(x))
         return For(x)
-      if (isFunctionCall(x))
-        return FunctionCall(x, x.fun.symbol.name.toString, x.fun.symbol.owner.name.toString)
+      if (isFunctionCall(x)){
+        val a = FunctionCall(x, x.fun.symbol.name.toString, getFunctionCallOwner(x.fun.symbol.owner))
+        return a
+      }
       null
 
     case x: LabelDef =>

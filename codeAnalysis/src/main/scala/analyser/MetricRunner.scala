@@ -8,8 +8,6 @@ import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import main.scala.analyser.result._
 import main.scala.analyser.util.{TreeSyntaxUtil, TreeUtil}
 
-import scala.collection.mutable.ListBuffer
-
 /**
   * Created by Erik on 5-4-2017.
   */
@@ -19,7 +17,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
   def run(metrics : List[Metric], files: List[File], projectContext: ProjectContext): Result ={
     def traverse(tree: Tree) : Result = getAstNode(tree) match {
       case null =>
-        new ResultList()
+        tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
 
       case ObjectDefinition(x, _) =>
         UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
@@ -73,7 +71,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
     if (code == null)
       return List[MetricResult]()
 
-    val c = metrics.foldLeft(List[MetricResult]()) {
+    metrics.foldLeft(List[MetricResult]()) {
       (a, b) =>
         b match {
           case x: FunctionMetric =>
@@ -82,7 +80,5 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
             a
         }
     }
-    c
-
   }
 }
