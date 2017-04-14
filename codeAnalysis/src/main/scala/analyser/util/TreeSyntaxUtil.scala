@@ -31,6 +31,7 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
   case class DoWhile(tree: LabelDef) extends AstNode
   case class MatchCase(tree: Match) extends AstNode
   case class Case(tree: CaseDef) extends AstNode
+  case class IfStatement(tree: If) extends AstNode
 
   def getAstNode(tree: Tree): AstNode = tree match {
     case x: PackageDef =>
@@ -114,6 +115,12 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
       if (isNewClass(x))
         return NewClass(x, x.tpt.symbol.name.toString)
       null
+
+    case x: If =>
+      if (isIf(x))
+        return IfStatement(x)
+      null
+
 
     case _ =>
       null
@@ -273,6 +280,13 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   def isCase(tree : Tree): Boolean = tree match {
     case _:CaseDef =>
+      true
+    case _ =>
+      false
+  }
+
+  def isIf(tree : Tree): Boolean = tree match {
+    case _:If =>
       true
     case _ =>
       false
