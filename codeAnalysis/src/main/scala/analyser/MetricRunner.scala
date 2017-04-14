@@ -6,37 +6,34 @@ import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import main.scala.analyser.result._
-import main.scala.analyser.util.TreeUtil
+import main.scala.analyser.util.{TreeSyntaxUtil, TreeUtil}
 
 import scala.collection.mutable.ListBuffer
 
 /**
   * Created by Erik on 5-4-2017.
   */
-class MetricRunner extends CompilerProvider with TreeUtil{
+class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
   import global._
 
   def run(metrics : List[Metric], files: List[File], projectContext: ProjectContext): Result ={
-    def traverse(tree: Tree) : Result = tree match {
+    def traverse(tree: Tree) : Result = getAstNode(tree) match {
       case null =>
-        null
-      case ModuleDef(_, _, content : Tree) =>
-        if(tree.symbol.isAnonymousClass){
-          return tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
-        }
-        UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ModuleDef]), traverse(content) :: executeObjectMetrics(metrics, tree))
-      case ClassDef(_, _, _, impl) =>
-        if(tree.symbol.isAnonymousClass){
-          return tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
-        }
-        UnitResult(getRangePos(tree), UnitType.Object, getName(tree.asInstanceOf[ClassDef]), traverse(impl) :: executeObjectMetrics(metrics, tree))
-      case DefDef(_, _, _, _, tpt, rhs) =>
-        if(tree.symbol.isAnonymousFunction){
-          return tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
-        }
-        UnitResult(getRangePos(tree), UnitType.Function, getName(tree.asInstanceOf[DefDef]), traverse(tpt) :: traverse(rhs) :: executeFunctionMetrics(metrics, tree))
-      case x: PackageDef =>
-        UnitResult(getRangePos(tree), UnitType.File, x.pos.source.path, tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b))).getList)
+        new ResultList()
+
+      case ObjectDefinition(x, _) =>
+        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+
+      case ClassDefinition(_, _) | TraitDefinition(_, _) | AbstractClassDefinition(_, _)=>
+        val x = tree.asInstanceOf[ClassDef]
+        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+
+      case FunctionDef(x, _) =>
+        UnitResult(getRangePos(x), UnitType.Function, getName(x), traverse(x.tpt) :: traverse(x.rhs) :: executeFunctionMetrics(metrics, x))
+
+      case PackageDefinition(x) =>
+        UnitResult(getRangePos(x), UnitType.File, x.pos.source.path, x.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b))).getList)
+
       case _ =>
         tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
     }
@@ -54,34 +51,38 @@ class MetricRunner extends CompilerProvider with TreeUtil{
     if (code == null)
       return List[MetricResult]()
 
-    val results = new ListBuffer[MetricResult]
-    metrics.foreach {
-      case x: ObjectMetric =>
-        tree match {
-          case y: ModuleDef =>
-            results ++= x.run(y.asInstanceOf[x.global.ModuleDef], code)
-          case y: ClassDef =>
-            results ++= x.run(y.asInstanceOf[x.global.ClassDef], code)
+    metrics.foldLeft(List[MetricResult]()){
+      (a, b) =>
+        b match {
+          case x: ObjectMetric =>
+            tree match {
+              case y: ModuleDef =>
+                a ::: x.run(y.asInstanceOf[x.global.ModuleDef], code)
+              case y: ClassDef =>
+                a ::: x.run(y.asInstanceOf[x.global.ClassDef], code)
+            }
+          case _ =>
+            a
         }
-      case _ =>
-
     }
-    results.toList
   }
 
 
-  private def executeFunctionMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] ={
+  private def executeFunctionMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] = {
     val code = getOriginalSourceCode(tree)
     if (code == null)
       return List[MetricResult]()
 
-    val results = new ListBuffer[MetricResult]
-    metrics.foreach {
-      case x: FunctionMetric =>
-        results ++= x.run(tree.asInstanceOf[x.global.DefDef], code)
-      case _ =>
-
+    val c = metrics.foldLeft(List[MetricResult]()) {
+      (a, b) =>
+        b match {
+          case x: FunctionMetric =>
+            a ::: x.run(tree.asInstanceOf[x.global.DefDef], code)
+          case _ =>
+            a
+        }
     }
-    results.toList
+    c
+
   }
 }

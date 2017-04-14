@@ -21,7 +21,7 @@ object Main extends CompilerProvider {
 
 
 /*    val file =result.getFile("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala")*/
-    //println(result)
+    println(result)
 
  /*   c.foreach(x => println("\n"  + x))*/
 
