@@ -21,6 +21,11 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   val faults: List[Fault] = getFaults
 
 
+  /**
+    * Initializes the repository
+    *
+    * @return
+    */
   private def initGitRepo: Git = {
     val file = new File(repoPath)
     if (file.exists())
@@ -30,6 +35,11 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   }
 
 
+  /**
+    * Gets a list of all the commits from the repository
+    *
+    * @return
+    */
   private def getCommits: List[Commit] = {
     def recursive(page: Int) : List[Commit] = {
       val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100"))()
@@ -43,6 +53,11 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   }
 
 
+  /**
+    * Gets a list of all the issues from the repository
+    *
+    * @return
+    */
   private def getIssues: List[Issue] = {
     def recursive(page: Int, label: String) : List[Issue] = {
       val issuesRes = GhIssue.get_issues(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label))()
@@ -57,11 +72,22 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   }
 
 
+  /**
+    * Gets a list of the fauls in the repository (combination of a commit and an issue)
+    *
+    * @return
+    */
   private def getFaults: List[Fault] = {
     commits.filter(isIssue).foldLeft(List[Fault]())((a, b) => a ::: List(new Fault(b, getIssues(b))))
   }
 
 
+  /**
+    * Checks if a commit fixes a issue or not
+    *
+    * @param commit the commit
+    * @return
+    */
   private def isIssue(commit: Commit) : Boolean = {
     val pattern = """(?i)(clos(e[sd]?|ing)|fix(e[sd]|ing)?|resolv(e[sd]?)|#(\d+))""".r
 
@@ -74,6 +100,12 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   }
 
 
+  /**
+    * Gets a list of issues that are mentioned as fixed in the commit
+    *
+    * @param commit the commit
+    * @return
+    */
   private def getIssues(commit: Commit) : List[Issue] = {
     val pattern = """#(\d+)""".r
     val possibleNumbers = pattern findAllIn commit.message
@@ -86,13 +118,22 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
     issues.filter(x => numbers contains x.number)
   }
 
-
+  /**
+    * Checkout to the commit
+    *
+    * @param commit the commit
+    */
   def checkoutCommit(commit: Commit): Unit = {
     git.reset().setMode(ResetCommand.ResetType.HARD).call
     git.checkout.setName(commit.sha).call
   }
 
 
+  /**
+    * Checkout to the previous commit
+    *
+    * @param commit the commit
+    */
   def checkoutPreviousCommit(commit: Commit): Unit = {
     git.reset().setMode(ResetCommand.ResetType.HARD).call
     git.checkout.setName(commit.commitData.parents.head.sha).setForce(true).call
