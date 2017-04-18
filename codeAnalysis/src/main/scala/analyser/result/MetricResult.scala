@@ -21,4 +21,6 @@ case class MetricResult(position : RangePosition, resultType: UnitType, name: St
   override def toString: String = position + " " + resultType + "(" + name + "): " + metricName + " = " + value
 
   override def flatten(): List[MetricResult] = List(this)
+
+  override def toCSV: String = value.toString
 }

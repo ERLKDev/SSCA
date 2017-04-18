@@ -20,6 +20,8 @@ trait Result extends ResultUtil{
   def getFunctions : List[UnitResult] = getUnit(UnitType.Function)
 
 
+  def toCSV: String
+
   private def getUnit(uType: UnitType): List[UnitResult] = this match {
     case UnitResult(_, `uType`, _, _) =>
       List(this.asInstanceOf[UnitResult])

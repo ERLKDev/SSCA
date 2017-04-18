@@ -11,6 +11,8 @@ import main.scala.analyser.util.TreeSyntaxUtil
 class NOC extends ObjectMetric with SourceCodeUtil with TreeSyntaxUtil{
   import global._
 
+  override def objectHeader: List[String] = List("NOC")
+
   override def run(tree: global.ModuleDef, code: List[String]): List[MetricResult] = {
     List(MetricResult(getRangePos(tree), UnitType.Object, getName(tree), "NOC", 0))
   }

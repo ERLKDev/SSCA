@@ -9,6 +9,9 @@ import main.scala.analyser.util.TreeUtil
   */
 class DIT extends ObjectMetric with TreeUtil{
   import global._
+
+  override def objectHeader: List[String] = List("DIT")
+
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
     List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
   }

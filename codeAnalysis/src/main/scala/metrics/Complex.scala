@@ -8,8 +8,9 @@ import main.scala.analyser.result.{MetricResult, UnitType}
   * Created by ErikL on 4/6/2017.
   */
 class Complex extends FunctionMetric with ComplexUtil{
-
   import global._
+
+  override def functionHeader: List[String] = List("CC")
 
   def run(tree: DefDef, code: List[String]): List[MetricResult] = {
     List(MetricResult(getRangePos(tree), UnitType.Function, getName(tree),"CC", measureComplexity(tree)))

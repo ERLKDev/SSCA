@@ -38,4 +38,6 @@ class ResultList(list: List[Result]) extends Result{
 
     flat(list)
   }
+
+  override def toCSV: String = ""
 }

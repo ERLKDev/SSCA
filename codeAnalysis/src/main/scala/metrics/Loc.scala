@@ -14,6 +14,9 @@ import main.scala.analyser.util.TreeSyntaxUtil
 class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with SourceCodeUtil with TreeSyntaxUtil with FunctionalUtil{
   import global._
 
+  override def functionHeader: List[String] = List("funLOC", "funSLOC", "funCD")
+  override def objectHeader: List[String] = List("objLOC", "objSLOC", "objCD")
+
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
     countLocs(code, tree, getName(tree), UnitType.Function)
   }
@@ -30,11 +33,10 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
   def countLocs(code: List[String], tree: Tree, name: String, uType: UnitType): List[MetricResult] = {
     val codeWithoutComments = removeComments(code)
     val codeWithComments = removeWhiteLines(code)
-    val cd = (codeWithComments.size - codeWithoutComments.size).asInstanceOf[Double] / codeWithComments.size
+    val cd = if (codeWithComments.isEmpty) 0.0 else (codeWithComments.size - codeWithoutComments.size).asInstanceOf[Double] / codeWithComments.size
     List(
-      MetricResult(getRangePos(tree), uType, name, "loc", codeWithComments.size),
-      MetricResult(getRangePos(tree), uType, name, "sloc", codeWithoutComments.size),
-      MetricResult(getRangePos(tree), uType, name, "cd", cd))
+      MetricResult(getRangePos(tree), uType, name, (if(uType == UnitType.Function) "fun" else "obj") + "LOC", codeWithComments.size),
+      MetricResult(getRangePos(tree), uType, name, (if(uType == UnitType.Function) "fun" else "obj") + "SLOC", codeWithoutComments.size),
+      MetricResult(getRangePos(tree), uType, name, (if(uType == UnitType.Function) "fun" else "obj") + "CD", cd))
   }
-
 }

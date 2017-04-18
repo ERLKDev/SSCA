@@ -8,6 +8,9 @@ import main.scala.analyser.result.{MetricResult, UnitType}
   */
 class OutDegree extends FunctionMetric{
   import global._
+
+  override def functionHeader: List[String] = List("OutDegree", "OutDegreeDistinct")
+
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
     def countFunctionCalls(tree : Tree) : List[String] = tree match {
       case _ : Select =>

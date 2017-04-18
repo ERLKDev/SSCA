@@ -8,6 +8,9 @@ import main.scala.analyser.result.{MetricResult, UnitResult, UnitType}
   */
 class PatternSize extends FunctionMetric{
   import global._
+
+  override def functionHeader: List[String] = List("PatternSize")
+
   override def run(tree: global.DefDef, code: List[String]): List[MetricResult] = {
     def count(tree: Tree) : Int = tree match {
       case _ =>

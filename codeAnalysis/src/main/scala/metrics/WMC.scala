@@ -10,6 +10,8 @@ import main.scala.analyser.result.{MetricResult, UnitType}
 class WMC extends ObjectMetric with ComplexUtil{
   import global._
 
+  override def objectHeader: List[String] = List("WMCnormal", "WMCcc", "WMCnestNormal", "WMCnestCC")
+
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
     wmc(tree, getName(tree))
   }

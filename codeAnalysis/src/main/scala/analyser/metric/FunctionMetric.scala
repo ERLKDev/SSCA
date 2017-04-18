@@ -7,5 +7,7 @@ import main.scala.analyser.result.MetricResult
   */
 trait FunctionMetric extends Metric{
   import global._
+  def functionHeader: List[String]
+
   def run(tree: DefDef, code: List[String]): List[MetricResult]
 }
