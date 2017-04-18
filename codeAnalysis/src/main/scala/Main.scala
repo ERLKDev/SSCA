@@ -10,12 +10,12 @@ import metrics._
 object Main extends CompilerProvider {
   import global._
   def main (args: Array[String] ): Unit = {
-    val a = "C:\\Users\\Erik\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\analyser\\metric\\Metric.scala"
+    val a = "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\Test.scala"
 
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT, new NOC)
-    val an = new Analyser("C:\\Users\\Erik\\IdeaProjects\\SSCA", metrics)
+    val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA", metrics)
 
-    println(showRaw(treeFromFile(a)))
+
     val result = an.analyse(a)
 
 

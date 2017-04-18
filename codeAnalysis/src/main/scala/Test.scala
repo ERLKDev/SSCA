@@ -6,6 +6,11 @@ import main.scala.analyser.util.TreeSyntaxUtil
   * Created by Erik on 13-4-2017.
   */
 class Test extends TreeSyntaxUtil {
+
+  class B {
+    val a = 6
+  }
+
   def test(node: AstNode): Unit ={
     koe(x => true, "kees")
   }

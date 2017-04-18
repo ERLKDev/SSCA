@@ -33,97 +33,101 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
   case class Case(tree: CaseDef) extends AstNode
   case class IfStatement(tree: If) extends AstNode
 
-  def getAstNode(tree: Tree): AstNode = tree match {
-    case x: PackageDef =>
-      if (isPackage(x))
-        return PackageDefinition(x)
-      null
+  def getAstNode(tree: Tree): AstNode = {
+    try tree match {
+      case x: PackageDef =>
+        if (isPackage(x))
+          return PackageDefinition(x)
+        null
 
-    case x: ClassDef =>
-      if (isTrait(x))
-        return TraitDefinition(x, getName(x), getObjectPackage(x.symbol))
-      if (isAbstractClass(x))
-        return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
-      if (isClass(x))
-        return ClassDefinition(x, getName(x), getObjectPackage(x.symbol))
-      if (isAnonymousClass(x))
-        return AnonymousClass(x)
-      null
+      case x: ClassDef =>
+        if (isTrait(x))
+          return TraitDefinition(x, getName(x), getObjectPackage(x.symbol))
+        if (isAbstractClass(x))
+          return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
+        if (isClass(x))
+          return ClassDefinition(x, getName(x), getObjectPackage(x.symbol))
+        if (isAnonymousClass(x))
+          return AnonymousClass(x)
+        null
 
-    case x: ModuleDef =>
-      if (isObject(x))
-        return ObjectDefinition(x, getName(x), getObjectPackage(x.symbol))
-      null
+      case x: ModuleDef =>
+        if (isObject(x))
+          return ObjectDefinition(x, getName(x), getObjectPackage(x.symbol))
+        null
 
-    case x: DefDef =>
-      if (isAnonymousFunction(x))
-        return AnonymousFunction(x)
-      if (isNestedFunction(x))
-        return NestedFunction(x, getName(x), getOwner(x.symbol.owner))
-      if (isFunction(x))
-        return FunctionDef(x, getName(x), getOwner(x.symbol.owner))
-      null
+      case x: DefDef =>
+        if (isAnonymousFunction(x))
+          return AnonymousFunction(x)
+        if (isNestedFunction(x))
+          return NestedFunction(x, getName(x), getOwner(x.symbol.owner))
+        if (isFunction(x))
+          return FunctionDef(x, getName(x), getOwner(x.symbol.owner))
+        null
 
-    case x: ValDef =>
-      if (isValDef(x))
-        return ValDefinition(x, x.name.toString)
-      if (isVarDef(x))
-        return VarDefinition(x, x.name.toString)
-      null
+      case x: ValDef =>
+        if (isValDef(x))
+          return ValDefinition(x, x.name.toString)
+        if (isVarDef(x))
+          return VarDefinition(x, x.name.toString)
+        null
 
-    case x: Ident =>
-      if (isVal(x))
-        return Val(x, x.name.toString)
-      if (isVar(x))
-        return Var(x, x.name.toString)
-      null
+      case x: Ident =>
+        if (isVal(x))
+          return Val(x, x.name.toString)
+        if (isVar(x))
+          return Var(x, x.name.toString)
+        null
 
-    case x: Assign =>
-      if (isAssignment(x) && isVal(x.lhs))
-        return ValAssignment(x, x.lhs.symbol.name.toString)
-      if (isAssignment(x) && isVar(x.lhs))
-        return VarAssignment(x, x.lhs.symbol.name.toString)
-      null
+      case x: Assign =>
+        if (isAssignment(x) && isVal(x.lhs))
+          return ValAssignment(x, x.lhs.symbol.name.toString)
+        if (isAssignment(x) && isVar(x.lhs))
+          return VarAssignment(x, x.lhs.symbol.name.toString)
+        null
 
-    case x: Match =>
-      if (isMatch(x))
-        return MatchCase(x)
-      null
+      case x: Match =>
+        if (isMatch(x))
+          return MatchCase(x)
+        null
 
-    case x: CaseDef =>
-      if (isCase(x))
-        return Case(x)
-      null
+      case x: CaseDef =>
+        if (isCase(x))
+          return Case(x)
+        null
 
-    case x: Apply =>
-      if (isFor(x))
-        return For(x)
-      if (isFunctionCall(x)){
-        val a = FunctionCall(x, x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
-        return a
-      }
-      null
+      case x: Apply =>
+        if (isFor(x))
+          return For(x)
+        if (isFunctionCall(x)) {
+          val a = FunctionCall(x, x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
+          return a
+        }
+        null
 
-    case x: LabelDef =>
-      if (isWhile(x))
-        return While(x)
-      if (isDoWhile(x))
-        return DoWhile(x)
-      null
+      case x: LabelDef =>
+        if (isWhile(x))
+          return While(x)
+        if (isDoWhile(x))
+          return DoWhile(x)
+        null
 
-    case x: New =>
-      if (isNewClass(x))
-        return NewClass(x, x.tpt.symbol.name.toString)
-      null
+      case x: New =>
+        if (isNewClass(x))
+          return NewClass(x, x.tpt.symbol.name.toString)
+        null
 
-    case x: If =>
-      if (isIf(x))
-        return IfStatement(x)
-      null
+      case x: If =>
+        if (isIf(x))
+          return IfStatement(x)
+        null
 
-
-    case _ =>
-      null
+      case _ =>
+        null
+    }catch{
+      case _: Throwable =>
+        null
+    }
   }
 
 

@@ -2,7 +2,7 @@ package main.scala.analyser.util
 
 import main.scala.analyser.Compiler.CompilerProvider
 
-import scala.reflect.internal.util.RangePosition
+import scala.reflect.internal.util.{OffsetPosition, RangePosition}
 
 /**
   * Created by Erik on 5-4-2017.
@@ -51,6 +51,8 @@ import global._
     tree.pos match {
       case position: RangePosition =>
         position
+      case position: OffsetPosition =>
+        new RangePosition(position.source, position.point, position.point, position.point)
       case _ =>
         null
     }

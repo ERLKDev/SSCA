@@ -14,7 +14,7 @@ import main.scala.analyser.util.{TreeSyntaxUtil, TreeUtil}
 class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
   import global._
 
-  def run(metrics : List[Metric], files: List[File], projectContext: ProjectContext): Result ={
+  def run(metrics : List[Metric], file: File, projectContext: ProjectContext): Result ={
     def traverse(tree: Tree) : Result = getAstNode(tree) match {
       case null =>
         tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
@@ -40,7 +40,11 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
     metrics.foreach(f => f.init(projectContext))
 
     /* Start traversal*/
-    UnitResult(null, UnitType.Project, "project", files.foldLeft(List[Result]())((a, b) =>  a ::: List(traverse(treeFromFile(b)))))
+    traverse(treeFromFile(file))
+  }
+
+  def runProject(metrics: List[Metric], files: List[File], projectContext: ProjectContext): Result = {
+    UnitResult(null, UnitType.Project, "project", files.foldLeft(List[Result]())((a, b) =>  a ::: List(run(metrics, b, projectContext))))
   }
 
 
