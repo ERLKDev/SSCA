@@ -11,6 +11,15 @@ class PatternSize extends FunctionMetric{
 
   override def functionHeader: List[String] = List("PatternSize")
 
+
+  /**
+    * The pattern size of a function
+    * This is calculated in ast nodes
+    *
+    * @param tree the ast of the function
+    * @param code the code of the function
+    * @return
+    */
   override def run(tree: global.DefDef, code: List[String]): List[MetricResult] = {
     def count(tree: Tree) : Int = tree match {
       case _ =>

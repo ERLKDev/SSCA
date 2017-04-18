@@ -12,15 +12,40 @@ class WMC extends ObjectMetric with ComplexUtil{
 
   override def objectHeader: List[String] = List("WMCnormal", "WMCcc", "WMCnestNormal", "WMCnestCC")
 
+  /**
+    * Calculates the weighted method complexity
+    * This is done by adding the CC of each function in the object
+    *
+    * @param tree the ast of the object
+    * @param code the code of the object
+    * @return
+    */
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
     wmc(tree, getName(tree))
   }
 
+
+  /**
+    * Calculates the weighted method complexity
+    * This is done by adding the CC of each function in the class or trait
+    *
+    * @param tree the ast of the object
+    * @param code the code of the object
+    * @return
+    */
   override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
     wmc(tree, getName(tree))
   }
 
-  def wmc(tree: Tree, name: String): List[MetricResult] = {
+
+  /**
+    * Function to calculate the WMC
+    *
+    * @param tree the ast of the object, class or trait
+    * @param name the code of the object, class or trait
+    * @return
+    */
+  private def wmc(tree: Tree, name: String): List[MetricResult] = {
     var wmcNormal = 0
     var wmcCC = 0
     var wmcNestNormal = 0

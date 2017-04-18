@@ -13,10 +13,26 @@ class NOC extends ObjectMetric with SourceCodeUtil with TreeSyntaxUtil{
 
   override def objectHeader: List[String] = List("NOC")
 
+  /**
+    * Count the number of children of an object.
+    * Because an object can't have children, this is always 0!
+    *
+    * @param tree the ast from the object
+    * @param code the code from the object
+    * @return
+    */
   override def run(tree: global.ModuleDef, code: List[String]): List[MetricResult] = {
     List(MetricResult(getRangePos(tree), UnitType.Object, getName(tree), "NOC", 0))
   }
 
+
+  /**
+    * Count the number of children of a class or trait.
+    *
+    * @param tree the ast from the class or trait
+    * @param code the code from the class or trait
+    * @return
+    */
   override def run(tree: global.ClassDef, code: List[String]): List[MetricResult] = {
     getAstNode(tree) match {
       case x: ClassDefinition =>
@@ -30,7 +46,15 @@ class NOC extends ObjectMetric with SourceCodeUtil with TreeSyntaxUtil{
     }
   }
 
-  def hasChildren(tree: Tree, name: String, pack: String): MetricResult = {
+  /**
+    * Counts the amount of children from a class or trait
+    *
+    * @param tree the tree of the class or trait
+    * @param name the name of the class or trait
+    * @param pack the pacakge of the class or trait
+    * @return
+    */
+  private def hasChildren(tree: Tree, name: String, pack: String): MetricResult = {
     def recursive(tree: Tree): Int = getAstNode(tree) match {
       case (_: ClassDefinition | _: TraitDefinition | _: AbstractClassDefinition) =>
         val x = tree.asInstanceOf[ClassDef]

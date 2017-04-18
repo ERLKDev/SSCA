@@ -34,6 +34,12 @@ class Compiler {
 trait CompilerHelper {
   val global: scala.tools.nsc.interactive.Global
 
+  /**
+    * Function to get the ast tree from a file
+    *
+    * @param file the source file
+    * @return ast tree
+    */
   def treeFromFile(file: SourceFile): global.Tree = {
     val response = new Response[global.Tree]
 
@@ -45,12 +51,24 @@ trait CompilerHelper {
     }
   }
 
+  /**
+    * Function to get the ast tree from a file
+    *
+    * @param path the file path
+    * @return ast tree
+    */
   def treeFromFile(path: String): global.Tree = {
     val code = AbstractFile.getFile(path)
     val bfs = new util.BatchSourceFile(code, code.toCharArray)
     treeFromFile(bfs)
   }
 
+  /**
+    * Function to get the ast tree from a file
+    *
+    * @param file the file object
+    * @return ast tree
+    */
   def treeFromFile(file: File): global.Tree = {
     if (!file.exists())
      return null

@@ -11,6 +11,14 @@ class OutDegree extends FunctionMetric{
 
   override def functionHeader: List[String] = List("OutDegree", "OutDegreeDistinct")
 
+
+  /**
+    * Calculates the amount of method calls in a function
+    *
+    * @param tree the ast of the function
+    * @param code the code of the function
+    * @return
+    */
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
     def countFunctionCalls(tree : Tree) : List[String] = tree match {
       case _ : Select =>

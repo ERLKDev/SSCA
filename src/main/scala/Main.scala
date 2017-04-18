@@ -8,11 +8,11 @@ import main.scala.metrics._
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    val repo = new Repo("akka", "akka", "73c536d54d334d411fbd12425be757f888319792", List("bug", "failed", "needs-attention "), "..\\tmpGitDir")
+    val repo = new Repo("akka", "akka", "73c536d54d334d411fbd12425be757f888319792", List("bug", "failed", "needs-attention "), "..\\tmpGitDir2")
     println("Done loading repo")
 
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT, new NOC)
-    val an = new Analyser("..\\tmpGitDir", metrics)
+    val an = new Analyser("..\\tmpGitDir2", metrics)
     println("Done init analyser")
 
 
@@ -25,7 +25,7 @@ object Main {
         x.commit.files.foreach{
           y =>
             val lines = x.commit.getPatchData(y)
-            val result = an.analyse("..\\tmpGitDir\\" + y)
+            val result = an.analyse("..\\tmpGitDir2\\" + y)
 
 
             lines match {

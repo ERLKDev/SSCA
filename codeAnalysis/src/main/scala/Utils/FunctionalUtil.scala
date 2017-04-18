@@ -10,6 +10,12 @@ trait FunctionalUtil extends CompilerProvider with TreeSyntaxUtil{
   import global._
 
 
+  /**
+    * Checks whether the function is recursive or not
+    *
+    * @param tree the ast
+    * @return
+    */
   def isRecursive(tree: Tree): Boolean ={
     def recursive(tree: Tree, functionName: String) : Boolean = getAstNode(tree) match {
       case FunctionCall(_, name, owner) =>
@@ -31,7 +37,12 @@ trait FunctionalUtil extends CompilerProvider with TreeSyntaxUtil{
     }
   }
 
-
+  /**
+    * Counts the ammount of side effects in a tree (var's)
+    *
+    * @param tree the ast
+    * @return
+    */
   def countSideEffects(tree: Tree) : Int = getAstNode(tree) match {
     case (_: Var) | (_: VarAssignment) | (_: VarDefinition) =>
       1

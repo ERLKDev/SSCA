@@ -12,18 +12,27 @@ import main.scala.analyser.util.ProjectUtil
   * Created by Erik on 5-4-2017.
   */
 class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProvider with ProjectUtil{
-  val metricRunner = new MetricRunner
+  private val metricRunner = new MetricRunner
+  private var projectFiles: List[File] = _
+  private var projectContext: ProjectContext = _
 
-  var projectFiles: List[File] = _
-  var projectContext: ProjectContext = _
-
+  /* Always refresh the context*/
   refresh()
 
+
+  /**
+    * Refreshes the context
+    */
   def refresh(): Unit = {
     projectFiles = getProjectFiles(projectPath).toList
     projectContext = new ProjectContext(projectFiles)
   }
 
+  /**
+    * Analyse single file
+    * @param path
+    * @return result
+    */
   def analyse(path: String): Result = {
     global.ask { () =>
       val a = new File(path)
@@ -31,6 +40,10 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     }
   }
 
+  /**
+    * Analyse complete project
+    * @return result
+    */
   def analyse(): Result  = {
     global.ask { () =>
       metricRunner.runProject(metrics, projectFiles, projectContext)

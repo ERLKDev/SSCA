@@ -10,8 +10,13 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
   import global._
 
 
+  /**
+    * Function to measure the cyclomatic Complexity (CC)
+    *
+    * @param tree the ast tree
+    * @return
+    */
   def measureComplexity(tree: Tree): Int = {
-
     def recursive(tree: Tree): Int = getAstNode(tree) match {
       case For(x) =>
         tree.children.foldLeft(1)((a, b) => a + recursive(b))
@@ -26,6 +31,12 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
     1 + recursive(tree)
   }
 
+  /**
+    * Checks whether there are alternative case conditions
+    *
+    * @param tree the ast
+    * @return
+    */
   def getCaseAlternatives(tree: Tree): Int = tree match {
     case Alternative(x) =>
       x.length
@@ -33,7 +44,12 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
       1
   }
 
-
+  /**
+    * Checks whether a logical "and"(&&) or "or"(||) exists in the tree
+    *
+    * @param tree the ast
+    * @return
+    */
   def getLogicalAndOr(tree: Tree): Int = tree match {
     case x: Select =>
       if (x.name.toString == "$amp$amp")

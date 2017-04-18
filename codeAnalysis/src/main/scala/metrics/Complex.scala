@@ -12,6 +12,12 @@ class Complex extends FunctionMetric with ComplexUtil{
 
   override def functionHeader: List[String] = List("CC")
 
+  /**
+    * Measures the cyclomatic Complexity (CC) of a function
+    * @param tree the ast of a function
+    * @param code the code of a function
+    * @return
+    */
   def run(tree: DefDef, code: List[String]): List[MetricResult] = {
     List(MetricResult(getRangePos(tree), UnitType.Function, getName(tree),"CC", measureComplexity(tree)))
   }

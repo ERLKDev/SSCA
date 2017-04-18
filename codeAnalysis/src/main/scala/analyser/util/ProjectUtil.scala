@@ -8,6 +8,12 @@ import main.scala.analyser.Compiler.CompilerProvider
   */
 trait ProjectUtil extends CompilerProvider {
 
+  /**
+    * Gets a list of all the scala files in a project
+    *
+    * @param projectPath the path of the project
+    * @return a list of all the scala files in the project
+    */
   def getProjectFiles(projectPath: String): Array[File] = {
     def listFiles(f: File): Array[File] = {
       val these = f.listFiles
