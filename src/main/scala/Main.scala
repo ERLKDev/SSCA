@@ -1,5 +1,6 @@
 import main.scala.Repo
 import main.scala.analyser.Analyser
+import main.scala.analyser.prerun.PreRunJob
 import main.scala.analyser.result.{UnitResult, UnitType}
 import main.scala.metrics._
 
@@ -33,21 +34,21 @@ object Main {
       x =>
         repo.checkoutPreviousCommit(x.commit)
         an.refresh()
-        x.commit.files.foreach{
+        val files = x.commit.files.map(x => path + "\\" + x)
+        val results = an.analyse(files)
+        results.asInstanceOf[UnitResult].getResults.foreach {
           y =>
-            val lines = x.commit.getPatchData(y)
-            val result = an.analyse(path + "\\" + y)
-
+            val lines = x.commit.getPatchData(y.asInstanceOf[UnitResult].position.source.path)
 
             lines match {
               case Some(patch) =>
-                result match {
+                y match {
                   case res: UnitResult =>
                     res.results.foreach {
                       case obj: UnitResult =>
                         if (obj.unitType == UnitType.Object) {
                           if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                            println(obj)
+                            //println(obj)
                           }
                         }
                     }

@@ -58,17 +58,27 @@ trait SourceCodeUtil {
   /**
     * Function that gets the list of files where a certain string in occurs
     * @param files all the files to search in
-    * @param search the search string
+    * @param names the search string
     * @return
     */
-  def getFilesOccurrence(files: List[File], search: String): List[File] = {
-    files.filter{
-      x =>
-        val file = Source.fromFile(x)
-        val fileName = search.r findFirstIn file.mkString
-        file.close()
+  def getFilesOccurrence(files: List[File], names: List[String]): List[File] = {
+    val search = names.map(x => "(" + x + ")").mkString("|")
 
-        fileName.nonEmpty
+
+    val matches = files.foldLeft(Map[String, File]()){
+      (a, b) =>
+        val file = Source.fromFile(b)
+        val result = search.r findAllMatchIn file.mkString
+        file.close()
+        a ++ result.foldLeft(List[String]())((c, d) => c ::: d.subgroups.filter(x => x != null)).map(x => x -> b)
+
     }
+    println(matches)
+    List()
+/*    val result = names.foldLeft(Map[String, List[String]]()){
+      (a, b) =>
+        a + (b -> matches.filter(x => x.subgroups.contains(b)).map(x => x.)
+    }*/
+
   }
 }

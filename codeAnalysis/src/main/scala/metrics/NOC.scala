@@ -1,17 +1,40 @@
 package main.scala.metrics
 
+import java.io.File
+
 import main.scala.Utils.SourceCodeUtil
 import main.scala.analyser.metric.ObjectMetric
+import main.scala.analyser.prerun.PreRunJob
 import main.scala.analyser.result.{MetricResult, UnitType}
 import main.scala.analyser.util.TreeSyntaxUtil
 
 /**
   * Created by Erik on 14-4-2017.
   */
-class NOC extends ObjectMetric with SourceCodeUtil with TreeSyntaxUtil{
+class NOC extends ObjectMetric with PreRunJob with SourceCodeUtil with TreeSyntaxUtil{
   import global._
 
   override def objectHeader: List[String] = List("NOC")
+  var filesToCheck: List[File] = List()
+
+
+  override def preRun(files: List[File]): Unit = {
+    def recursive(tree: Tree): List[String] = getAstNode(tree) match {
+      case ClassDefinition(_, name, _) =>
+        tree.children.foldLeft(List[String]())((a, b) => a ::: name :: recursive(b))
+      case TraitDefinition(_, name, _) =>
+        tree.children.foldLeft(List[String]())((a, b) => a ::: name :: recursive(b))
+      case AbstractClassDefinition(_, name, _) =>
+        tree.children.foldLeft(List[String]())((a, b) => a ::: name :: recursive(b))
+      case _ =>
+        tree.children.foldLeft(List[String]())((a, b) => a ::: recursive(b))
+    }
+    val names = files.foldLeft(List[String]())((a, b) => a ::: recursive(treeFromFile(b)))
+
+    filesToCheck = getFilesOccurrence(getContext.getFiles, names)
+    println("done")
+  }
+
 
   /**
     * Count the number of children of an object.
@@ -66,7 +89,6 @@ class NOC extends ObjectMetric with SourceCodeUtil with TreeSyntaxUtil{
         tree.children.foldLeft(0)((a,b) => a + recursive(b))
     }
 
-    val filesToCheck = getFilesOccurrence(getContext.getFiles, name)
     val result = filesToCheck.foldLeft(0)((a, b) => a + recursive(treeFromFile(b)))
     MetricResult(getRangePos(tree), UnitType.Object, name, "NOC", result)
   }

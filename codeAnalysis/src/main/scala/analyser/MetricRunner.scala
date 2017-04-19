@@ -43,12 +43,19 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
       case _ =>
         tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
     }
-
-    /* Init main.scala.metrics*/
-    metrics.foreach(f => f.init(projectContext))
-
     /* Start traversal*/
     traverse(treeFromFile(file))
+  }
+
+  /**
+    * Function to run the metrics on the file list.
+    * @param metrics a list with the metrics
+    * @param files a list of files
+    * @param projectContext the project context
+    * @return the results of the metrics on the list of files
+    */
+  def runFiles(metrics: List[Metric], files: List[File], projectContext: ProjectContext): Result = {
+    UnitResult(null, UnitType.Project, "project", files.foldLeft(List[Result]())((a, b) =>  a ::: List(run(metrics, b, projectContext))))
   }
 
   /**
