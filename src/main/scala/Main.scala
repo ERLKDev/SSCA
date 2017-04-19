@@ -11,10 +11,13 @@ import scala.io.Source
 object Main {
   def main(args: Array[String]): Unit = {
 
-    val githubToken = Source.fromFile("github.token").getLines.mkString
+    val tokenFile = Source.fromFile("github.token")
+    val githubToken = tokenFile.getLines.mkString
+    tokenFile.close()
+
     val user = "akka"
     val reponame = "akka"
-    val path = "tmp\\git" + user.capitalize + reponame.capitalize
+    val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
 
     val repo = new Repo(user, reponame, githubToken, List("bug", "failed", "needs-attention "), path)
     println("Done loading repo")

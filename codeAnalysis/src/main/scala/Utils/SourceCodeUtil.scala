@@ -2,6 +2,8 @@ package main.scala.Utils
 
 import java.io.File
 
+import scala.io.Source
+
 /**
   * Created by Erik on 5-4-2017.
   */
@@ -60,6 +62,13 @@ trait SourceCodeUtil {
     * @return
     */
   def getFilesOccurrence(files: List[File], search: String): List[File] = {
-    files.filter(x => (search.r findFirstIn scala.io.Source.fromFile(x).mkString).nonEmpty)
+    files.filter{
+      x =>
+        val file = Source.fromFile(x)
+        val fileName = search.r findFirstIn file.mkString
+        file.close()
+
+        fileName.nonEmpty
+    }
   }
 }
