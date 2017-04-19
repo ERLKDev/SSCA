@@ -2,6 +2,9 @@
 ### Example user template template
 ### Example user template
 
+github.token
+tmp/
+
 # IntelliJ project files
 .idea
 *.iml
@@ -75,3 +78,10 @@ fabric.properties
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 ### Scala template
+codeAnalysis/target/
+gitCrawler/target/
+project/project/
+project/target/
+target/
+/tmp/
+/tmp/gitAkkaAkka/
