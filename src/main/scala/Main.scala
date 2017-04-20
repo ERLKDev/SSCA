@@ -23,7 +23,7 @@ object Main {
     val repo = new Repo(user, reponame, githubToken, List("bug", "failed", "needs-attention "), path)
     println("Done loading repo")
 
-    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT, new NOC)
+    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val an = new Analyser(path, metrics)
     println("Done init analyser")
 

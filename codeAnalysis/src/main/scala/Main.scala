@@ -12,7 +12,7 @@ object Main extends CompilerProvider {
   def main (args: Array[String] ): Unit = {
     val a = "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\Test.scala"
 
-    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT, new NOC)
+    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA", metrics)
 
 
