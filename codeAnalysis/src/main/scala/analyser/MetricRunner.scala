@@ -2,6 +2,7 @@ package main.scala.analyser
 
 import java.io.File
 
+import analyser.result._
 import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
@@ -22,29 +23,50 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
     * @param projectContext the project context
     * @return the results of the metrics on the project
     */
-  def run(metrics : List[Metric], file: File, projectContext: ProjectContext): Result ={
-    def traverse(tree: Tree) : Result = getAstNode(tree) match {
+  def run(metrics : List[Metric], file: File, projectContext: ProjectContext): ResultUnit ={
+    def traverse(tree: Tree, parent: ResultUnit) : ResultUnit = getAstNode(tree) match {
       case null =>
-        tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
+        tree.children.foreach(x => traverse(x, parent))
+        parent
 
       case ObjectDefinition(x, _, _) =>
-        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+        val result = new ObjectResult(getRangePos(x), getName(x))
+        result.addResult(executeObjectMetrics(metrics, x))
+        traverse(x.impl, result)
+
+        parent.addResult(result)
+        parent
 
       case (_: ClassDefinition) | (_: TraitDefinition) | (_: AbstractClassDefinition)=>
         val x = tree.asInstanceOf[ClassDef]
-        UnitResult(getRangePos(x), UnitType.Object, getName(x), traverse(x.impl) :: executeObjectMetrics(metrics, x))
+        val result = new ObjectResult(getRangePos(x), getName(x))
+        result.addResult(executeObjectMetrics(metrics, x))
+        traverse(x.impl, result)
+
+        parent.addResult(result)
+        parent
 
       case FunctionDef(x, _, _) =>
-        UnitResult(getRangePos(x), UnitType.Function, getName(x), traverse(x.tpt) :: traverse(x.rhs) :: executeFunctionMetrics(metrics, x))
+        val result = new FunctionResult(getRangePos(x), getName(x))
+        result.addResult(executeFunctionMetrics(metrics, x))
+        traverse(x.tpt, result)
+        traverse(x.rhs, result)
+
+        parent.addResult(result)
+        parent
 
       case PackageDefinition(x) =>
-        UnitResult(getRangePos(x), UnitType.File, x.pos.source.path, x.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b))).getList)
+        val result = new FileResult(getRangePos(x), x.pos.source.path)
+        x.children.foreach(y => traverse(y, result))
+        result
 
       case _ =>
-        tree.children.foldLeft(new ResultList())((a, b) => a.add(traverse(b)))
+        tree.children.foreach(x => traverse(x, parent))
+        parent
     }
+
     /* Start traversal*/
-    traverse(treeFromFile(file))
+    traverse(treeFromFile(file), null)
   }
 
   /**
@@ -54,8 +76,8 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
     * @param projectContext the project context
     * @return the results of the metrics on the list of files
     */
-  def runFiles(metrics: List[Metric], files: List[File], projectContext: ProjectContext): Result = {
-    UnitResult(null, UnitType.Project, "project", files.foldLeft(List[Result]())((a, b) =>  a ::: List(run(metrics, b, projectContext))))
+  def runFiles(metrics: List[Metric], files: List[File], projectContext: ProjectContext): List[ResultUnit] = {
+    files.foldLeft(List[ResultUnit]())((a, b) =>  a ::: List(run(metrics, b, projectContext)))
   }
 
   /**
@@ -65,8 +87,8 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
     * @param projectContext the project context
     * @return the results of the metrics on the project
     */
-  def runProject(metrics: List[Metric], files: List[File], projectContext: ProjectContext): Result = {
-    UnitResult(null, UnitType.Project, "project", files.foldLeft(List[Result]())((a, b) =>  a ::: List(run(metrics, b, projectContext))))
+  def runProject(metrics: List[Metric], files: List[File], projectContext: ProjectContext): List[ResultUnit] = {
+    files.foldLeft(List[ResultUnit]())((a, b) =>  a ::: List(run(metrics, b, projectContext)))
   }
 
 

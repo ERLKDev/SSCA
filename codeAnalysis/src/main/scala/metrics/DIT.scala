@@ -1,7 +1,7 @@
 package main.scala.metrics
 
 import main.scala.analyser.metric.ObjectMetric
-import main.scala.analyser.result.{MetricResult, UnitType}
+import main.scala.analyser.result.MetricResult
 import main.scala.analyser.util.TreeUtil
 
 /**
@@ -20,7 +20,7 @@ class DIT extends ObjectMetric with TreeUtil{
     * @return
     */
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
-    List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
+    List(new MetricResult(getRangePos(tree), getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
   }
 
   /**
@@ -31,7 +31,7 @@ class DIT extends ObjectMetric with TreeUtil{
     * @return
     */
   override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
-    List(MetricResult(getRangePos(tree), UnitType.Object , getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
+    List(new MetricResult(getRangePos(tree), getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
   }
 
 

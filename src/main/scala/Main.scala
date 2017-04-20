@@ -1,7 +1,6 @@
 import main.scala.Repo
 import main.scala.analyser.Analyser
 import main.scala.analyser.prerun.PreRunJob
-import main.scala.analyser.result.{UnitResult, UnitType}
 import main.scala.metrics._
 
 import scala.io.Source

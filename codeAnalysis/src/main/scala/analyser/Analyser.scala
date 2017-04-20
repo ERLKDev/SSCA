@@ -3,6 +3,7 @@ package main.scala.analyser
 import java.io.File
 
 import analyser.PreRunner
+import analyser.result.ResultUnit
 import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.Metric
@@ -42,7 +43,7 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     * @param path
     * @return result
     */
-  def analyse(path: String): Result = {
+  def analyse(path: String): ResultUnit = {
     global.ask { () =>
       val file = new File(path)
       preRunner.run(preRunJobs, List(file))
@@ -55,7 +56,7 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     * @param paths
     * @return result
     */
-  def analyse(paths: List[String]): Result = {
+  def analyse(paths: List[String]): List[ResultUnit] = {
     global.ask { () =>
       val files = paths.map(x => new File(x))
       preRunner.run(preRunJobs, files)
@@ -67,7 +68,7 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     * Analyse complete project
     * @return result
     */
-  def analyse(): Result  = {
+  def analyse(): List[ResultUnit]  = {
     global.ask { () =>
       preRunner.run(preRunJobs, projectFiles)
       metricRunner.runProject(metrics, projectFiles, projectContext)

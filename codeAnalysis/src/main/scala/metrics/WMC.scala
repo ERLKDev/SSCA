@@ -2,7 +2,7 @@ package main.scala.metrics
 
 import main.scala.Utils.ComplexUtil
 import main.scala.analyser.metric.ObjectMetric
-import main.scala.analyser.result.{MetricResult, UnitType}
+import main.scala.analyser.result.MetricResult
 
 /**
   * Created by ErikL on 4/6/2017.
@@ -67,10 +67,10 @@ class WMC extends ObjectMetric with ComplexUtil{
 
     allFunctions(tree, 0)
     List(
-      MetricResult(getRangePos(tree), UnitType.Object, name,"WMCnormal", wmcNormal),
-      MetricResult(getRangePos(tree), UnitType.Object, name,"WMCcc", wmcCC),
-      MetricResult(getRangePos(tree), UnitType.Object, name,"WMCnestNormal", wmcNestNormal),
-      MetricResult(getRangePos(tree), UnitType.Object, name,"WMCnestCC", wmcNestCC)
+      new MetricResult(getRangePos(tree), name,"WMCnormal", wmcNormal),
+      new MetricResult(getRangePos(tree), name,"WMCcc", wmcCC),
+      new MetricResult(getRangePos(tree), name,"WMCnestNormal", wmcNestNormal),
+      new MetricResult(getRangePos(tree), name,"WMCnestCC", wmcNestCC)
     )
   }
 }

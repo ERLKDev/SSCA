@@ -1,7 +1,7 @@
 package main.scala.metrics
 
 import main.scala.analyser.metric.FunctionMetric
-import main.scala.analyser.result.{MetricResult, UnitType}
+import main.scala.analyser.result.MetricResult
 
 /**
   * Created by ErikL on 4/6/2017.
@@ -30,7 +30,7 @@ class OutDegree extends FunctionMetric{
 
     val functionCalls = countFunctionCalls(tree)
     List(
-      MetricResult(getRangePos(tree), UnitType.Function, getName(tree), "OutDegree", functionCalls.size),
-      MetricResult(getRangePos(tree), UnitType.Function, getName(tree), "OutDegreeDistinct", functionCalls.distinct.size))
+      new MetricResult(getRangePos(tree), getName(tree), "OutDegree", functionCalls.size),
+      new MetricResult(getRangePos(tree), getName(tree), "OutDegreeDistinct", functionCalls.distinct.size))
   }
 }

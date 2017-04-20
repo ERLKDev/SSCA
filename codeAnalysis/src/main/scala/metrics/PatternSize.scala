@@ -1,7 +1,7 @@
 package main.scala.metrics
 
 import main.scala.analyser.metric.FunctionMetric
-import main.scala.analyser.result.{MetricResult, UnitResult, UnitType}
+import main.scala.analyser.result.MetricResult
 
 /**
   * Created by ErikL on 4/6/2017.
@@ -25,6 +25,6 @@ class PatternSize extends FunctionMetric{
       case _ =>
         tree.children.foldLeft(1)((a,b) => a + count(b))
     }
-    List(MetricResult(getRangePos(tree), UnitType.Function, getName(tree), "PatternSize", count(tree)))
+    List(new MetricResult(getRangePos(tree), getName(tree), "PatternSize", count(tree)))
   }
 }

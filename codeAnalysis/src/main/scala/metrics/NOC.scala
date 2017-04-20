@@ -5,7 +5,7 @@ import java.io.File
 import main.scala.Utils.SourceCodeUtil
 import main.scala.analyser.metric.ObjectMetric
 import main.scala.analyser.prerun.PreRunJob
-import main.scala.analyser.result.{MetricResult, UnitType}
+import main.scala.analyser.result.MetricResult
 import main.scala.analyser.util.TreeSyntaxUtil
 
 /**
@@ -45,7 +45,7 @@ class NOC extends ObjectMetric with PreRunJob with SourceCodeUtil with TreeSynta
     * @return
     */
   override def run(tree: global.ModuleDef, code: List[String]): List[MetricResult] = {
-    List(MetricResult(getRangePos(tree), UnitType.Object, getName(tree), "NOC", 0))
+    List(new MetricResult(getRangePos(tree), getName(tree), "NOC", 0))
   }
 
 
@@ -64,7 +64,7 @@ class NOC extends ObjectMetric with PreRunJob with SourceCodeUtil with TreeSynta
       case x: TraitDefinition =>
         List(hasChildren(tree, x.name, x.pack))
       case _ =>
-        List(MetricResult(getRangePos(tree), UnitType.Object, getName(tree), "NOC", 0))
+        List(new MetricResult(getRangePos(tree), getName(tree), "NOC", 0))
 
     }
   }
@@ -90,6 +90,6 @@ class NOC extends ObjectMetric with PreRunJob with SourceCodeUtil with TreeSynta
     }
 
     val result = filesToCheck.foldLeft(0)((a, b) => a + recursive(treeFromFile(b)))
-    MetricResult(getRangePos(tree), UnitType.Object, name, "NOC", result)
+    new MetricResult(getRangePos(tree), name, "NOC", result)
   }
 }
