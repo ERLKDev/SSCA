@@ -1,13 +1,27 @@
 package main.scala
 
 import dispatch.github.{GhCommit, GhCommitSummary}
+import util.GitDataBase
 
 
 /**
   * Created by ErikL on 4/11/2017.
   */
-class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String]) {
-  lazy val commitData: GhCommit = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
+class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String], var data: GhCommit) {
+  val dataBase = new GitDataBase(repoInfo("repoPath"))
+
+  def commitData: GhCommit = {
+    if (data == null)
+      dataBase.readCommit(sha) match {
+        case Some(commit) =>
+          println("Loaded!")
+          data= commit
+        case _ =>
+          data = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
+          dataBase.writeCommit(data)
+      }
+    data
+  }
 
   def message: String = commitSummary.commit.message
   def sha: String = commitSummary.sha

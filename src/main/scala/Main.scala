@@ -1,3 +1,4 @@
+import analyser.result.ObjectResult
 import main.scala.Repo
 import main.scala.analyser.Analyser
 import main.scala.analyser.prerun.PreRunJob
@@ -35,28 +36,21 @@ object Main {
         an.refresh()
         val files = x.commit.files.map(x => path + "\\" + x)
         val results = an.analyse(files)
-        results.asInstanceOf[UnitResult].getResults.foreach {
+        results.foreach{
           y =>
-            val lines = x.commit.getPatchData(y.asInstanceOf[UnitResult].position.source.path)
-
+            val lines = x.commit.getPatchData(y.position.source.path.substring(path.length + 1).replace("\\", "/"))
             lines match {
               case Some(patch) =>
-                y match {
-                  case res: UnitResult =>
-                    res.results.foreach {
-                      case obj: UnitResult =>
-                        if (obj.unitType == UnitType.Object) {
-                          if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                            //println(obj)
-                          }
-                        }
-                    }
-                  case _ =>
-
-                }
+                  y.results.foreach {
+                    case obj: ObjectResult =>
+                      if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
+                        println(obj.toCsvObjectAvr.mkString("\n"))
+                      }
+                  }
               case _ =>
 
             }
+
         }
         count += 1
         println(count + "/" + faults.length)

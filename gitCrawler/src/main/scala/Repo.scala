@@ -14,7 +14,7 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   val debugTreshhold = 5
 
   val git: Git = initGitRepo
-  val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token)
+  val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath)
 
   val commits: List[Commit] = getCommits
   val issues: List[Issue] = getIssues
@@ -43,7 +43,7 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   private def getCommits: List[Commit] = {
     def recursive(page: Int) : List[Commit] = {
       val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100"))()
-      val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, repoInfo)))
+      val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, repoInfo, null)))
       if (commits.isEmpty || (debug && page > debugTreshhold))
         commits
       else
