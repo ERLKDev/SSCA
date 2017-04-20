@@ -1,6 +1,5 @@
 package analyser.result
 
-import main.scala.analyser.result.Result
 import main.scala.analyser.util.ResultUtil
 
 import scala.collection.mutable.ListBuffer

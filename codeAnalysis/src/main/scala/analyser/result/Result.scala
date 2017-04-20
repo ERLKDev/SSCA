@@ -1,5 +1,7 @@
-package main.scala.analyser.result
+package analyser.result
 
+
+import main.scala.analyser.result.MetricResult
 
 import scala.reflect.internal.util.RangePosition
 
@@ -12,15 +14,13 @@ abstract class Result(val position: RangePosition){
 
   def flatten() : List[MetricResult]
 
-  def toCsv: List[String]
-
-  def toCsvFunctions: List[String]
+  def toCsvFunction: List[String]
 
   def toCsvObject: List[String]
 
-  def toCsvObjectSum: List[String]
+  def toCsvObjectSum(size: Int): List[String]
 
-  def toCsvObjectAvr: List[String]
+  def toCsvObjectAvr(size: Int): List[String]
 }
 
 

@@ -8,7 +8,6 @@ import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.Metric
 import main.scala.analyser.prerun.PreRunJob
-import main.scala.analyser.result.Result
 import main.scala.analyser.util.ProjectUtil
 
 /**

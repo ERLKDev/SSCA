@@ -1,7 +1,7 @@
 package analyser.result
 
 import analyser.result.ObjectType.ObjectType
-import main.scala.analyser.result.{MetricResult, Result}
+import main.scala.analyser.result.MetricResult
 
 import scala.reflect.internal.util.RangePosition
 
@@ -14,58 +14,46 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())
 
-  override def toCsv: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsv.map(x => "|" + name + "$" + objectType + x))
+  override def toCsvFunction: List[String] = {
+    val metrics = results.filter(_.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
+      .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvFunction)
 
-  override def toCsvFunctions: List[String] = {
-    results.filter(x => x.isInstanceOf[ResultUnit]).toList.asInstanceOf[List[ResultUnit]]
-      .foldLeft(List[String]())((a, b) => a ::: b.toCsvFunctions.map(x => "|" + name + "$" + objectType + x))
+    val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvFunction)
+    val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvFunction)
+
+    metrics.mkString(", ") :: objects ::: functions
   }
 
   override def toCsvObject: List[String] = {
-    val metrics = results.filter(x => x.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
-      .sortWith((a, b) => a.metricName < b.metricName).foldLeft("|" + name + "$" + objectType)((a, b) => a + ", " + b.toCsvObject.mkString)
+    val metrics = results.filter(_.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
+      .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvObject)
 
-    val units = results.filter(x => x.isInstanceOf[ResultUnit]).toList.asInstanceOf[List[ResultUnit]]
-      .foldLeft(List[String]())((a, b) => a ::: b.toCsvObject.map(x => "|" + name + "$" + objectType + x))
+    val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObject)
 
-    metrics :: units
+    position.source.path + "|" + name + "%{" + objectType + "}, " + metrics.mkString(", ") :: objects
   }
 
-  override def toCsvObjectSum: List[String] = {
-    val metrics = results.filter(x => x.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
-      .sortWith((a, b) => a.metricName < b.metricName).foldLeft("|" + name + "$" + objectType)((a, b) => a + ", " + b.toCsvObjectSum.mkString)
+  override def toCsvObjectSum(size: Int): List[String] = {
+    val metrics = results.filter(_.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
+      .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
 
-    val functionAverage = getFunctionsInObject.map(x => x.toCsvObjectSum).transpose.map(x => x.map(y => y.toDouble).sum).mkString(", ")
+    val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
+    val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
 
-    val units = results.filter(x => x.isInstanceOf[ObjectResult]).toList.asInstanceOf[List[ObjectResult]]
-      .foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum.map(x => "|" + name + "$" + objectType + x))
+    val funSum = functions.map(x => x.split(", ").toList).transpose.map(x => x.map(_.toDouble).sum.toString)
 
-    (metrics + ", " + functionAverage) :: units
+    position.source.path + "|" + name + "%{" + objectType + "}, " + fillCsvLine(metrics ::: funSum, size).mkString(", ") :: objects
   }
 
-  override def toCsvObjectAvr: List[String] = {
-    val metrics = results.filter(x => x.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
-      .sortWith((a, b) => a.metricName < b.metricName).foldLeft("|" + name + "$" + objectType)((a, b) => a + ", " + b.toCsvObjectAvr.mkString)
+  override def toCsvObjectAvr(size: Int): List[String] = {
+    val metrics = results.filter(_.isInstanceOf[MetricResult]).toList.asInstanceOf[List[MetricResult]]
+      .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
 
-    val functionAverage = getFunctionsInObject.map(x => x.toCsvObjectAvr).transpose.map(x => x.map(y => y.toDouble).sum / getFunctionsInObject.length).mkString(", ")
+    val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
+    val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
 
-    val units = results.filter(x => x.isInstanceOf[ObjectResult]).toList.asInstanceOf[List[ObjectResult]]
-      .foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr.map(x => "|" + name + "$" + objectType + x))
+    val funSum = functions.map(x => x.split(", ").toList).transpose.map(x => (x.map(_.toDouble).sum / functions.length).toString)
 
-    (metrics + ", " + functionAverage) :: units
-  }
-
-
-  private def getFunctionsInObject: List[FunctionResult] = {
-    def recursive(resultList: List[Result]): List[FunctionResult] = {
-      resultList.foldLeft(List[FunctionResult]())((a, b) => b match {
-        case x: FunctionResult =>
-          a ::: List(x) ::: recursive(x.results.toList)
-        case _ =>
-          a
-      })
-    }
-
-    recursive(results.toList)
+    position.source.path + "|" + name + "%{" + objectType + "}, " + (metrics ::: funSum).mkString(", ") :: objects
   }
 }

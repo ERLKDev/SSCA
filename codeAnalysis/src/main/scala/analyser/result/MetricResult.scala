@@ -2,6 +2,8 @@ package main.scala.analyser.result
 
 
 
+import analyser.result.Result
+
 import scala.reflect.internal.util.RangePosition
 
 /**
@@ -13,14 +15,12 @@ class MetricResult(position : RangePosition, val name: String, val metricName : 
 
   override def flatten(): List[MetricResult] = List(this)
 
-  override def toCsv: List[String] = List(value.toString)
+  override def toCsvFunction: List[String] = List(value.toString)
 
-  override def toCsvFunctions: List[String] = toCsv
+  override def toCsvObject: List[String] = toCsvFunction
 
-  override def toCsvObject: List[String] = toCsv
+  override def toCsvObjectSum(size: Int): List[String] = toCsvFunction
 
-  override def toCsvObjectSum: List[String] = toCsv
-
-  override def toCsvObjectAvr: List[String] = toCsv
+  override def toCsvObjectAvr(size: Int): List[String] = toCsvFunction
 
 }

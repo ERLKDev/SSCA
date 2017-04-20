@@ -13,14 +13,12 @@ class FileResult(position: RangePosition, val name : String) extends ResultUnit(
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())
 
-  override def toCsv: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsv.map(x => name + "$file" + x))
+  override def toCsvFunction: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvFunction.map(x => x))
 
-  override def toCsvFunctions: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvFunctions.map(x => name + "$file" + x))
+  override def toCsvObject: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObject.map(x => x))
 
-  override def toCsvObject: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObject.map(x => name + "$file" + x))
+  override def toCsvObjectSum(size: Int): List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size).map(x => x))
 
-  override def toCsvObjectSum: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum.map(x => name + "$file" + x))
-
-  override def toCsvObjectAvr: List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr.map(x => name + "$file" + x))
+  override def toCsvObjectAvr(size: Int): List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size).map(x => x))
 
 }

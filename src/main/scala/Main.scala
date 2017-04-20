@@ -1,6 +1,7 @@
 import analyser.result.ObjectResult
 import main.scala.Repo
 import main.scala.analyser.Analyser
+import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
 import main.scala.analyser.prerun.PreRunJob
 import main.scala.metrics._
 
@@ -24,6 +25,14 @@ object Main {
     println("Done loading repo")
 
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
+    val objectMetricsHeader = metrics.filter(x => x.isInstanceOf[ObjectMetric])
+      .asInstanceOf[List[ObjectMetric]].foldLeft(List[String]())((a, b) => a ::: b.objectHeader).sortWith(_ < _)
+
+    val functionMetricsHeader = metrics.filter(x => x.isInstanceOf[FunctionMetric])
+      .asInstanceOf[List[FunctionMetric]].foldLeft(List[String]())((a, b) => a ::: b.functionHeader).sortWith(_ < _)
+
+    val header = objectMetricsHeader ::: functionMetricsHeader
+
     val an = new Analyser(path, metrics)
     println("Done init analyser")
 
@@ -44,7 +53,7 @@ object Main {
                   y.results.foreach {
                     case obj: ObjectResult =>
                       if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                        println(obj.toCsvObjectAvr.mkString("\n"))
+                        println(obj.toCsvObjectAvr(header.length).mkString("\n"))
                       }
                   }
               case _ =>
