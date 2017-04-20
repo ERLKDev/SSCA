@@ -14,8 +14,7 @@ class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String], var 
     if (data == null)
       dataBase.readCommit(sha) match {
         case Some(commit) =>
-          println("Loaded!")
-          data= commit
+          data = commit
         case _ =>
           data = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
           dataBase.writeCommit(data)

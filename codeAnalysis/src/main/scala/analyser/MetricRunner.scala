@@ -30,7 +30,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
         parent
 
       case ObjectDefinition(x, _, _) =>
-        val result = new ObjectResult(getRangePos(x), getName(x))
+        val result = new ObjectResult(getRangePos(x), getName(x), ObjectType.ObjectT)
         result.addResult(executeObjectMetrics(metrics, x))
         traverse(x.impl, result)
 
@@ -39,7 +39,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
 
       case (_: ClassDefinition) | (_: TraitDefinition) | (_: AbstractClassDefinition)=>
         val x = tree.asInstanceOf[ClassDef]
-        val result = new ObjectResult(getRangePos(x), getName(x))
+        val result = new ObjectResult(getRangePos(x), getName(x), if (isTrait(x)) ObjectType.TraitT else ObjectType.ClassT)
         result.addResult(executeObjectMetrics(metrics, x))
         traverse(x.impl, result)
 
