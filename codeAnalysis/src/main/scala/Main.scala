@@ -2,6 +2,7 @@ package main.scala
 
 import main.scala.analyser.Analyser
 import main.scala.analyser.Compiler.CompilerProvider
+import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
 import metrics._
 
 /**
@@ -16,10 +17,17 @@ object Main extends CompilerProvider {
     val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA", metrics)
 
 
-    val result = an.analyse(a)
+    val objectMetricsHeader = metrics.filter(x => x.isInstanceOf[ObjectMetric])
+      .asInstanceOf[List[ObjectMetric]].foldLeft(List[String]())((a, b) => a ::: b.objectHeader).sortWith((a, b) => a < b).mkString(", ")
+
+    val functionMetricsHeader = metrics.filter(x => x.isInstanceOf[FunctionMetric])
+      .asInstanceOf[List[FunctionMetric]].foldLeft(List[String]())((a, b) => a ::: b.functionHeader).sortWith((a, b) => a < b).mkString(", ")
+
+    val result = an.analyse().foldLeft("")((a, b) => a + "\n" + b.toCsvObjectSum.mkString("\n"))
 
 
 /*    val file =result.getFile("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala")*/
+    println(objectMetricsHeader + ", " + functionMetricsHeader)
     println(result)
 
  /*   c.foreach(x => println("\n"  + x))*/

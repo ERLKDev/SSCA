@@ -67,10 +67,10 @@ class WMC extends ObjectMetric with ComplexUtil{
 
     allFunctions(tree, 0)
     List(
-      new MetricResult(getRangePos(tree), name,"WMCnormal", wmcNormal),
-      new MetricResult(getRangePos(tree), name,"WMCcc", wmcCC),
-      new MetricResult(getRangePos(tree), name,"WMCnestNormal", wmcNestNormal),
-      new MetricResult(getRangePos(tree), name,"WMCnestCC", wmcNestCC)
+      new MetricResult(getRangePos(tree), name + "$object", "WMCnormal", wmcNormal),
+      new MetricResult(getRangePos(tree), name + "$object", "WMCcc", wmcCC),
+      new MetricResult(getRangePos(tree), name + "$object", "WMCnestNormal", wmcNestNormal),
+      new MetricResult(getRangePos(tree), name + "$object", "WMCnestCC", wmcNestCC)
     )
   }
 }

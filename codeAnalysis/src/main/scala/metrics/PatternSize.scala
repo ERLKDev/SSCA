@@ -25,6 +25,6 @@ class PatternSize extends FunctionMetric{
       case _ =>
         tree.children.foldLeft(1)((a,b) => a + count(b))
     }
-    List(new MetricResult(getRangePos(tree), getName(tree), "PatternSize", count(tree)))
+    List(new MetricResult(getRangePos(tree), getName(tree) + "$function", "PatternSize", count(tree)))
   }
 }

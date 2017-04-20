@@ -90,6 +90,6 @@ class NOC extends ObjectMetric with PreRunJob with SourceCodeUtil with TreeSynta
     }
 
     val result = filesToCheck.foldLeft(0)((a, b) => a + recursive(treeFromFile(b)))
-    new MetricResult(getRangePos(tree), name, "NOC", result)
+    new MetricResult(getRangePos(tree), name + "$object", "NOC", result)
   }
 }

@@ -25,7 +25,7 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
     * @return
     */
   override def run(tree: DefDef, code: List[String]): List[MetricResult] = {
-    countLocs(code, tree, getName(tree), "fun")
+    countLocs(code, tree, getName(tree), "function")
   }
 
 
@@ -37,7 +37,7 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
     * @return
     */
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
-    countLocs(code, tree, getName(tree), "obj")
+    countLocs(code, tree, getName(tree), "object")
   }
 
 
@@ -49,7 +49,7 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
     * @return
     */
   override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
-    countLocs(code, tree, getName(tree), "obj")
+    countLocs(code, tree, getName(tree), "object")
   }
 
 
@@ -67,8 +67,8 @@ class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with Sourc
     val codeWithComments = removeWhiteLines(code)
     val cd = if (codeWithComments.isEmpty) 0.0 else (codeWithComments.size - codeWithoutComments.size).asInstanceOf[Double] / codeWithComments.size
     List(
-      new MetricResult(getRangePos(tree), name,  prefix + "LOC", codeWithComments.size),
-      new MetricResult(getRangePos(tree), name,  prefix + "SLOC", codeWithoutComments.size),
-      new MetricResult(getRangePos(tree), name, prefix + "CD", cd))
+      new MetricResult(getRangePos(tree), name+ "$" + prefix, prefix + "LOC", codeWithComments.size),
+      new MetricResult(getRangePos(tree), name+ "$" + prefix, prefix + "SLOC", codeWithoutComments.size),
+      new MetricResult(getRangePos(tree), name+ "$" + prefix, prefix + "CD", cd))
   }
 }

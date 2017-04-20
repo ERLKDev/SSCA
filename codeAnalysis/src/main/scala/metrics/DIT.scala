@@ -20,7 +20,7 @@ class DIT extends ObjectMetric with TreeUtil{
     * @return
     */
   override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(getRangePos(tree), getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
+    List(new MetricResult(getRangePos(tree), getName(tree) + "$object", "DIT", countInheritanceDepth(tree.impl.parents)))
   }
 
   /**
@@ -31,7 +31,7 @@ class DIT extends ObjectMetric with TreeUtil{
     * @return
     */
   override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(getRangePos(tree), getName(tree), "DIT", countInheritanceDepth(tree.impl.parents)))
+    List(new MetricResult(getRangePos(tree), getName(tree) + "$object", "DIT", countInheritanceDepth(tree.impl.parents)))
   }
 
 

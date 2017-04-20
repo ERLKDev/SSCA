@@ -30,7 +30,7 @@ class OutDegree extends FunctionMetric{
 
     val functionCalls = countFunctionCalls(tree)
     List(
-      new MetricResult(getRangePos(tree), getName(tree), "OutDegree", functionCalls.size),
-      new MetricResult(getRangePos(tree), getName(tree), "OutDegreeDistinct", functionCalls.distinct.size))
+      new MetricResult(getRangePos(tree), getName(tree) + "$function", "OutDegree", functionCalls.size),
+      new MetricResult(getRangePos(tree), getName(tree) + "$function", "OutDegreeDistinct", functionCalls.distinct.size))
   }
 }
