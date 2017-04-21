@@ -7,17 +7,18 @@ import util.GitDataBase
 /**
   * Created by ErikL on 4/11/2017.
   */
-class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String], var data: GhCommit) {
+class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String], data: GhCommit) {
   val dataBase = new GitDataBase(repoInfo("repoPath"))
 
   def commitData: GhCommit = {
     if (data == null)
       dataBase.readCommit(sha) match {
         case Some(commit) =>
-          data = commit
+          return commit
         case _ =>
-          data = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
-          dataBase.writeCommit(data)
+          val result = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
+          dataBase.writeCommit(result)
+          return result
       }
     data
   }

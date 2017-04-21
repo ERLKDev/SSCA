@@ -1,6 +1,8 @@
 import java.io.File
 
 import main.scala.Repo
+
+import scala.io.Source
 /**
   * Created by ErikL on 4/11/2017.
   */
@@ -9,9 +11,19 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val repo = new Repo("akka", "akka", "73c536d54d334d411fbd12425be757f888319792", List("bug", "failed", "needs-attention "), "tmpGitDir")
+    val tokenFile = Source.fromFile("github.token")
+    val githubToken = tokenFile.getLines.mkString
+    tokenFile.close()
 
-    println("checkout 1")
+    val user = "akka"
+    val reponame = "akka"
+    val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
+
+    val repo = new Repo(user, reponame, githubToken, List("bug", "failed", "needs-attention "), path + "1")
+    println("Repo Loaded!")
+    println(repo.changedFiles(repo.commits(0), repo.commits(2)))
+
+/*    println("checkout 1")
     repo.checkoutCommit(repo.faults(0).commit)
 
     println("checkout 2")
@@ -27,7 +39,7 @@ object Main {
     repo.checkoutPreviousCommit(repo.faults(1).commit)
 
     println("checkout 3 prev")
-    repo.checkoutPreviousCommit(repo.faults(2).commit)
+    repo.checkoutPreviousCommit(repo.faults(2).commit)*/
 
 
 

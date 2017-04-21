@@ -1,9 +1,13 @@
 package main.scala
 
 import java.io.File
+import java.util.function.Consumer
 
 import dispatch.github.{GhCommit, GhIssue}
 import org.eclipse.jgit.api.{Git, ResetCommand}
+import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 
 /**
   * Created by ErikL on 4/11/2017.
@@ -11,7 +15,7 @@ import org.eclipse.jgit.api.{Git, ResetCommand}
 class Repo(userName: String, repoName: String, token: String, labels: List[String], repoPath: String) {
 
   val debug = true
-  val debugTreshhold = 5
+  val debugTreshhold = 2
 
   val git: Git = initGitRepo
   val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath)
@@ -137,6 +141,53 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   def checkoutPreviousCommit(commit: Commit): Unit = {
     git.reset().setMode(ResetCommand.ResetType.HARD).call
     git.checkout.setName(commit.commitData.parents.head.sha).setForce(true).call
+  }
+
+  /**
+    * Get The previous commit SHA
+    *
+    * @param commit the commit
+    */
+  def getPreviousCommitSha(commit: Commit): String = {
+    commit.commitData.parents.head.sha
+  }
+
+  def changedFiles(commit1: Commit, commit2: Commit) : List[String] = {
+    try {
+      val repository = git.getRepository
+
+      // The {tree} will return the underlying tree-id instead of the commit-id itself!
+      // For a description of what the carets do see e.g. http://www.paulboxley.com/blog/2011/06/git-caret-and-tilde
+      // This means we are selecting the parent of the parent of the parent of the parent of current HEAD and
+      // take the tree-ish of it
+      val oldHead = repository.resolve(commit1.commitData.commit.tree.sha)
+      val head = repository.resolve(commits.find(x => x.sha == getPreviousCommitSha(commit2)).get.commitData.commit.tree.sha)
+
+      // prepare the two iterators to compute the diff between
+      try {
+        val reader = repository.newObjectReader()
+        val oldTreeIter = new CanonicalTreeParser()
+        oldTreeIter.reset(reader, oldHead)
+        val newTreeIter = new CanonicalTreeParser()
+        newTreeIter.reset(reader, head)
+
+        // finally get the list of changed files
+        try {
+          val diffs = git.diff()
+            .setNewTree(newTreeIter)
+            .setOldTree(oldTreeIter)
+            .call()
+          return diffs.toArray[DiffEntry](Array[DiffEntry]()).filter(x => x.getChangeType != DiffEntry.ChangeType.DELETE)
+            .foldLeft(List[String]())((a, b) => a ::: List(b.getNewPath)).filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined)
+
+        }catch {
+          case _: Throwable =>
+        }
+      }
+    }catch {
+      case _: Throwable =>
+    }
+    List()
   }
 
 }
