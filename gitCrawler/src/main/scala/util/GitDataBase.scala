@@ -47,7 +47,7 @@ class GitDataBase(repoPath: String) {
   def writeCommit(obj: GhCommit): Unit = {
     val json = pretty(render(decompose(obj)))
     write(obj.sha, json)
-      }
+  }
 
   def readCommit(id: String): Option[GhCommit] = {
     read(id) match {

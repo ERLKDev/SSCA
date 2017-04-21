@@ -1,3 +1,5 @@
+import java.io.File
+
 import analyser.result.ObjectResult
 import main.scala.{Commit, Repo}
 import main.scala.analyser.Analyser
@@ -20,6 +22,21 @@ object Main {
     val reponame = "akka"
     val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
 
+    val fullOutput = path + "1Output\\fullOutput.csv"
+    val faultOutput = path + "1Output\\faultOutput.csv"
+
+    val outputDir = new File(path + "1Output")
+    outputDir.mkdirs()
+
+    val fullOutputFile = new File(fullOutput)
+    fullOutputFile.deleteOnExit()
+    fullOutputFile.createNewFile()
+
+    val faultOutputFile = new File(faultOutput)
+    faultOutputFile.deleteOnExit()
+    faultOutputFile.createNewFile()
+
+
     def run(id: Int, runners: Int, path: String) : Unit = {
       val repo = new Repo(user, reponame, githubToken, List("bug", "failed", "needs-attention "), path)
       println("Done loading repo: " + id)
@@ -33,6 +50,9 @@ object Main {
 
       val header = objectMetricsHeader ::: functionMetricsHeader
 
+      Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), fullOutput)
+      Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), faultOutput)
+
       val an = new Analyser(path, metrics)
       println("Done init analyser: " + id)
 
@@ -40,6 +60,8 @@ object Main {
       val faults = repo.faults
       val chunk = faults.grouped(faults.length / runners).toList(id - 1)
       var count = 0
+
+
       var prevCommit: Commit = null
       time {
         chunk.foreach {
@@ -55,27 +77,33 @@ object Main {
             results.foreach {
               y =>
                 val lines = x.commit.getPatchData(y.position.source.path.substring(path.length + 1).replace("\\", "/"))
-                lines match {
-                  case Some(patch) =>
-                    y.results.foreach {
-                      case obj: ObjectResult =>
+                y.results.foreach {
+                  case obj: ObjectResult =>
+                    lines match {
+                      case Some(patch) =>
                         if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                          println(obj.toCsvObjectAvr(header.length).mkString("\n"))
+                          Output.writeOutput(obj.toCsvObjectAvr(header.length).map(x.commit.sha + ", " + x.issues.length + ", " + _),  faultOutput)
+                          Output.writeOutput(obj.toCsvObjectAvr(header.length).map(x.commit.sha + ", " + x.issues.length + ", " + _), fullOutput)
+                          println(obj.toCsvObjectAvr(header.length).map(x.commit.sha + ", " + x.issues.length + ", " + _).mkString("\n"))
+                        }else{
+                          Output.writeOutput(obj.toCsvObjectAvr(header.length).map(x.commit.sha + ", " + 0 + ", " + _), fullOutput)
                         }
+                      case _ =>
+                        Output.writeOutput(obj.toCsvObjectAvr(header.length).map(x.commit.sha + ", " + 0 + ", " + _), fullOutput)
                     }
-                  case _ =>
-
                 }
-
             }
             prevCommit = x.commit
             count += 1
-            println(count + "/" + chunk.length)
+            println(count + "/" + chunk.length + ":  " + results.length)
         }
       }
     }
 
-    List(1).par.foreach(x => run(x, 1, path + x))
+    //List(1).par.foreach(x => run(x, 1, path + x)
+
+    run(1, 1, path + 1)
+
     println("Done")
   }
 

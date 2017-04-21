@@ -19,7 +19,7 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
 
   private var projectFiles: List[File] = _
   private var projectContext: ProjectContext = _
-  private var results: List[ResultUnit] = _
+  private var results: List[ResultUnit] = List()
 
   private val preRunJobs: List[PreRunJob] = metrics.filter(x => x.isInstanceOf[PreRunJob]).asInstanceOf[List[PreRunJob]]
 
@@ -33,7 +33,6 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
   def refresh(): Unit = {
     projectFiles = getProjectFiles(projectPath).toList
     projectContext = new ProjectContext(projectFiles)
-    results = List()
 
     /* Init main.scala.metrics*/
     metrics.foreach(f => f.init(projectContext))

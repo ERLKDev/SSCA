@@ -1,4 +1,4 @@
-import java.io.File
+package gitcrawler
 
 import main.scala.Repo
 
