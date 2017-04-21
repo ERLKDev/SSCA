@@ -1,6 +1,8 @@
 package main.scala.analyser.util
 
-import analyser.result.{FunctionResult, ObjectResult, Result}
+import java.io.File
+
+import analyser.result._
 
 import scala.reflect.internal.util.RangePosition
 import scala.tools.nsc.io.AbstractFile
@@ -10,6 +12,34 @@ import scala.tools.nsc.util
   * Created by ErikL on 4/7/2017.
   */
 trait ResultUtil {
+
+  def removeOldResults(results: List[ResultUnit], files: List[File]): List[ResultUnit] = results match {
+    case Nil =>
+      List()
+    case x::tail =>
+      x match {
+        case y: FileResult =>
+          if (files.map(_.getPath).contains(y.position.source.path))
+            x::removeOldResults(tail, files)
+          else
+            removeOldResults(tail, files)
+        case _ =>
+          removeOldResults(tail, files)
+      }
+  }
+
+  def addResults(results: List[ResultUnit], newResults: List[ResultUnit]): List[ResultUnit] = {
+    def removeOld(results: List[ResultUnit]): List[ResultUnit] = results match {
+      case Nil =>
+        List()
+      case x::tail =>
+        if (newResults.exists(y => y.position.source.path == x.position.source.path))
+          removeOld(tail)
+        else
+          x::removeOld(tail)
+    }
+    removeOld(results) ::: newResults
+  }
 
   def getObjects(results: List[Result]): List[ObjectResult] = {
     def recursive(resultList: List[Result]): List[ObjectResult] = {

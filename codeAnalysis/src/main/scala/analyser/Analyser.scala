@@ -8,17 +8,18 @@ import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.Metric
 import main.scala.analyser.prerun.PreRunJob
-import main.scala.analyser.util.ProjectUtil
+import main.scala.analyser.util.{ProjectUtil, ResultUtil}
 
 /**
   * Created by Erik on 5-4-2017.
   */
-class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProvider with ProjectUtil{
+class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProvider with ProjectUtil with ResultUtil{
   private val preRunner = new PreRunner
   private val metricRunner = new MetricRunner
 
   private var projectFiles: List[File] = _
   private var projectContext: ProjectContext = _
+  private var results: List[ResultUnit] = _
 
   private val preRunJobs: List[PreRunJob] = metrics.filter(x => x.isInstanceOf[PreRunJob]).asInstanceOf[List[PreRunJob]]
 
@@ -32,6 +33,7 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
   def refresh(): Unit = {
     projectFiles = getProjectFiles(projectPath).toList
     projectContext = new ProjectContext(projectFiles)
+    results = List()
 
     /* Init main.scala.metrics*/
     metrics.foreach(f => f.init(projectContext))
@@ -42,12 +44,13 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     * @param path
     * @return result
     */
-  def analyse(path: String): ResultUnit = {
+  def analyse(path: String): List[ResultUnit] = {
     global.ask { () =>
       val file = new File(path)
       preRunner.run(preRunJobs, List(file))
-      metricRunner.run(metrics, file, projectContext)
+      results = List(metricRunner.run(metrics, file, projectContext))
     }
+    results
   }
 
   /**
@@ -59,8 +62,9 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     global.ask { () =>
       val files = paths.map(x => new File(x))
       preRunner.run(preRunJobs, files)
-      metricRunner.runFiles(metrics, files, projectContext)
+      results = addResults(results, metricRunner.runFiles(metrics, files, projectContext))
     }
+    removeOldResults(results, projectFiles)
   }
 
   /**
@@ -70,8 +74,9 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
   def analyse(): List[ResultUnit]  = {
     global.ask { () =>
       preRunner.run(preRunJobs, projectFiles)
-      metricRunner.runProject(metrics, projectFiles, projectContext)
+      results = addResults(results, metricRunner.runProject(metrics, projectFiles, projectContext))
     }
+    removeOldResults(results, projectFiles)
   }
 }
 

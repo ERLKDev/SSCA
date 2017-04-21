@@ -52,7 +52,6 @@ object Main {
             } else {
               an.analyse()
             }
-
             results.foreach {
               y =>
                 val lines = x.commit.getPatchData(y.position.source.path.substring(path.length + 1).replace("\\", "/"))
@@ -61,7 +60,7 @@ object Main {
                     y.results.foreach {
                       case obj: ObjectResult =>
                         if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                          //println(obj.toCsvObjectAvr(header.length).mkString("\n"))
+                          println(obj.toCsvObjectAvr(header.length).mkString("\n"))
                         }
                     }
                   case _ =>

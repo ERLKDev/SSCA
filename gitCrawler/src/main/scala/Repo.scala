@@ -15,7 +15,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 class Repo(userName: String, repoName: String, token: String, labels: List[String], repoPath: String) {
 
   val debug = true
-  val debugTreshhold = 2
+  val debugTreshhold = 5
 
   val git: Git = initGitRepo
   val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath)
