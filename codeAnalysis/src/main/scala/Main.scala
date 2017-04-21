@@ -14,7 +14,7 @@ object Main extends CompilerProvider {
     val a = "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\Test.scala"
 
     val metrics = List(new Complex)//, new WMC, new OutDegree, new PatternSize, new DIT)
-    val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\tmp\\gitAkkaAkka1", metrics)
+    val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis", metrics)
 
 
     val objectMetricsHeader = metrics.filter(x => x.isInstanceOf[ObjectMetric])
@@ -25,18 +25,8 @@ object Main extends CompilerProvider {
 
     //val result = an.analyse(a).toCsvObjectSum(objectMetricsHeader.length + functionMetricsHeader.length).mkString("\n")
 
-    time {an.analyse()}
+    time {an.analyse(a).foreach(x => println(x.toCsvObjectSum(20).mkString("\n")))}
 
-/*    val file =result.getFile("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\src\\Test.scala")*/
-    //println((objectMetricsHeader ::: functionMetricsHeader).mkString(", "))
-    //println(result)
-
- /*   c.foreach(x => println("\n"  + x))*/
-
-/*    println(showRaw(treeFromFile(a)))
-    val c = an.analyse()
-    println("startGroup")*/
-/*    val g = groupResultsByObject(an.analyse())*/
     println("done")
   }
 

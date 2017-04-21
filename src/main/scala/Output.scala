@@ -9,6 +9,11 @@ object Output {
     try { op(p) } finally { p.close() }
   }
 
+  /**
+    * Writes the output to a file
+    * @param results a list of csv rows
+    * @param path the destination
+    */
   def writeOutput(results: List[String], path: String): Unit = {
     val fw = new FileWriter(path, true) ;
     fw.write(results.mkString("\n") + "\n") ;

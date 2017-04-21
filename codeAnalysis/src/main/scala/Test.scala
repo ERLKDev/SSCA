@@ -7,8 +7,8 @@ import main.scala.analyser.util.TreeSyntaxUtil
   */
 class Test extends TreeSyntaxUtil {
 
-  class B {
-    val a = 6
+  trait B {
+
   }
 
   def test(node: AstNode): Unit ={

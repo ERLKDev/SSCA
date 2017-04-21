@@ -54,6 +54,6 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
     val funSum = functions.map(x => x.split(", ").toList).transpose.map(x => (x.map(_.toDouble).sum / functions.length).toString)
 
-    position.source.path + "|" + name + "%{" + objectType + "}, " + (metrics ::: funSum).mkString(", ") :: objects
+    position.source.path + "|" + name + "%{" + objectType + "}, " + fillCsvLine(metrics ::: funSum, size).mkString(", ") :: objects
   }
 }

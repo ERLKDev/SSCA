@@ -20,20 +20,47 @@ class GitDataBase(repoPath: String) {
   if(!dir.exists())
     dir.mkdirs()
 
+  /**
+    * Writes the commit data to a file
+    *
+    * @param obj the commit
+    */
+  def writeCommit(obj: GhCommit): Unit = {
+    val json = pretty(render(decompose(obj)))
+    write(obj.sha, json)
+  }
+
+  /**
+    * Reads the commit data from a file
+    *
+    * @param id the commit id
+    * @return
+    */
+  def readCommit(id: String): Option[GhCommit] = {
+    read(id) match {
+      case Some(data) =>
+        Some(net.liftweb.json.parse(data).extract[GhCommit])
+      case _ =>
+        None
+    }
+  }
+
 
   protected def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
     val p = new java.io.PrintWriter(f)
     try { op(p) } finally { p.close() }
   }
 
-  def write(id: String, data: String): Unit = {
+
+  private def write(id: String, data: String): Unit = {
     val file = new File(repoPath + "Data\\" + id)
     printToFile(file) { p =>
       p.println(data)
     }
   }
 
-  def read(id: String): Option[String] = {
+
+  private def read(id: String): Option[String] = {
     val fp = new File(repoPath + "Data\\" + id)
     if(!fp.exists())
       return None
@@ -42,19 +69,5 @@ class GitDataBase(repoPath: String) {
     val result = Some(file.mkString)
     file.close()
     result
-  }
-
-  def writeCommit(obj: GhCommit): Unit = {
-    val json = pretty(render(decompose(obj)))
-    write(obj.sha, json)
-  }
-
-  def readCommit(id: String): Option[GhCommit] = {
-    read(id) match {
-      case Some(data) =>
-        Some(net.liftweb.json.parse(data).extract[GhCommit])
-      case _ =>
-        None
-    }
   }
 }

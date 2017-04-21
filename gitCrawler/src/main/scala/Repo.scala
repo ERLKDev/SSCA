@@ -15,7 +15,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 class Repo(userName: String, repoName: String, token: String, labels: List[String], repoPath: String) {
 
   val debug = true
-  val debugTreshhold = 2
+  val debugTreshhold = 15
 
   val git: Git = initGitRepo
   val repoInfo = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath)
@@ -152,26 +152,30 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
     commit.commitData.parents.head.sha
   }
 
+
+  /**
+    * Gets the file names that differ between two commits
+    *
+    * @param commit1 First commit
+    * @param commit2 Second Commit
+    * @return
+    */
   def changedFiles(commit1: Commit, commit2: Commit) : List[String] = {
     try {
       val repository = git.getRepository
 
-      // The {tree} will return the underlying tree-id instead of the commit-id itself!
-      // For a description of what the carets do see e.g. http://www.paulboxley.com/blog/2011/06/git-caret-and-tilde
-      // This means we are selecting the parent of the parent of the parent of the parent of current HEAD and
-      // take the tree-ish of it
       val oldHead = repository.resolve(commit1.commitData.commit.tree.sha)
       val head = repository.resolve(commits.find(x => x.sha == getPreviousCommitSha(commit2)).get.commitData.commit.tree.sha)
 
-      // prepare the two iterators to compute the diff between
       try {
         val reader = repository.newObjectReader()
+
         val oldTreeIter = new CanonicalTreeParser()
         oldTreeIter.reset(reader, oldHead)
+
         val newTreeIter = new CanonicalTreeParser()
         newTreeIter.reset(reader, head)
 
-        // finally get the list of changed files
         try {
           val diffs = git.diff()
             .setNewTree(newTreeIter)

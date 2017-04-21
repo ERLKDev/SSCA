@@ -23,26 +23,6 @@ object Main {
     println("Repo Loaded!")
     println(repo.changedFiles(repo.commits(0), repo.commits(2)))
 
-/*    println("checkout 1")
-    repo.checkoutCommit(repo.faults(0).commit)
-
-    println("checkout 2")
-    repo.checkoutCommit(repo.faults(1).commit)
-
-    println("checkout 3")
-    repo.checkoutCommit(repo.faults(2).commit)
-
-    println("checkout 1 prev")
-    repo.checkoutPreviousCommit(repo.faults(0).commit)
-
-    println("checkout 2 prev")
-    repo.checkoutPreviousCommit(repo.faults(1).commit)
-
-    println("checkout 3 prev")
-    repo.checkoutPreviousCommit(repo.faults(2).commit)*/
-
-
-
     println("done getting commits")
   }
 }

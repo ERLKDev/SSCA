@@ -29,11 +29,11 @@ object Main {
     outputDir.mkdirs()
 
     val fullOutputFile = new File(fullOutput)
-    fullOutputFile.deleteOnExit()
+    fullOutputFile.delete()
     fullOutputFile.createNewFile()
 
     val faultOutputFile = new File(faultOutput)
-    faultOutputFile.deleteOnExit()
+    faultOutputFile.delete()
     faultOutputFile.createNewFile()
 
 
