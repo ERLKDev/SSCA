@@ -20,7 +20,7 @@ object Main {
 
     val user = "akka"
     val reponame = "akka"
-    val path = "C:\\tmp\\git" + user.capitalize + reponame.capitalize
+    val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
 
     /*val fullOutput = path + "Output\\fullOutput.csv"
     val faultOutput = path + "Output\\faultOutput.csv"
@@ -53,7 +53,7 @@ object Main {
       Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), fullOutput)
       Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), faultOutput)*/
 
-      val an = new AnalyserS(path, 1)
+      val an = new Analyser(metrics, path, 4)
       println("Done init analyser: " + id)
 
 

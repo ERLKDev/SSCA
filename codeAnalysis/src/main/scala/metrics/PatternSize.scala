@@ -2,12 +2,12 @@ package main.scala.metrics
 
 import main.scala.analyser.metric.FunctionMetric
 import main.scala.analyser.result.MetricResult
+import analyser.AST._
 
 /**
   * Created by ErikL on 4/6/2017.
   */
 class PatternSize extends FunctionMetric{
-  import global._
 
   override def functionHeader: List[String] = List("PatternSize")
 
@@ -20,11 +20,11 @@ class PatternSize extends FunctionMetric{
     * @param code the code of the function
     * @return
     */
-  override def run(tree: global.DefDef, code: List[String]): List[MetricResult] = {
-    def count(tree: Tree) : Int = tree match {
+  override def run(tree: FunctionDef, code: List[String]): List[MetricResult] = {
+    def count(tree: AST) : Int = tree match {
       case _ =>
         tree.children.foldLeft(1)((a,b) => a + count(b))
     }
-    List(new MetricResult(getRangePos(tree), getName(tree) + "$function", "PatternSize", count(tree)))
+    List(new MetricResult(tree.pos, tree.name + "$function", "PatternSize", count(tree)))
   }
 }

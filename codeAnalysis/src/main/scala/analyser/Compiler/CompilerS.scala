@@ -1,17 +1,20 @@
-package main.scala.analyser.Compiler
+package analyser.Compiler
 
 import java.io.File
 
-import scala.reflect.internal.util.{Position, SourceFile}
-import scala.tools.nsc.{Settings, util}
+import analyser.AST.AST
+import main.scala.analyser.util.TreeSyntaxUtil
+
+import scala.reflect.internal.util.{BatchSourceFile, Position, SourceFile}
+import scala.tools.nsc.Settings
 import scala.tools.nsc.interactive.{Global, Response}
 import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.reporters.ConsoleReporter
 
 /**
-  * Created by Erik on 5-4-2017.
+  * Created by erikl on 4/24/2017.
   */
-class Compiler {
+class CompilerS {
   lazy val global : Global = {
 
     val settings = new Settings
@@ -26,13 +29,8 @@ class Compiler {
     }
     global
   }
-}
 
-/**
-  * Helper trait to define parse functions for the compiler
-  */
-trait CompilerHelper {
-  val global: scala.tools.nsc.interactive.Global
+  val treeSyntaxUtil: TreeSyntaxUtil = new TreeSyntaxUtil(this)
 
   /**
     * Function to get the ast tree from a file
@@ -40,14 +38,17 @@ trait CompilerHelper {
     * @param file the source file
     * @return ast tree
     */
-  def treeFromFile(file: SourceFile): global.Tree = {
+  def treeFromFile(file: SourceFile): AST = {
     val response = new Response[global.Tree]
 
     global.ask(() => global.askLoadedTyped(file, true, response))
 
     response.get match {
-      case Left(tree) => tree
-      case Right(ex) => null
+      case Left(tree) => {
+        treeSyntaxUtil.parseTree(tree.asInstanceOf[treeSyntaxUtil.compiler.global.Tree])
+      }
+      case Right(ex) =>
+        null
     }
   }
 
@@ -57,10 +58,8 @@ trait CompilerHelper {
     * @param path the file path
     * @return ast tree
     */
-  def treeFromFile(path: String): global.Tree = {
-    val code = AbstractFile.getFile(path)
-    val bfs = new util.BatchSourceFile(code, code.toCharArray)
-    treeFromFile(bfs)
+  def treeFromFile(path: String): AST = {
+    treeFromFile(new File(path))
   }
 
   /**
@@ -69,18 +68,12 @@ trait CompilerHelper {
     * @param file the file object
     * @return ast tree
     */
-  def treeFromFile(file: File): global.Tree = {
+  def treeFromFile(file: File): AST = {
     if (!file.exists())
-     return null
+      return null
 
     val code = AbstractFile.getFile(file)
-    val bfs = new util.BatchSourceFile(code, code.toCharArray)
+    val bfs = new BatchSourceFile(code, code.toCharArray)
     treeFromFile(bfs)
   }
-}
-
-object Compiler extends Compiler
-
-trait CompilerProvider extends CompilerHelper{
-  val global: Global = Compiler.global
 }

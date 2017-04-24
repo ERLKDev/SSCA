@@ -1,8 +1,8 @@
 package main.scala.analyser.util
 
 import java.io.File
+import analyser.AST._
 
-import main.scala.analyser.Compiler.CompilerProvider
 /**
   * Created by Erik on 5-4-2017.
   */
@@ -22,5 +22,18 @@ trait ProjectUtil {
     }
 
     listFiles(new File(projectPath))
+  }
+
+  /**
+    * Function to get the original source code of a tree
+    *
+    * @param tree The tree
+    * @return
+    */
+  def getOriginalSourceCode(tree : AST): List[String] = {
+    if (tree.pos == null)
+      return null
+    tree.pos.source.content.array.subSequence(tree.pos.start, tree.pos.end).toString.split("\n").toList
+
   }
 }

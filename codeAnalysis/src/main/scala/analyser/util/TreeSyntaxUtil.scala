@@ -1,40 +1,23 @@
 package main.scala.analyser.util
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.Compiler.CompilerS
+import analyser.AST._
 
 /**
   * Created by Erik on 14-4-2017.
   */
-trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
-  import global._
+class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler) {
+  import compiler.global._
 
-  /**
-    * Case classes for the AST node wrappers
-    */
-  trait AstNode
-  case class PackageDefinition(tree: PackageDef) extends AstNode
-  case class TraitDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class ClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class AbstractClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class ObjectDefinition(tree: ModuleDef, name: String, pack: String) extends AstNode
-  case class AnonymousClass(tree: ClassDef) extends AstNode
-  case class FunctionDef(tree: DefDef, name: String, owner: String) extends AstNode
-  case class AnonymousFunction(tree: DefDef) extends AstNode
-  case class NestedFunction(tree: DefDef, name: String, owner: String) extends AstNode
-  case class FunctionCall(tree: Apply, name: String, owner: String) extends AstNode
-  case class ValAssignment(tree: Assign, variable: String) extends AstNode
-  case class VarAssignment(tree: Assign, variable: String) extends AstNode
-  case class NewClass(tree: New, name: String) extends AstNode
-  case class ValDefinition(tree: ValDef, name: String) extends AstNode
-  case class VarDefinition(tree: ValDef, name: String) extends AstNode
-  case class Var(tree: Ident, name: String) extends AstNode
-  case class Val(tree: Ident, name: String) extends AstNode
-  case class For(tree: Apply) extends AstNode
-  case class While(tree: LabelDef) extends AstNode
-  case class DoWhile(tree: LabelDef) extends AstNode
-  case class MatchCase(tree: Match) extends AstNode
-  case class Case(tree: CaseDef) extends AstNode
-  case class IfStatement(tree: If) extends AstNode
+
+
+  def parseTree(tree: Tree): AST = {
+    val ast = getAstNode(tree)
+    if (ast == null)
+      new AST(getChildren(tree), getRangePos(tree))
+    else
+      ast
+  }
 
 
   /**
@@ -44,100 +27,111 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
     * @param tree the tree
     * @return
     */
-  def getAstNode(tree: Tree): AstNode = {
+  private def getAstNode(tree: Tree): AST = {
     try tree match {
       case x: PackageDef =>
         if (isPackage(x))
-          return PackageDefinition(x)
+          return PackageDefinition(getChildren(x), getRangePos(tree))
         null
 
       case x: ClassDef =>
         if (isTrait(x))
-          return TraitDefinition(x, getName(x), getObjectPackage(x.symbol))
+          return TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols), getName(x), getObjectPackage(x.symbol))
         if (isAbstractClass(x))
-          return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
+          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols),getName(x), getObjectPackage(x.symbol), true)
         if (isClass(x))
-          return ClassDefinition(x, getName(x), getObjectPackage(x.symbol))
+          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols),getName(x), getObjectPackage(x.symbol), false)
         if (isAnonymousClass(x))
-          return AnonymousClass(x)
+          return AnonymousClass(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols))
         null
 
       case x: ModuleDef =>
         if (isObject(x))
-          return ObjectDefinition(x, getName(x), getObjectPackage(x.symbol))
+          return ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols),getName(x), getObjectPackage(x.symbol))
         null
 
       case x: DefDef =>
         if (isAnonymousFunction(x))
-          return AnonymousFunction(x)
+          return AnonymousFunction(getChildren(x), getRangePos(tree))
         if (isNestedFunction(x))
-          return NestedFunction(x, getName(x), getOwner(x.symbol.owner))
+          return NestedFunction(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
         if (isFunction(x))
-          return FunctionDef(x, getName(x), getOwner(x.symbol.owner))
+          return FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
         null
 
       case x: ValDef =>
         if (isValDef(x))
-          return ValDefinition(x, x.name.toString)
+          return ValDefinition(getChildren(x), getRangePos(tree), x.name.toString)
         if (isVarDef(x))
-          return VarDefinition(x, x.name.toString)
+          return VarDefinition(getChildren(x), getRangePos(tree), x.name.toString)
         null
 
       case x: Ident =>
         if (isVal(x))
-          return Val(x, x.name.toString)
+          return Val(getChildren(x), getRangePos(tree), x.name.toString)
         if (isVar(x))
-          return Var(x, x.name.toString)
+          return Var(getChildren(x), getRangePos(tree), x.name.toString)
         null
 
       case x: Assign =>
         if (isAssignment(x) && isVal(x.lhs))
-          return ValAssignment(x, x.lhs.symbol.name.toString)
+          return ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
         if (isAssignment(x) && isVar(x.lhs))
-          return VarAssignment(x, x.lhs.symbol.name.toString)
+          return VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
         null
 
       case x: Match =>
         if (isMatch(x))
-          return MatchCase(x)
+          return MatchCase(getChildren(x), getRangePos(tree))
         null
 
       case x: CaseDef =>
         if (isCase(x))
-          return Case(x)
+          return Case(getChildren(x), getRangePos(tree))
         null
 
       case x: Apply =>
         if (isFor(x))
-          return For(x)
+          return For(getChildren(x), getRangePos(tree))
         if (isFunctionCall(x)) {
-          val a = FunctionCall(x, x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
+          val a = FunctionCall(getChildren(x), getRangePos(tree), x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
           return a
         }
         null
 
       case x: LabelDef =>
         if (isWhile(x))
-          return While(x)
+          return While(getChildren(x), getRangePos(tree))
         if (isDoWhile(x))
-          return DoWhile(x)
+          return DoWhile(getChildren(x), getRangePos(tree))
         null
 
       case x: New =>
         if (isNewClass(x))
-          return NewClass(x, x.tpt.symbol.name.toString)
+          return NewClass(getChildren(x), getRangePos(tree), x.tpt.symbol.name.toString)
         null
 
       case x: If =>
         if (isIf(x))
-          return IfStatement(x)
+          return IfStatement(getChildren(x), getRangePos(tree))
         null
 
-      case _ =>
+      case x =>
         null
     }catch{
-      case _: Throwable =>
+      case x: Throwable =>
         null
+    }
+  }
+
+  private def getChildren(tree: Tree): List[AST] = {
+    tree.children.foldLeft(List[AST]()){
+      (a, b) =>
+        val child = getAstNode(b)
+        if (child == null)
+          a ::: getChildren(b)
+        else
+          a ::: List(child)
     }
   }
 

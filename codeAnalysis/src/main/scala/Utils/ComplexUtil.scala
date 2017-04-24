@@ -1,14 +1,11 @@
 package main.scala.Utils
 
-import main.scala.analyser.Compiler.CompilerProvider
-import main.scala.analyser.util.TreeSyntaxUtil
+import analyser.AST._
 
 /**
   * Created by ErikL on 4/6/2017.
   */
-trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
-  import global._
-
+trait ComplexUtil {
 
   /**
     * Function to measure the cyclomatic Complexity (CC)
@@ -16,14 +13,14 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
     * @param tree the ast tree
     * @return
     */
-  def measureComplexity(tree: Tree): Int = {
-    def recursive(tree: Tree): Int = getAstNode(tree) match {
-      case For(x) =>
+  def measureComplexity(tree: AST): Int = {
+    def recursive(tree: AST): Int = tree match {
+      case x: For =>
         tree.children.foldLeft(1)((a, b) => a + recursive(b))
-      case IfStatement(x) =>
-        tree.children.foldLeft(1 + getLogicalAndOr(x.cond))((a, b) => a + recursive(b))
-      case Case(x) =>
-        tree.children.foldLeft(getCaseAlternatives(x.pat))((a, b) => a + recursive(b))
+      case x: IfStatement =>
+        tree.children.foldLeft(1 /*+ getLogicalAndOr(x.cond)*/)((a, b) => a + recursive(b))
+      case x: Case =>
+        tree.children.foldLeft(/*getCaseAlternatives(x.pat)*/0)((a, b) => a + recursive(b))
       case _ =>
         tree.children.foldLeft(0)((a, b) => a + recursive(b))
     }
@@ -31,26 +28,16 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
     1 + recursive(tree)
   }
 
-  /**
-    * Checks whether there are alternative case conditions
-    *
-    * @param tree the ast
-    * @return
-    */
-  def getCaseAlternatives(tree: Tree): Int = tree match {
-    case Alternative(x) =>
+
+/*  def getCaseAlternatives(tree: AST): Int = tree match {
+    case x: Alternative =>
       x.length
     case _ =>
       1
-  }
+  }*/
 
-  /**
-    * Checks whether a logical "and"(&&) or "or"(||) exists in the tree
-    *
-    * @param tree the ast
-    * @return
-    */
-  def getLogicalAndOr(tree: Tree): Int = tree match {
+
+/*  def getLogicalAndOr(tree: AST): Int = tree match {
     case x: Select =>
       if (x.name.toString == "$amp$amp")
         return tree.children.foldLeft(1)((a,b) => a + getLogicalAndOr(b))
@@ -61,7 +48,7 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
       tree.children.foldLeft(0)((a,b) => a + getLogicalAndOr(b))
     case _ =>
       tree.children.foldLeft(0)((a,b) => a + getLogicalAndOr(b))
-  }
+  }*/
 
 
 }

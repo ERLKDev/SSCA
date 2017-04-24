@@ -1,14 +1,15 @@
 package main.scala.analyser.util
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.AST.{ClassParent, Parent, TraitParent}
+import analyser.Compiler.CompilerS
 
 import scala.reflect.internal.util.{OffsetPosition, RangePosition}
 
 /**
   * Created by Erik on 5-4-2017.
   */
-trait TreeUtil extends CompilerProvider{
-import global._
+class TreeUtil(val compiler: CompilerS){
+  import compiler.global._
 
   /**
     * Function to get the name of a DefDef
@@ -38,6 +39,17 @@ import global._
     */
   def getName(tree: ClassDef) : String = {
     tree.name.toString
+  }
+
+
+  /**
+    * Function to get the name of a ClassDef
+    *
+    * @param tree The ast
+    * @return
+    */
+  def getName(tree: Tree) : String = {
+    tree.symbol.nameString
   }
 
   /**
@@ -99,17 +111,17 @@ import global._
   }
 
 
-  /**
-    * Function to get the original source code of a tree
-    *
-    * @param tree The tree
-    * @return
-    */
-  def getOriginalSourceCode(tree : Tree): List[String] = {
-    val pos = getRangePos(tree)
-    if (pos == null)
-      return null
-    tree.pos.source.content.array.subSequence(pos.start, pos.end).toString.split("\n").toList
-
+  def getParents(parents: List[Symbol]) : List[Parent] = {
+    def recursive(x: Symbol) : List[Parent] = {
+      x.parentSymbols.foldLeft(List[Parent]()){ (a, b) =>
+        if (b.isClass && !b.isTrait)
+          a ::: List(ClassParent(b.nameString, getPackage(b), recursive(b)))
+        else if (b.isClass && b.isTrait)
+          a ::: List(TraitParent(b.nameString, getPackage(b), recursive(b)))
+        else
+          a
+      }
+    }
+    parents.foldLeft(List[Parent]())((a, b) => a ::: recursive(b))
   }
 }

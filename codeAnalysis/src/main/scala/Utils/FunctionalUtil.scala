@@ -1,25 +1,21 @@
 package Utils
 
-import main.scala.analyser.Compiler.CompilerProvider
-import main.scala.analyser.util.TreeSyntaxUtil
+import analyser.AST._
 
 /**
   * Created by Erik on 14-4-2017.
   */
-trait FunctionalUtil extends CompilerProvider with TreeSyntaxUtil{
-  import global._
-
-
+trait FunctionalUtil {
   /**
     * Checks whether the function is recursive or not
     *
     * @param tree the ast
     * @return
     */
-  def isRecursive(tree: Tree): Boolean ={
-    def recursive(tree: Tree, functionName: String) : Boolean = getAstNode(tree) match {
-      case FunctionCall(_, name, owner) =>
-        if(owner + "." + name == functionName)
+  def isRecursive(tree: AST): Boolean ={
+    def recursive(tree: AST, functionName: String) : Boolean = tree match {
+      case node: FunctionCall =>
+        if(node.owner + "." + node.name == functionName)
           true
         else
           tree.children.exists(x => recursive(x, functionName))
@@ -27,11 +23,11 @@ trait FunctionalUtil extends CompilerProvider with TreeSyntaxUtil{
         tree.children.exists(x => recursive(x, functionName))
     }
 
-    getAstNode(tree) match {
+    tree match {
       case x: FunctionDef =>
-        recursive(x.tree, x.owner + "." + x.name)
+        recursive(x, x.owner + "." + x.name)
       case x: NestedFunction =>
-        recursive(x.tree, x.owner + "." + x.name)
+        recursive(x, x.owner + "." + x.name)
       case _ =>
         false
     }
@@ -43,7 +39,7 @@ trait FunctionalUtil extends CompilerProvider with TreeSyntaxUtil{
     * @param tree the ast
     * @return
     */
-  def countSideEffects(tree: Tree) : Int = getAstNode(tree) match {
+  def countSideEffects(tree: AST) : Int = tree match {
     case (_: Var) | (_: VarAssignment) | (_: VarDefinition) =>
       1
     case _ =>

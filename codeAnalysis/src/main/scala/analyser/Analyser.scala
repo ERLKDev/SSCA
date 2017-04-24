@@ -2,9 +2,9 @@ package main.scala.analyser
 
 import java.io.File
 
+import analyser.Compiler.CompilerS
 import analyser.PreRunner
 import analyser.result.ResultUnit
-import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.Metric
 import main.scala.analyser.prerun.PreRunJob
@@ -13,11 +13,10 @@ import main.scala.analyser.util.{ProjectUtil, ResultUtil}
 /**
   * Created by Erik on 5-4-2017.
   */
-class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProvider with ProjectUtil with ResultUtil{
-  private val preRunner = new PreRunner
-  private val metricRunner = new MetricRunner
-
+class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends ProjectUtil with ResultUtil{
   private var projectFiles: List[File] = _
+  private val compilerList: List[CompilerS] =  List.fill(threads)(new CompilerS)
+
   private var projectContext: ProjectContext = _
   private var results: List[ResultUnit] = List()
 
@@ -31,51 +30,37 @@ class Analyser(projectPath: String, metrics : List[Metric]) extends CompilerProv
     * Refreshes the context
     */
   def refresh(): Unit = {
-    projectFiles = getProjectFiles(projectPath).toList
     projectContext = new ProjectContext(projectFiles)
-
-    /* Init main.scala.metrics*/
-    metrics.foreach(f => f.init(projectContext))
+    projectFiles = getProjectFiles(projectPath).toList
   }
 
-  /**
-    * Analyse single file
-    * @param path
-    * @return result
-    */
-  def analyse(path: String): List[ResultUnit] = {
-    global.ask { () =>
-      val file = new File(path)
-      preRunner.run(preRunJobs, List(file))
-      results = List(metricRunner.run(metrics, file, projectContext))
-    }
-    results
+
+  private def startAnalysis(paths: List[File]): List[ResultUnit] = {
+    if (paths.isEmpty)
+      return List()
+
+    val chunks = paths.grouped(math.ceil(paths.length.toDouble / (if (threads < paths.length) threads else paths.length)).toInt).toList
+    chunks.zipWithIndex.par.map{
+      case (x, i) =>
+        println("start one")
+        val preRunner = new PreRunner(compilerList(i))
+        val metricRunner = new MetricRunner(compilerList(i))
+        preRunner.run(preRunJobs, x)
+        metricRunner.runFiles(metrics, x, projectContext)
+    }.fold(List[ResultUnit]())((a, b) => a ::: b)
   }
 
-  /**
-    * Analyse single file
-    * @param paths
-    * @return result
-    */
+  def analyse(paths: String): List[ResultUnit] = {
+    startAnalysis(List(new File(paths)))
+  }
+
   def analyse(paths: List[String]): List[ResultUnit] = {
-    global.ask { () =>
-      val files = paths.map(x => new File(x))
-      preRunner.run(preRunJobs, files)
-      results = addResults(results, metricRunner.runFiles(metrics, files, projectContext))
-    }
-    removeOldResults(results, projectFiles)
+    startAnalysis(paths.map(x => new File(x)))
   }
 
-  /**
-    * Analyse complete project
-    * @return result
-    */
   def analyse(): List[ResultUnit]  = {
-    global.ask { () =>
-      preRunner.run(preRunJobs, projectFiles)
-      results = addResults(results, metricRunner.runProject(metrics, projectFiles, projectContext))
-    }
-    removeOldResults(results, projectFiles)
+    startAnalysis(projectFiles)
   }
 }
+
 

@@ -1,16 +1,18 @@
 package main.scala.analyser.metric
 
 import main.scala.analyser.result.MetricResult
-
+import analyser.AST._
 
 /**
   * Created by Erik on 5-4-2017.
   */
 trait ObjectMetric extends Metric{
-  import global._
+
   def objectHeader: List[String]
 
-  def run(tree: ModuleDef, code: List[String]): List[MetricResult]
+  def run(tree: ObjectDefinition, code: List[String]): List[MetricResult]
 
-  def run(tree: ClassDef, code: List[String]): List[MetricResult]
+  def run(tree: ClassDefinition, code: List[String]): List[MetricResult]
+
+  def run(tree: TraitDefinition, code: List[String]): List[MetricResult]
 }

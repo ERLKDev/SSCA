@@ -1,31 +1,20 @@
 package main.scala
 
 import main.scala.analyser.Analyser
-import main.scala.analyser.Compiler.CompilerProvider
-import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
 import metrics._
 
 /**
   * Created by Erik on 5-4-2017.
   */
-object Main extends CompilerProvider {
-  import global._
+object Main {
+
   def main (args: Array[String] ): Unit = {
-    val a = "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\Test.scala"
+    val a = "C:\\tmp\\gitAkkaAkka1\\akka-testkit\\src\\main\\scala\\akka\\testkit\\javadsl\\TestKit.scala"
 
-    val metrics = List(new Complex)//, new WMC, new OutDegree, new PatternSize, new DIT)
-    val an = new Analyser("C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis", metrics)
+    val metrics = List(new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
+    val an = new Analyser(metrics, "C:\\tmp\\gitAkkaAkka1", 4)
 
-
-    val objectMetricsHeader = metrics.filter(x => x.isInstanceOf[ObjectMetric])
-      .asInstanceOf[List[ObjectMetric]].foldLeft(List[String]())((a, b) => a ::: b.objectHeader).sortWith((a, b) => a < b)
-
-    val functionMetricsHeader = metrics.filter(x => x.isInstanceOf[FunctionMetric])
-      .asInstanceOf[List[FunctionMetric]].foldLeft(List[String]())((a, b) => a ::: b.functionHeader).sortWith((a, b) => a < b)
-
-    //val result = an.analyse(a).toCsvObjectSum(objectMetricsHeader.length + functionMetricsHeader.length).mkString("\n")
-
-    time {an.analyse(a).foreach(x => println(x.toCsvObjectSum(20).mkString("\n")))}
+    time {an.analyse(a).foreach(x => println(x))}
 
     println("done")
   }

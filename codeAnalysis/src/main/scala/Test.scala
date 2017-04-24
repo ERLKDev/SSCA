@@ -1,17 +1,15 @@
-package main.scala
-
-import main.scala.analyser.util.TreeSyntaxUtil
+import analyser.AST.AST
 
 /**
   * Created by Erik on 13-4-2017.
   */
-class Test extends TreeSyntaxUtil {
+class Test {
 
   trait B {
 
   }
 
-  def test(node: AstNode): Unit ={
+  def test(node: AST): Unit ={
     koe(x => true, "kees")
   }
 

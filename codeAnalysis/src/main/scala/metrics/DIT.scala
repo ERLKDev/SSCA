@@ -2,13 +2,12 @@ package main.scala.metrics
 
 import main.scala.analyser.metric.ObjectMetric
 import main.scala.analyser.result.MetricResult
-import main.scala.analyser.util.TreeUtil
+import analyser.AST._
 
 /**
   * Created by ErikL on 4/7/2017.
   */
-class DIT extends ObjectMetric with TreeUtil{
-  import global._
+class DIT extends ObjectMetric {
 
   override def objectHeader: List[String] = List("DIT")
 
@@ -19,8 +18,8 @@ class DIT extends ObjectMetric with TreeUtil{
     * @param code the code from the object
     * @return
     */
-  override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(getRangePos(tree), getName(tree) + "$object", "DIT", countInheritanceDepth(tree.impl.parents)))
+  override def run(tree: ObjectDefinition, code: List[String]): List[MetricResult] = {
+    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", countInheritanceDepth(tree.parents)))
   }
 
   /**
@@ -30,8 +29,12 @@ class DIT extends ObjectMetric with TreeUtil{
     * @param code the code from the object
     * @return
     */
-  override def run(tree: ClassDef, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(getRangePos(tree), getName(tree) + "$object", "DIT", countInheritanceDepth(tree.impl.parents)))
+  override def run(tree: ClassDefinition, code: List[String]): List[MetricResult] = {
+    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", countInheritanceDepth(tree.parents)))
+  }
+
+  override def run(tree: TraitDefinition, code: List[String]): List[MetricResult] = {
+    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", countInheritanceDepth(tree.parents)))
   }
 
 
@@ -41,22 +44,15 @@ class DIT extends ObjectMetric with TreeUtil{
     * @param parents List of parents of the original object, class or trait
     * @return
     */
-  private def countInheritanceDepth(parents: List[Tree]) : Int = {
-    def recursive(x: Symbol) : Int = {
-      x.parentSymbols.foldLeft(0){ (a, b) =>
-        if (b.isClass && !b.isTrait) {
-          recursive(b) + 1
-        }else
-          a
-      }
-    }
-
-    parents.foldLeft(1){
+  private def countInheritanceDepth(parents: List[Parent]) : Int = {
+    parents.foldLeft(0){
       (a, b) =>
-        if (b.symbol.isClass && !b.symbol.isTrait) {
-          1 + recursive(b.symbol)
-        }else
-          a
+        b match {
+          case x: ClassParent =>
+            1 + countInheritanceDepth(x.parents)
+          case _ =>
+            a
+        }
     }
   }
 }
