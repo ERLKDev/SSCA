@@ -44,7 +44,6 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     val chunks = paths.grouped(math.ceil(paths.length.toDouble / (if (threads < paths.length) threads else paths.length)).toInt).toList
     val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
-        println("start one")
         val preRunner = new PreRunner(compilerList(i))
         val metricRunner = new MetricRunner(compilerList(i))
         preRunner.run(preRunJobs, x)
