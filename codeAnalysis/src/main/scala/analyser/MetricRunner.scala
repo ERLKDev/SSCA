@@ -8,12 +8,12 @@ import analyser.AST._
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import main.scala.analyser.result._
-import main.scala.analyser.util.ProjectUtil
+import main.scala.analyser.util.{ProjectUtil, ResultUtil}
 
 /**
   * Created by Erik on 5-4-2017.
   */
-class MetricRunner(compiler: CompilerS) extends ProjectUtil{
+class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
 
 
   /**
@@ -72,7 +72,11 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil{
     }
 
     /* Start traversal*/
-    traverse(compiler.treeFromFile(file), null)
+    val a = compiler.treeFromFile(file)
+    if (a == null) {
+      null
+    }else
+      traverse(a, null)
 
   }
 
@@ -84,18 +88,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil{
     * @return the results of the metrics on the list of files
     */
   def runFiles(metrics: List[Metric], files: List[File], projectContext: ProjectContext): List[ResultUnit] = {
-    files.foldLeft(List[ResultUnit]())((a, b) =>  a ::: List(run(metrics, b, projectContext)))
-  }
-
-  /**
-    * Function to run the metrics on the entire project.
-    * @param metrics a list with the metrics
-    * @param files a list of the project files
-    * @param projectContext the project context
-    * @return the results of the metrics on the project
-    */
-  def runProject(metrics: List[Metric], files: List[File], projectContext: ProjectContext): List[ResultUnit] = {
-    files.foldLeft(List[ResultUnit]())((a, b) =>  a ::: List(run(metrics, b, projectContext)))
+    files.foldLeft(List[ResultUnit]())((a, b) =>  a ::: List(run(metrics, b, projectContext))).filter(_ != null)
   }
 
 
