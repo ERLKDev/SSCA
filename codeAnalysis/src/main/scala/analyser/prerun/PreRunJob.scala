@@ -2,12 +2,13 @@ package  main.scala.analyser.prerun
 
 import java.io.File
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.Compiler.CompilerS
+
 
 /**
   * Created by Erik on 19-4-2017.
   */
-trait PreRunJob extends CompilerProvider{
+abstract class PreRunJob(compiler: CompilerS) {
   def preRun(files: List[File]): Unit
 
 }

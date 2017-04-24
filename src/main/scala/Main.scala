@@ -1,8 +1,8 @@
 import java.io.File
 
+import analyser.AnalyserS
 import analyser.result.ObjectResult
 import main.scala.{Commit, Repo}
-import main.scala.analyser.Analyser
 import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
 import main.scala.metrics._
 
@@ -20,7 +20,7 @@ object Main {
 
     val user = "akka"
     val reponame = "akka"
-    val path = "C:\\tmp\\git" + user.capitalize + reponame.capitalize
+    val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
 
     /*val fullOutput = path + "Output\\fullOutput.csv"
     val faultOutput = path + "Output\\faultOutput.csv"
@@ -53,7 +53,7 @@ object Main {
       Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), fullOutput)
       Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), faultOutput)*/
 
-      val an = new AnalyserS(path, 1)
+      val an = new AnalyserS(path, 4)
       println("Done init analyser: " + id)
 
 
@@ -95,7 +95,7 @@ object Main {
             }*/
             prevCommit = x.commit
             count += 1
-            println(count + "/" + chunk.length + ":  " + results.length)
+            println(id + ": " + count + "/" + chunk.length + ":  " + results.length)
         }
       }
     }

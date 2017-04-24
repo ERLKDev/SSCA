@@ -1,63 +1,43 @@
 package main.scala.analyser.util
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.Compiler.{SymbolWrapper, TreeWrapper}
 
 import scala.reflect.internal.util.{OffsetPosition, RangePosition}
 
 /**
   * Created by Erik on 5-4-2017.
   */
-trait TreeUtil extends CompilerProvider{
-import global._
+trait TreeUtil{
+
 
   /**
     * Function to get the name of a DefDef
     *
-    * @param tree The ast
+    * @param wrappedTree The ast
     * @return
     */
-  def getName(tree: DefDef) : String = {
-    tree.name.toString
-  }
-
-  /**
-    * Function to get the name of a ModuleDef
-    *
-    * @param tree The ast
-    * @return
-    */
-  def getName(tree: ModuleDef) : String = {
-    tree.name.toString
-  }
-
-  /**
-    * Function to get the name of a ClassDef
-    *
-    * @param tree The ast
-    * @return
-    */
-  def getName(tree: ClassDef) : String = {
-    tree.name.toString
+  def getName(wrappedTree: TreeWrapper) : String = {
+    wrappedTree.unWrap().symbol.name.toString
   }
 
   /**
     * Function to get the owner
     *
-    * @param owner The owner symbol of a tree
+    * @param wrappedSymbol The owner symbol of a tree
     * @return
     */
-  def getOwner(owner: Symbol) : String = {
-    getPackage(owner) + owner.name.toString
+  def getOwner(wrappedSymbol: SymbolWrapper) : String = {
+    getPackage(wrappedSymbol) + wrappedSymbol.unWrap().name.toString
   }
 
   /**
     * Function to get the package string of a object
     *
-    * @param symbol The symbol of a tree
+    * @param wrappedSymbol The symbol of a tree
     * @return
     */
-  def getObjectPackage(symbol: Symbol): String = {
-    val pack = getPackage(symbol)
+  def getObjectPackage(wrappedSymbol: SymbolWrapper): String = {
+    val pack = getPackage(wrappedSymbol)
     val (result, _) = pack.splitAt(pack.length - 1)
     result
   }
@@ -66,15 +46,15 @@ import global._
   /**
     * Function to get the package string
     *
-    * @param symbol The symbol of a tree
+    * @param wrappedSymbol The symbol of a tree
     * @return
     */
-  private def getPackage(symbol: Symbol) : String = symbol.owner match {
-    case x: PackageClassSymbol =>
+  private def getPackage(wrappedSymbol: SymbolWrapper) : String = wrappedSymbol.unWrap().owner match {
+    case x: wrappedSymbol.compiler.global.PackageClassSymbol =>
       if (x.isRoot || x.isEmptyPackageClass) {
         ""
       }else {
-        getPackage(x) + x.nameString + "."
+        getPackage(wrappedSymbol) + x.nameString + "."
       }
     case _ =>
       ""
@@ -84,11 +64,11 @@ import global._
   /**
     * Function to get the range position of a tree
     *
-    * @param tree The tree
+    * @param wrappedTree The tree
     * @return
     */
-  def getRangePos(tree : Tree): RangePosition = {
-    tree.pos match {
+  def getRangePos(wrappedTree : TreeWrapper): RangePosition = {
+    wrappedTree.unWrap().pos match {
       case position: RangePosition =>
         position
       case position: OffsetPosition =>
@@ -102,14 +82,14 @@ import global._
   /**
     * Function to get the original source code of a tree
     *
-    * @param tree The tree
+    * @param wrappedTree The tree
     * @return
     */
-  def getOriginalSourceCode(tree : Tree): List[String] = {
-    val pos = getRangePos(tree)
+  def getOriginalSourceCode(wrappedTree : TreeWrapper): List[String] = {
+    val pos = getRangePos(wrappedTree)
     if (pos == null)
       return null
-    tree.pos.source.content.array.subSequence(pos.start, pos.end).toString.split("\n").toList
+    wrappedTree.unWrap().pos.source.content.array.subSequence(pos.start, pos.end).toString.split("\n").toList
 
   }
 }

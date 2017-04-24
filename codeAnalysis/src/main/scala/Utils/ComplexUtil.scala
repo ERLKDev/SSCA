@@ -1,44 +1,51 @@
 package main.scala.Utils
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.Compiler.TreeWrapper
 import main.scala.analyser.util.TreeSyntaxUtil
 
 /**
   * Created by ErikL on 4/6/2017.
   */
-trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
-  import global._
-
-
+trait ComplexUtil extends TreeSyntaxUtil{
   /**
     * Function to measure the cyclomatic Complexity (CC)
     *
-    * @param tree the ast tree
+    * @param wrappedTree the ast tree
     * @return
     */
-  def measureComplexity(tree: Tree): Int = {
-    def recursive(tree: Tree): Int = getAstNode(tree) match {
+  def measureComplexity(wrappedTree: TreeWrapper): Int = {
+    import wrappedTree.compiler.global._
+
+    def recursive(wrappedTree: TreeWrapper): Int = getAstNode(wrappedTree) match {
       case For(x) =>
-        tree.children.foldLeft(1)((a, b) => a + recursive(b))
+        wrappedTree.unWrap().children.foldLeft(1)((a, b) => a + recursive(new TreeWrapper(wrappedTree.compiler).wrap(b)))
       case IfStatement(x) =>
-        tree.children.foldLeft(1 + getLogicalAndOr(x.cond))((a, b) => a + recursive(b))
+        val y = x.unWrap().asInstanceOf[If]
+        wrappedTree.unWrap().children.foldLeft(1 + getLogicalAndOr(new TreeWrapper(wrappedTree.compiler).wrap(y.cond))){
+          (a, b) =>
+            a + recursive(new TreeWrapper(wrappedTree.compiler).wrap(b))
+        }
       case Case(x) =>
-        tree.children.foldLeft(getCaseAlternatives(x.pat))((a, b) => a + recursive(b))
+        val y = x.unWrap().asInstanceOf[CaseDef]
+        wrappedTree.unWrap().children.foldLeft(getCaseAlternatives(new TreeWrapper(wrappedTree.compiler).wrap(y.pat))){
+          (a, b) =>
+            a + recursive(new TreeWrapper(wrappedTree.compiler).wrap(b))
+        }
       case _ =>
-        tree.children.foldLeft(0)((a, b) => a + recursive(b))
+        wrappedTree.unWrap().children.foldLeft(0)((a, b) => a + recursive(new TreeWrapper(wrappedTree.compiler).wrap(b)))
     }
 
-    1 + recursive(tree)
+    1 + recursive(wrappedTree)
   }
 
   /**
     * Checks whether there are alternative case conditions
     *
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def getCaseAlternatives(tree: Tree): Int = tree match {
-    case Alternative(x) =>
+  def getCaseAlternatives(wrappedTree: TreeWrapper): Int = wrappedTree.unWrap() match {
+    case wrappedTree.compiler.global.Alternative(x) =>
       x.length
     case _ =>
       1
@@ -47,20 +54,20 @@ trait ComplexUtil extends CompilerProvider  with TreeSyntaxUtil{
   /**
     * Checks whether a logical "and"(&&) or "or"(||) exists in the tree
     *
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def getLogicalAndOr(tree: Tree): Int = tree match {
-    case x: Select =>
+  def getLogicalAndOr(wrappedTree: TreeWrapper): Int = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.Select =>
       if (x.name.toString == "$amp$amp")
-        return tree.children.foldLeft(1)((a,b) => a + getLogicalAndOr(b))
+        return wrappedTree.unWrap().children.foldLeft(1)((a,b) => a + getLogicalAndOr(new TreeWrapper(wrappedTree.compiler).wrap(b)))
 
       if (x.name.toString == "$bar$bar")
-        return tree.children.foldLeft(1)((a,b) => a + getLogicalAndOr(b))
+        return wrappedTree.unWrap().children.foldLeft(1)((a,b) => a + getLogicalAndOr(new TreeWrapper(wrappedTree.compiler).wrap(b)))
 
-      tree.children.foldLeft(0)((a,b) => a + getLogicalAndOr(b))
+      wrappedTree.unWrap().children.foldLeft(0)((a,b) => a + getLogicalAndOr(new TreeWrapper(wrappedTree.compiler).wrap(b)))
     case _ =>
-      tree.children.foldLeft(0)((a,b) => a + getLogicalAndOr(b))
+      wrappedTree.unWrap().children.foldLeft(0)((a,b) => a + getLogicalAndOr(new TreeWrapper(wrappedTree.compiler).wrap(b)))
   }
 
 

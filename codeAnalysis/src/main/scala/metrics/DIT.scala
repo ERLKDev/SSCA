@@ -1,5 +1,6 @@
 package main.scala.metrics
 
+import analyser.Compiler.TreeWrapper
 import main.scala.analyser.metric.ObjectMetric
 import main.scala.analyser.result.MetricResult
 import main.scala.analyser.util.TreeUtil
@@ -8,7 +9,7 @@ import main.scala.analyser.util.TreeUtil
   * Created by ErikL on 4/7/2017.
   */
 class DIT extends ObjectMetric with TreeUtil{
-  import global._
+
 
   override def objectHeader: List[String] = List("DIT")
 
@@ -19,7 +20,7 @@ class DIT extends ObjectMetric with TreeUtil{
     * @param code the code from the object
     * @return
     */
-  override def run(tree: ModuleDef, code: List[String]): List[MetricResult] = {
+  override def run(tree: TreeWrapper, code: List[String]): List[MetricResult] = {
     List(new MetricResult(getRangePos(tree), getName(tree) + "$object", "DIT", countInheritanceDepth(tree.impl.parents)))
   }
 

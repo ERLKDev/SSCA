@@ -2,8 +2,8 @@ package main.scala.analyser
 
 import java.io.File
 
+import analyser.Compiler.{CompilerS, TreeWrapper}
 import analyser.result._
-import main.scala.analyser.Compiler.CompilerProvider
 import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import main.scala.analyser.result._
@@ -12,9 +12,8 @@ import main.scala.analyser.util.{TreeSyntaxUtil, TreeUtil}
 /**
   * Created by Erik on 5-4-2017.
   */
-class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
-  import global._
-
+class MetricRunner(compiler: CompilerS) extends TreeUtil with TreeSyntaxUtil{
+  import compiler.global._
 
   /**
     * Function to run the metrics on a single file
@@ -24,49 +23,50 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
     * @return the results of the metrics on the project
     */
   def run(metrics : List[Metric], file: File, projectContext: ProjectContext): ResultUnit ={
-    def traverse(tree: Tree, parent: ResultUnit) : ResultUnit = getAstNode(tree) match {
+    def traverse(tree: TreeWrapper, parent: ResultUnit) : ResultUnit = getAstNode(tree) match {
       case null =>
-        tree.children.foreach(x => traverse(x, parent))
+        tree.unWrap().children.foreach(x => traverse(new TreeWrapper(compiler).wrap(x), parent))
         parent
 
-      case ObjectDefinition(x, _, _) =>
-        val result = new ObjectResult(getRangePos(x), getName(x), ObjectType.ObjectT)
-        result.addResult(executeObjectMetrics(metrics, x))
-        traverse(x.impl, result)
+      case _: ObjectDefinition =>
+        val result = new ObjectResult(getRangePos(tree), getName(tree), ObjectType.ObjectT)
+        result.addResult(executeObjectMetrics(metrics, tree))
+        tree.unWrap().children.foreach(x => traverse(new TreeWrapper(compiler).wrap(x), parent))
 
         parent.addResult(result)
         parent
 
       case (_: ClassDefinition) | (_: TraitDefinition) | (_: AbstractClassDefinition)=>
-        val x = tree.asInstanceOf[ClassDef]
-        val result = new ObjectResult(getRangePos(x), getName(x), if (isTrait(x)) ObjectType.TraitT else ObjectType.ClassT)
-        result.addResult(executeObjectMetrics(metrics, x))
-        traverse(x.impl, result)
+        val result = new ObjectResult(getRangePos(tree), getName(tree), if (isTrait(tree)) ObjectType.TraitT else ObjectType.ClassT)
+        result.addResult(executeObjectMetrics(metrics, tree))
+        tree.unWrap().children.foreach(x => traverse(new TreeWrapper(compiler).wrap(x), parent))
 
         parent.addResult(result)
         parent
 
-      case FunctionDef(x, _, _) =>
-        val result = new FunctionResult(getRangePos(x), getName(x))
-        result.addResult(executeFunctionMetrics(metrics, x))
-        traverse(x.tpt, result)
-        traverse(x.rhs, result)
+      case _: FunctionDef =>
+        val result = new FunctionResult(getRangePos(tree), getName(tree))
+        result.addResult(executeFunctionMetrics(metrics, tree))
+        tree.unWrap().children.foreach(x => traverse(new TreeWrapper(compiler).wrap(x), parent))
 
         parent.addResult(result)
         parent
 
-      case PackageDefinition(x) =>
-        val result = new FileResult(getRangePos(x), x.pos.source.path)
-        x.children.foreach(y => traverse(y, result))
+      case _: PackageDefinition =>
+        val result = new FileResult(getRangePos(tree), tree.unWrap().pos.source.path)
+        tree.unWrap().children.foreach(x => traverse(new TreeWrapper(compiler).wrap(x), parent))
         result
 
       case _ =>
-        tree.children.foreach(x => traverse(x, parent))
+        tree.unWrap().children.foreach(x => traverse(new TreeWrapper(compiler).wrap(x), parent))
         parent
     }
 
     /* Start traversal*/
-    traverse(treeFromFile(file), null)
+    val ast = compiler.treeFromFile(file)
+    ask{
+      () => traverse(ast, null)
+    }
   }
 
   /**
@@ -93,8 +93,8 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
 
 
   /* Function that is called to execute the object metrics. */
-  private def executeObjectMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] ={
-    val code = getOriginalSourceCode(tree)
+  private def executeObjectMetrics(metrics : List[Metric], wrappedTree: TreeWrapper): List[MetricResult] ={
+    val code = getOriginalSourceCode(wrappedTree)
     if (code == null)
       return List[MetricResult]()
 
@@ -102,12 +102,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
       (a, b) =>
         b match {
           case x: ObjectMetric =>
-            tree match {
-              case y: ModuleDef =>
-                a ::: x.run(y.asInstanceOf[x.global.ModuleDef], code)
-              case y: ClassDef =>
-                a ::: x.run(y.asInstanceOf[x.global.ClassDef], code)
-            }
+            a ::: x.run(wrappedTree, code)
           case _ =>
             a
         }
@@ -115,8 +110,8 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
   }
 
   /* Function that is called to execute the function metrics. */
-  private def executeFunctionMetrics(metrics : List[Metric], tree: Tree): List[MetricResult] = {
-    val code = getOriginalSourceCode(tree)
+  private def executeFunctionMetrics(metrics : List[Metric], wrappedTree: TreeWrapper): List[MetricResult] = {
+    val code = getOriginalSourceCode(wrappedTree)
     if (code == null)
       return List[MetricResult]()
 
@@ -124,7 +119,7 @@ class MetricRunner extends CompilerProvider with TreeUtil with TreeSyntaxUtil{
       (a, b) =>
         b match {
           case x: FunctionMetric =>
-            a ::: x.run(tree.asInstanceOf[x.global.DefDef], code)
+            a ::: x.run(wrappedTree, code)
           case _ =>
             a
         }

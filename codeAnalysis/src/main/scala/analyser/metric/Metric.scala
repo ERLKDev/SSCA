@@ -1,17 +1,18 @@
 package main.scala.analyser.metric
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.Compiler.CompilerS
 import main.scala.analyser.context.ProjectContext
-import main.scala.analyser.util.TreeUtil
 
 /**
   * Created by Erik on 5-4-2017.
   */
-trait Metric extends CompilerProvider with TreeUtil{
+trait Metric{
   var projectContext : ProjectContext  = _
+  var compiler: CompilerS = _
 
   def init(projectContext: ProjectContext): Unit = {
     this.projectContext = projectContext
+    this.compiler = compiler
   }
 
   def getContext: ProjectContext = projectContext

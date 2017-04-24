@@ -1,136 +1,150 @@
 package main.scala.analyser.util
 
-import main.scala.analyser.Compiler.CompilerProvider
+import analyser.Compiler.{SymbolWrapper, TreeWrapper}
 
 /**
   * Created by Erik on 14-4-2017.
   */
-trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
-  import global._
+trait TreeSyntaxUtil extends TreeUtil{
+
+
 
   /**
     * Case classes for the AST node wrappers
     */
   trait AstNode
-  case class PackageDefinition(tree: PackageDef) extends AstNode
-  case class TraitDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class ClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class AbstractClassDefinition(tree: ClassDef, name: String, pack: String) extends AstNode
-  case class ObjectDefinition(tree: ModuleDef, name: String, pack: String) extends AstNode
-  case class AnonymousClass(tree: ClassDef) extends AstNode
-  case class FunctionDef(tree: DefDef, name: String, owner: String) extends AstNode
-  case class AnonymousFunction(tree: DefDef) extends AstNode
-  case class NestedFunction(tree: DefDef, name: String, owner: String) extends AstNode
-  case class FunctionCall(tree: Apply, name: String, owner: String) extends AstNode
-  case class ValAssignment(tree: Assign, variable: String) extends AstNode
-  case class VarAssignment(tree: Assign, variable: String) extends AstNode
-  case class NewClass(tree: New, name: String) extends AstNode
-  case class ValDefinition(tree: ValDef, name: String) extends AstNode
-  case class VarDefinition(tree: ValDef, name: String) extends AstNode
-  case class Var(tree: Ident, name: String) extends AstNode
-  case class Val(tree: Ident, name: String) extends AstNode
-  case class For(tree: Apply) extends AstNode
-  case class While(tree: LabelDef) extends AstNode
-  case class DoWhile(tree: LabelDef) extends AstNode
-  case class MatchCase(tree: Match) extends AstNode
-  case class Case(tree: CaseDef) extends AstNode
-  case class IfStatement(tree: If) extends AstNode
+  case class PackageDefinition(tree: TreeWrapper) extends AstNode
+  case class TraitDefinition(tree: TreeWrapper, name: String, pack: String) extends AstNode
+  case class ClassDefinition(tree: TreeWrapper, name: String, pack: String) extends AstNode
+  case class AbstractClassDefinition(tree: TreeWrapper, name: String, pack: String) extends AstNode
+  case class ObjectDefinition(tree: TreeWrapper, name: String, pack: String) extends AstNode
+  case class AnonymousClass(tree: TreeWrapper) extends AstNode
+  case class FunctionDef(tree: TreeWrapper, name: String, owner: String) extends AstNode
+  case class AnonymousFunction(tree: TreeWrapper) extends AstNode
+  case class NestedFunction(tree: TreeWrapper, name: String, owner: String) extends AstNode
+  case class FunctionCall(tree: TreeWrapper, name: String, owner: String) extends AstNode
+  case class ValAssignment(tree: TreeWrapper, variable: String) extends AstNode
+  case class VarAssignment(tree: TreeWrapper, variable: String) extends AstNode
+  case class NewClass(tree: TreeWrapper, name: String) extends AstNode
+  case class ValDefinition(tree: TreeWrapper, name: String) extends AstNode
+  case class VarDefinition(tree: TreeWrapper, name: String) extends AstNode
+  case class Var(tree: TreeWrapper, name: String) extends AstNode
+  case class Val(tree: TreeWrapper, name: String) extends AstNode
+  case class For(tree: TreeWrapper) extends AstNode
+  case class While(tree: TreeWrapper) extends AstNode
+  case class DoWhile(tree: TreeWrapper) extends AstNode
+  case class MatchCase(tree: TreeWrapper) extends AstNode
+  case class Case(tree: TreeWrapper) extends AstNode
+  case class IfStatement(tree: TreeWrapper) extends AstNode
 
 
   /**
     * Adds a wrapper to a tree
     * This makes the node easy to use
     *
-    * @param tree the tree
+    * @param wrappedTree the tree
     * @return
     */
-  def getAstNode(tree: Tree): AstNode = {
-    try tree match {
+  def getAstNode(wrappedTree: TreeWrapper): AstNode = {
+    import wrappedTree.compiler.global._
+    try wrappedTree.unWrap() match {
       case x: PackageDef =>
-        if (isPackage(x))
-          return PackageDefinition(x)
+        if (isPackage(wrappedTree))
+          return PackageDefinition(wrappedTree)
         null
 
       case x: ClassDef =>
-        if (isTrait(x))
-          return TraitDefinition(x, getName(x), getObjectPackage(x.symbol))
-        if (isAbstractClass(x))
-          return AbstractClassDefinition(x, getName(x), getObjectPackage(x.symbol))
-        if (isClass(x))
-          return ClassDefinition(x, getName(x), getObjectPackage(x.symbol))
-        if (isAnonymousClass(x))
-          return AnonymousClass(x)
+        val wrappedSymbol = new SymbolWrapper(wrappedTree.compiler)
+        wrappedSymbol.wrap(x.symbol.asInstanceOf[wrappedSymbol.compiler.global.Symbol])
+
+        if (isTrait(wrappedTree))
+          return TraitDefinition(wrappedTree, getName(wrappedTree), getObjectPackage(wrappedSymbol))
+        if (isAbstractClass(wrappedTree))
+          return AbstractClassDefinition(wrappedTree, getName(wrappedTree), getObjectPackage(wrappedSymbol))
+        if (isClass(wrappedTree))
+          return ClassDefinition(wrappedTree, getName(wrappedTree), getObjectPackage(wrappedSymbol))
+        if (isAnonymousClass(wrappedTree))
+          return AnonymousClass(wrappedTree)
         null
 
       case x: ModuleDef =>
-        if (isObject(x))
-          return ObjectDefinition(x, getName(x), getObjectPackage(x.symbol))
+        val wrappedSymbol = new SymbolWrapper(wrappedTree.compiler)
+        wrappedSymbol.wrap(x.symbol.asInstanceOf[wrappedSymbol.compiler.global.Symbol])
+
+        if (isObject(wrappedTree))
+          return ObjectDefinition(wrappedTree, getName(wrappedTree), getObjectPackage(wrappedSymbol))
         null
 
       case x: DefDef =>
-        if (isAnonymousFunction(x))
-          return AnonymousFunction(x)
-        if (isNestedFunction(x))
-          return NestedFunction(x, getName(x), getOwner(x.symbol.owner))
-        if (isFunction(x))
-          return FunctionDef(x, getName(x), getOwner(x.symbol.owner))
+        val wrappedSymbol = new SymbolWrapper(wrappedTree.compiler)
+        wrappedSymbol.wrap(x.symbol.owner.asInstanceOf[wrappedSymbol.compiler.global.Symbol])
+
+        if (isAnonymousFunction(wrappedTree))
+          return AnonymousFunction(wrappedTree)
+        if (isNestedFunction(wrappedTree))
+          return NestedFunction(wrappedTree, getName(wrappedTree), getOwner(wrappedSymbol))
+        if (isFunction(wrappedTree))
+          return FunctionDef(wrappedTree, getName(wrappedTree), getOwner(wrappedSymbol))
         null
 
       case x: ValDef =>
-        if (isValDef(x))
-          return ValDefinition(x, x.name.toString)
-        if (isVarDef(x))
-          return VarDefinition(x, x.name.toString)
+        if (isValDef(wrappedTree))
+          return ValDefinition(wrappedTree, x.name.toString)
+        if (isVarDef(wrappedTree))
+          return VarDefinition(wrappedTree, x.name.toString)
         null
 
       case x: Ident =>
-        if (isVal(x))
-          return Val(x, x.name.toString)
-        if (isVar(x))
-          return Var(x, x.name.toString)
+        if (isVal(wrappedTree))
+          return Val(wrappedTree, x.name.toString)
+        if (isVar(wrappedTree))
+          return Var(wrappedTree, x.name.toString)
         null
 
       case x: Assign =>
-        if (isAssignment(x) && isVal(x.lhs))
-          return ValAssignment(x, x.lhs.symbol.name.toString)
-        if (isAssignment(x) && isVar(x.lhs))
-          return VarAssignment(x, x.lhs.symbol.name.toString)
+        if (isAssignment(wrappedTree) && isVal(new TreeWrapper(wrappedTree.compiler).wrap(x.lhs)))
+          return ValAssignment(wrappedTree, x.lhs.symbol.name.toString)
+        if (isAssignment(wrappedTree) && isVar(new TreeWrapper(wrappedTree.compiler).wrap(x.lhs)))
+          return VarAssignment(wrappedTree, x.lhs.symbol.name.toString)
         null
 
       case x: Match =>
-        if (isMatch(x))
-          return MatchCase(x)
+        if (isMatch(wrappedTree))
+          return MatchCase(wrappedTree)
         null
 
       case x: CaseDef =>
-        if (isCase(x))
-          return Case(x)
+        if (isCase(wrappedTree))
+          return Case(wrappedTree)
         null
 
       case x: Apply =>
-        if (isFor(x))
-          return For(x)
-        if (isFunctionCall(x)) {
-          val a = FunctionCall(x, x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
+        val wrappedSymbol = new SymbolWrapper(wrappedTree.compiler)
+        wrappedSymbol.wrap(x.fun.symbol.owner.asInstanceOf[wrappedSymbol.compiler.global.Symbol])
+
+        if (isFor(wrappedTree))
+          return For(wrappedTree)
+        if (isFunctionCall(wrappedTree)) {
+          val a = FunctionCall(wrappedTree, x.fun.symbol.name.toString, getOwner(wrappedSymbol))
           return a
         }
         null
 
       case x: LabelDef =>
-        if (isWhile(x))
-          return While(x)
-        if (isDoWhile(x))
-          return DoWhile(x)
+        if (isWhile(wrappedTree))
+          return While(wrappedTree)
+        if (isDoWhile(wrappedTree))
+          return DoWhile(wrappedTree)
         null
 
       case x: New =>
-        if (isNewClass(x))
-          return NewClass(x, x.tpt.symbol.name.toString)
+        if (isNewClass(wrappedTree))
+          return NewClass(wrappedTree, x.tpt.symbol.name.toString)
         null
 
       case x: If =>
-        if (isIf(x))
-          return IfStatement(x)
+        if (isIf(wrappedTree))
+          return IfStatement(wrappedTree)
         null
 
       case _ =>
@@ -143,11 +157,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a packages node
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isPackage(tree: Tree): Boolean = tree match {
-    case x: PackageDef =>
+  def isPackage(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.PackageDef =>
       true
     case _ =>
       false
@@ -155,11 +169,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a trait
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isTrait(tree: Tree): Boolean = tree match {
-    case x: ClassDef =>
+  def isTrait(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.ClassDef =>
       x.mods.isTrait
     case _ =>
       false
@@ -167,11 +181,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a class
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isClass(tree: Tree): Boolean = tree match  {
-    case x: ClassDef =>
+  def isClass(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match  {
+    case x: wrappedTree.compiler.global.ClassDef =>
       !x.mods.isTrait
     case _ =>
       false
@@ -179,11 +193,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a object
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isObject(tree: Tree): Boolean = tree match {
-    case _: ModuleDef =>
+  def isObject(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case _: wrappedTree.compiler.global.ModuleDef =>
       true
     case _ =>
       false
@@ -191,11 +205,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is an abstract class
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isAbstractClass(tree: Tree): Boolean = tree match  {
-    case x: ClassDef =>
+  def isAbstractClass(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match  {
+    case x: wrappedTree.compiler.global.ClassDef =>
       x.symbol.isAbstractClass
     case _ =>
       false
@@ -203,23 +217,23 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is an anonymous class
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isAnonymousClass(tree: Tree): Boolean = tree match  {
-    case x: ClassDef =>
-      isClass(x) && x.symbol.isAnonymousClass
+  def isAnonymousClass(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match  {
+    case x: wrappedTree.compiler.global.ClassDef =>
+      isClass(wrappedTree) && x.symbol.isAnonymousClass
     case _ =>
       false
   }
 
   /**
     * Check's if the tree is a function
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isFunction(tree: Tree): Boolean = tree match {
-    case _: DefDef =>
+  def isFunction(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case _: wrappedTree.compiler.global.DefDef =>
       true
     case _ =>
       false
@@ -227,11 +241,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is an anonymous function
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isAnonymousFunction(tree: Tree): Boolean = tree match {
-    case x: Function =>
+  def isAnonymousFunction(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.Function =>
       x.symbol.isAnonymousFunction
     case _ =>
       false
@@ -239,11 +253,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a nested function
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isNestedFunction(tree: Tree): Boolean = tree match {
-    case x:DefDef =>
+  def isNestedFunction(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.DefDef =>
       x.symbol.owner.isMethod
     case _ =>
       false
@@ -251,11 +265,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a function call
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isFunctionCall(tree: Tree): Boolean = tree match {
-    case x: Apply =>
+  def isFunctionCall(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case _: wrappedTree.compiler.global.Apply =>
       true
     case _ =>
       false
@@ -263,11 +277,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is an assignment
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isAssignment(tree: Tree): Boolean = tree match  {
-    case _: Assign =>
+  def isAssignment(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match  {
+    case _: wrappedTree.compiler.global.Assign =>
       true
     case _ =>
       false
@@ -275,11 +289,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a new statement
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isNewClass(tree: Tree): Boolean = tree match  {
-    case _: New =>
+  def isNewClass(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match  {
+    case _: wrappedTree.compiler.global.New =>
       true
     case _ =>
       false
@@ -287,11 +301,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a val definition
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isValDef(tree: Tree): Boolean = tree match  {
-    case x: ValDef =>
+  def isValDef(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match  {
+    case x: wrappedTree.compiler.global.ValDef =>
       !x.symbol.isMutable
     case _ =>
       false
@@ -299,11 +313,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a var definition
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isVarDef(tree: Tree): Boolean = tree match {
-    case x: ValDef =>
+  def isVarDef(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.ValDef =>
       x.symbol.isMutable
     case _ =>
       false
@@ -311,11 +325,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a var
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isVar(tree: Tree): Boolean = tree match {
-    case x: Ident =>
+  def isVar(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.Ident =>
       x.symbol.isVar
     case _ =>
       false
@@ -323,11 +337,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a val
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isVal(tree: Tree): Boolean = tree match {
-    case x: Ident =>
+  def isVal(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.Ident =>
       x.symbol.isVal
     case _ =>
       false
@@ -335,20 +349,20 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is for statement
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isFor(tree: Tree): Boolean = {
-    isCall(tree, "foreach")
+  def isFor(wrappedTree: TreeWrapper): Boolean = {
+    isCall(wrappedTree, "foreach")
   }
 
   /**
     * Check's if the tree is a while statement
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isWhile(tree: Tree): Boolean = tree match {
-    case x:LabelDef =>
+  def isWhile(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.LabelDef =>
       ("""^while\$(\d)*""".r findFirstIn x.name.toString).nonEmpty
     case _ =>
       false
@@ -356,11 +370,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a do while
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isDoWhile(tree: Tree): Boolean = tree match {
-    case x:LabelDef =>
+  def isDoWhile(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.LabelDef =>
       ("""^doWhile\$(\d)*""".r findFirstIn x.name.toString).nonEmpty
     case _ =>
       false
@@ -368,11 +382,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a function call to a specific function
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isCall(tree: Tree, name: String): Boolean = tree match {
-    case x: Apply =>
+  def isCall(wrappedTree: TreeWrapper, name: String): Boolean = wrappedTree.unWrap() match {
+    case x: wrappedTree.compiler.global.Apply =>
       x.fun.symbol.name.toString == name
     case _ =>
       false
@@ -380,11 +394,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a match statement
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isMatch(tree : Tree): Boolean = tree match {
-    case _:Match =>
+  def isMatch(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case _: wrappedTree.compiler.global.Match =>
       true
     case _ =>
       false
@@ -392,11 +406,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is a case statement
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isCase(tree : Tree): Boolean = tree match {
-    case _:CaseDef =>
+  def isCase(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case _: wrappedTree.compiler.global.CaseDef =>
       true
     case _ =>
       false
@@ -404,11 +418,11 @@ trait TreeSyntaxUtil extends CompilerProvider with TreeUtil{
 
   /**
     * Check's if the tree is an if statement
-    * @param tree the ast
+    * @param wrappedTree the ast
     * @return
     */
-  def isIf(tree : Tree): Boolean = tree match {
-    case _:If =>
+  def isIf(wrappedTree: TreeWrapper): Boolean = wrappedTree.unWrap() match {
+    case _: wrappedTree.compiler.global.If =>
       true
     case _ =>
       false

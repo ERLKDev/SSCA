@@ -2,7 +2,7 @@ package main.scala.metrics
 
 import Utils.FunctionalUtil
 import main.scala.Utils.SourceCodeUtil
-import main.scala.analyser.metric.{FunctionMetric, ObjectMetric, ProjectMetric}
+import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
 import main.scala.analyser.result.MetricResult
 import main.scala.analyser.util.TreeSyntaxUtil
 
@@ -10,7 +10,7 @@ import main.scala.analyser.util.TreeSyntaxUtil
 /**
   * Created by Erik on 5-4-2017.
   */
-class Loc extends FunctionMetric with ObjectMetric with ProjectMetric with SourceCodeUtil with TreeSyntaxUtil with FunctionalUtil{
+class Loc extends FunctionMetric with ObjectMetric with SourceCodeUtil with TreeSyntaxUtil with FunctionalUtil{
   import global._
 
   override def functionHeader: List[String] = List("funLOC", "funSLOC", "funCD")
