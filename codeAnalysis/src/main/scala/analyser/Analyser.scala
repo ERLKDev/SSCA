@@ -39,8 +39,10 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     if (paths.isEmpty)
       return List()
 
+    results = removeOldResults(results, projectFiles)
+
     val chunks = paths.grouped(math.ceil(paths.length.toDouble / (if (threads < paths.length) threads else paths.length)).toInt).toList
-    chunks.zipWithIndex.par.map{
+    val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
         println("start one")
         val preRunner = new PreRunner(compilerList(i))
@@ -48,6 +50,9 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
         preRunner.run(preRunJobs, x)
         metricRunner.runFiles(metrics, x, projectContext)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
+
+    results = addResults(results, result)
+    results
   }
 
   def analyse(paths: String): List[ResultUnit] = {
