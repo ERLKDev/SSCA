@@ -6,7 +6,7 @@ import main.scala.analyser.Compiler.CompilerProvider
 /**
   * Created by Erik on 5-4-2017.
   */
-trait ProjectUtil extends CompilerProvider {
+trait ProjectUtil {
 
   /**
     * Gets a list of all the scala files in a project

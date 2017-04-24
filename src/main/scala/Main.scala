@@ -20,12 +20,12 @@ object Main {
 
     val user = "akka"
     val reponame = "akka"
-    val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
+    val path = "C:\\tmp\\git" + user.capitalize + reponame.capitalize
 
-    val fullOutput = path + "1Output\\fullOutput.csv"
-    val faultOutput = path + "1Output\\faultOutput.csv"
+    /*val fullOutput = path + "Output\\fullOutput.csv"
+    val faultOutput = path + "Output\\faultOutput.csv"
 
-    val outputDir = new File(path + "1Output")
+    val outputDir = new File(path + "Output")
     outputDir.mkdirs()
 
     val fullOutputFile = new File(fullOutput)
@@ -34,7 +34,7 @@ object Main {
 
     val faultOutputFile = new File(faultOutput)
     faultOutputFile.delete()
-    faultOutputFile.createNewFile()
+    faultOutputFile.createNewFile()*/
 
 
     def run(id: Int, runners: Int, path: String) : Unit = {
@@ -42,7 +42,7 @@ object Main {
       println("Done loading repo: " + id)
 
       val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
-      val objectMetricsHeader = metrics.filter(x => x.isInstanceOf[ObjectMetric])
+/*      val objectMetricsHeader = metrics.filter(x => x.isInstanceOf[ObjectMetric])
         .asInstanceOf[List[ObjectMetric]].foldLeft(List[String]())((a, b) => a ::: b.objectHeader).sortWith(_ < _)
 
       val functionMetricsHeader = metrics.filter(x => x.isInstanceOf[FunctionMetric])
@@ -51,14 +51,14 @@ object Main {
       val header = objectMetricsHeader ::: functionMetricsHeader
 
       Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), fullOutput)
-      Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), faultOutput)
+      Output.writeOutput(List("commit, faults, path, " + header.mkString(", ")), faultOutput)*/
 
-      val an = new Analyser(path, metrics)
+      val an = new AnalyserS(path, 1)
       println("Done init analyser: " + id)
 
 
       val faults = repo.faults
-      val chunk = faults.grouped(faults.length / runners).toList(id - 1)
+      val chunk = faults.grouped(math.ceil(faults.length.toDouble / runners).toInt).toList(id - 1)
       var count = 0
 
 
@@ -74,7 +74,7 @@ object Main {
             } else {
               an.analyse()
             }
-            results.foreach {
+/*            results.foreach {
               y =>
                 val lines = x.commit.getPatchData(y.position.source.path.substring(path.length + 1).replace("\\", "/"))
                 y.results.foreach {
@@ -92,7 +92,7 @@ object Main {
                         Output.writeOutput(obj.toCsvObjectAvr(header.length).map(x.commit.sha + ", " + 0 + ", " + _), fullOutput)
                     }
                 }
-            }
+            }*/
             prevCommit = x.commit
             count += 1
             println(count + "/" + chunk.length + ":  " + results.length)
@@ -100,9 +100,9 @@ object Main {
       }
     }
 
-    //List(1).par.foreach(x => run(x, 1, path + x)
+    List(1).par.foreach(x => run(x, 1, path + x))
 
-    run(1, 1, path + 1)
+    //run(1, 1, path + 1)
 
     println("Done")
   }
