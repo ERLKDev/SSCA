@@ -30,7 +30,7 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
     val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObject)
 
-    position.source.path + "|" + name + "%{" + objectType + "}, " + metrics.mkString(",") :: objects
+    position.source.path + "|" + name + "%{" + objectType + "}," + metrics.mkString(",") :: objects
   }
 
   override def toCsvObjectSum(size: Int): List[String] = {
@@ -40,9 +40,9 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
     val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
     val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
 
-    val funSum = functions.map(x => x.split(", ").toList).transpose.map(x => x.map(_.toDouble).sum.toString)
+    val funSum = functions.map(x => x.split(",").toList).transpose.map(x => x.map(_.toDouble).sum.toString)
 
-    position.source.path + "|" + name + "%{" + objectType + "}, " + fillCsvLine(metrics ::: funSum, size).mkString(",") :: objects
+    position.source.path + "|" + name + "%{" + objectType + "}," + fillCsvLine(metrics ::: funSum, size).mkString(",") :: objects
   }
 
   override def toCsvObjectAvr(size: Int): List[String] = {
@@ -52,8 +52,8 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
     val objects = getObjects(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
     val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
 
-    val funSum = functions.map(x => x.split(", ").toList).transpose.map(x => (x.map(_.toDouble).sum / functions.length).toString)
+    val funSum = functions.map(x => x.split(",").toList).transpose.map(x => (x.map(_.toDouble).sum / functions.length).toString)
 
-    position.source.path + "|" + name + "%{" + objectType + "}, " + fillCsvLine(metrics ::: funSum, size).mkString(",") :: objects
+    position.source.path + "|" + name + "%{" + objectType + "}," + fillCsvLine(metrics ::: funSum, size).mkString(",") :: objects
   }
 }

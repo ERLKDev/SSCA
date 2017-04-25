@@ -160,15 +160,15 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
               case Some(patch) =>
                 outputLock.acquire()
                 if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + ", " + fault.issues.length + ", " + _),  faultOutput)
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + ", " + fault.issues.length + ", " + _), fullOutput)
+                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + fault.issues.length + "," + _),  faultOutput)
+                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + fault.issues.length + "," + _), fullOutput)
                 }else{
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + ", " + 0 + ", " + _), fullOutput)
+                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
                 }
                 outputLock.release()
               case _ =>
                 outputLock.acquire()
-                Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + ", " + 0 + ", " + _), fullOutput)
+                Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
                 outputLock.release()
             }
         }
