@@ -50,12 +50,15 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
       (a, b) =>
         a match {
           case (i, k) =>
-            b match {
-              case x: ObjectMetric =>
-                (i:::x.objectHeader, k)
-              case x: FunctionMetric =>
-                (i, k:::x.functionHeader)
-            }
+            if (b.isInstanceOf[ObjectMetric] && b.isInstanceOf[FunctionMetric])
+              (i:::b.asInstanceOf[ObjectMetric].objectHeader, k:::b.asInstanceOf[FunctionMetric].functionHeader)
+            else
+              b match {
+                case x: ObjectMetric =>
+                  (i:::x.objectHeader, k)
+                case x: FunctionMetric =>
+                  (i, k:::x.functionHeader)
+              }
         }
     }
 
