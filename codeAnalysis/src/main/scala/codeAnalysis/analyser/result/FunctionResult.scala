@@ -19,7 +19,7 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
     .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvFunction)
     val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvFunction)
 
-    metrics.mkString(", ") :: functions
+    metrics.mkString(",") :: functions
   }
 
   override def toCsvObject: List[String] = {
@@ -31,7 +31,7 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
       .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
     val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectSum(size))
 
-    metrics.mkString(", ") :: functions
+    metrics.mkString(",") :: functions
   }
 
   override def toCsvObjectAvr(size: Int): List[String] = {
@@ -39,6 +39,6 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
       .sortWith(_.metricName < _.metricName).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
     val functions = getFunctions(results.toList).foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size))
 
-    metrics.mkString(", ") :: functions
+    metrics.mkString(",") :: functions
   }
 }
