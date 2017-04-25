@@ -1,4 +1,6 @@
-import java.io.{File, FileWriter}
+package ssca.validator
+
+import java.io.FileWriter
 
 /**
   * Created by erikl on 4/21/2017.

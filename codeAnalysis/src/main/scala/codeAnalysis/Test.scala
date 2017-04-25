@@ -1,9 +1,11 @@
 package codeAnalysis
 
+import codeAnalysis.analyser.AST.AST
+
 /**
   * Created by Erik on 13-4-2017.
   */
-class Test {
+class Test extends AST(null, null){
 
   trait B {
 

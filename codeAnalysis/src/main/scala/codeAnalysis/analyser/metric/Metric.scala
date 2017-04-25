@@ -13,4 +13,6 @@ trait Metric {
   }
 
   def getContext: ProjectContext = projectContext
+
+  def newInstance(): Metric = this.getClass.newInstance()
 }
