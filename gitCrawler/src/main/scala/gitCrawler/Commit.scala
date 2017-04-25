@@ -1,7 +1,7 @@
-package main.scala
+package gitCrawler
 
 import dispatch.github.{GhCommit, GhCommitSummary}
-import util.GitDataBase
+import gitCrawler.util.GitDataBase
 
 
 /**

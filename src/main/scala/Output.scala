@@ -17,6 +17,7 @@ object Output {
   def writeOutput(results: List[String], path: String): Unit = {
     val fw = new FileWriter(path, true) ;
     fw.write(results.mkString("\n") + "\n") ;
+    fw.flush()
     fw.close()
   }
 }

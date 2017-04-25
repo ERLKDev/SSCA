@@ -1,8 +1,7 @@
-package gitcrawler
-
-import main.scala.Repo
+package gitCrawler
 
 import scala.io.Source
+
 /**
   * Created by ErikL on 4/11/2017.
   */

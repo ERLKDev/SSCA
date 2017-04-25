@@ -75,10 +75,11 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
     val a = compiler.treeFromFile(file)
     if (a == null) {
       null
-    }else
+    }else {
       traverse(a, null)
-
+    }
   }
+
 
   /**
     * Function to run the metrics on the file list.

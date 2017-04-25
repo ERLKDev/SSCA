@@ -1,12 +1,11 @@
-package main.scala
+package gitCrawler
 
 import java.io.File
-import java.util.function.Consumer
+import java.nio.file.Paths
 
 import dispatch.github.{GhCommit, GhIssue}
-import org.eclipse.jgit.api.{Git, ResetCommand}
-import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
-import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.api.{Git}
+import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 
 /**
@@ -24,7 +23,6 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
   val issues: List[Issue] = getIssues
   val faults: List[Fault] = getFaults
 
-
   /**
     * Initializes the repository
     *
@@ -32,10 +30,9 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
     */
   private def initGitRepo: Git = {
     val file = new File(repoPath)
-    if (file.exists())
-      Git.open(file)
-    else
-      Git.cloneRepository().setURI("git@github.com:" + userName + "/" + repoName + ".git").setDirectory(new File(repoPath)).call
+    if (!file.exists())
+      GitR.runCommand(Paths.get(file.getParent), "git", "clone", "git@github.com:" + userName + "/" + repoName + ".git", repoPath)
+    Git.open(file)
   }
 
 
@@ -128,8 +125,8 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
     * @param commit the commit
     */
   def checkoutCommit(commit: Commit): Unit = {
-    git.reset().setMode(ResetCommand.ResetType.HARD).call
-    git.checkout.setName(commit.sha).call
+    GitR.runCommand(Paths.get(repoPath), "git", "reset", "--hard")
+    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", commit.sha)
   }
 
 
@@ -139,8 +136,8 @@ class Repo(userName: String, repoName: String, token: String, labels: List[Strin
     * @param commit the commit
     */
   def checkoutPreviousCommit(commit: Commit): Unit = {
-    git.reset().setMode(ResetCommand.ResetType.HARD).call
-    git.checkout.setName(commit.commitData.parents.head.sha).setForce(true).call
+    GitR.runCommand(Paths.get(repoPath), "git", "reset", "--hard")
+    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", getPreviousCommitSha(commit))
   }
 
   /**

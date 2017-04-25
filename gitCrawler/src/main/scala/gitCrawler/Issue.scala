@@ -1,4 +1,4 @@
-package main.scala
+package gitCrawler
 
 import dispatch.github.GhIssue
 /**
