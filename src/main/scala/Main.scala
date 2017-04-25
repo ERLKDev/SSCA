@@ -1,6 +1,6 @@
 import java.io.File
 
-import analyser.result.ObjectResult
+import codeAnalysis.analyser.result.ObjectResult
 import gitCrawler.{Commit, Repo}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.{FunctionMetric, ObjectMetric}
@@ -60,7 +60,7 @@ object Main {
       val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
 
       val an = new Analyser(metrics, path, 4)
-      println("Done init analyser: " + id)
+      println("Done init codeAnalysis.analyser: " + id)
 
 
       val faults = repo.faults
