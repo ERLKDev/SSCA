@@ -19,8 +19,8 @@ object Main {
     val githubToken = tokenFile.getLines.mkString
     tokenFile.close()
 
-    val user = "akka"
-    val reponame = "akka"
+    val user = "shadowsocks"
+    val reponame = "shadowsocks-android"
     val path = "..\\tmp\\git" + user.capitalize + reponame.capitalize
 
     val fullOutput = path + "Output\\fullOutput.csv"
@@ -59,7 +59,7 @@ object Main {
 
       val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
 
-      val an = new Analyser(metrics, path, 1)
+      val an = new Analyser(metrics, path, 4)
       println("Done init analyser: " + id)
 
 
@@ -112,7 +112,7 @@ object Main {
     }
 
 
-    List(1).par.foreach(x => run(x, 1, path + x))
+    List(1, 2, 3).par.foreach(x => run(x, 3, path + x))
 
     //run(1, 1, path + 1)
 

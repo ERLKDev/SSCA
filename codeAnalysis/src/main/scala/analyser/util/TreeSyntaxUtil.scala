@@ -14,8 +14,6 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
   def parseTree(tree: Tree): AST = {
     compiler.global.ask{
       () =>
-        if (tree.pos.source.path.equals("..\\tmp\\gitShadowsocksShadowsocks-android1\\src\\main\\scala\\com\\github\\shadowsocks\\acl\\Subnet.scala"))
-          println("t")
         val ast = getAstNode(tree)
         if (ast == null)
           new AST(getChildren(tree), getRangePos(tree))
@@ -36,8 +34,7 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
     try tree match {
       case x: PackageDef =>
         if (isPackage(x)) {
-          val a = getChildren(x)
-          return PackageDefinition(a, getRangePos(tree))
+          return PackageDefinition(getChildren(x), getRangePos(tree))
         }
         null
 
@@ -127,7 +124,6 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         null
     }catch{
       case x: Throwable =>
-        x.printStackTrace()
         null
     }
   }
