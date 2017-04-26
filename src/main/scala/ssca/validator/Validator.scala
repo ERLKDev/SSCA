@@ -3,7 +3,7 @@ package ssca.validator
 import java.io.File
 
 import codeAnalysis.analyser.result.{ObjectResult, ResultUnit}
-import gitCrawler.{Commit, Fault, Repo}
+import gitCrawler.{Commit, Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 
@@ -103,14 +103,16 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
   def run(wh: () => Unit, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
     createOutputFile()
     wh()
-    instanceIds.par.foreach(runInstance(_, op))
+    val repoInfo = new RepoInfo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), repoPath)
+    instanceIds.par.foreach(runInstance(_, repoInfo, op))
   }
 
-  private def runInstance(id: Int, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
+  private def runInstance(id: Int, repoInfo: RepoInfo, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
     val instancePath = repoPath + id
 
     /* Init the repo for the instance */
-    val repo = new Repo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), instancePath)
+    println("Start init repo: " + id)
+    val repo = new Repo(repoUser, repoName, instancePath, repoInfo)
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
@@ -118,12 +120,13 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
     println("Done init codeAnalysis.analyser: " + id)
 
     /* Get the faults and select the correct chunk. */
-    val faults = repo.faults
+    val faults = repoInfo.faults
     val chunk = faults.grouped(math.ceil(faults.length.toDouble / instances).toInt).toList(id)
 
     var count = 0
     var prevCommit: Commit = null
 
+    println("Start => " + id)
     /* Analyse each fault. */
     chunk.foreach {
       x =>
@@ -160,8 +163,8 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
               case Some(patch) =>
                 outputLock.acquire()
                 if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + fault.issues.length + "," + _),  faultOutput)
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + fault.issues.length + "," + _), fullOutput)
+                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),  faultOutput)
+                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _), fullOutput)
                 }else{
                   Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
                 }

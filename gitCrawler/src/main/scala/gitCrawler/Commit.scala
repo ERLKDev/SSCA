@@ -7,8 +7,8 @@ import gitCrawler.util.GitDataBase
 /**
   * Created by ErikL on 4/11/2017.
   */
-class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String], data: GhCommit) {
-  val dataBase = new GitDataBase(repoInfo("repoPath"))
+class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: GhCommit) {
+  val dataBase = new GitDataBase(info("repoPath"))
 
   def commitData: GhCommit = {
     if (data == null)
@@ -16,7 +16,7 @@ class Commit(commitSummary: GhCommitSummary, repoInfo: Map[String, String], data
         case Some(commit) =>
           return commit
         case _ =>
-          val result = GhCommit.get_commit(repoInfo("user"), repoInfo("repo"), commitSummary.sha, Map("access_token" -> repoInfo("token")))()
+          val result = GhCommit.get_commit(info("user"), info("repo"), commitSummary.sha, Map("access_token" -> info("token")))()
           dataBase.writeCommit(result)
           return result
       }
