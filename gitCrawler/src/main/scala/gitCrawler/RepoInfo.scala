@@ -5,10 +5,10 @@ import dispatch.github.{GhCommit, GhIssue}
 /**
   * Created by erikl on 4/26/2017.
   */
-class RepoInfo(userName: String, repoName: String, token: String, labels: List[String], repoPath: String) {
+class RepoInfo(userName: String, repoName: String, token: String, labels: List[String], branch: String, repoPath: String) {
   private val debug = false
   private val debugTreshhold = 15
-  private val info = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath)
+  private val info = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath, "branch" -> branch)
 
   val commits: List[Commit] = getCommits
   val issues: List[Issue] = getIssues

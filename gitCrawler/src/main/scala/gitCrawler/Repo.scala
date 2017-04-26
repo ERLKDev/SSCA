@@ -26,6 +26,16 @@ class Repo(userName: String, repoName: String, repoPath: String, repoInfo: RepoI
     Git.open(file)
   }
 
+
+  /**
+    * Checkout to the commit
+    *
+    */
+  def checkoutHead(): Unit = {
+    GitR.runCommand(Paths.get(repoPath), "git", "reset", "--hard")
+    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", "HEAD")
+  }
+
   /**
     * Checkout to the commit
     *

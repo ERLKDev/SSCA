@@ -7,23 +7,21 @@ import gitCrawler.{Commit, Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Lock
 import scala.io.Source
 
 /**
   * Created by erikl on 4/25/2017.
   */
-class Validator(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
+class OValidator(repoUser: String, repoName: String, repoPath: String, instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
 
   private val token = loadToken()
 
   private val OutputDir = repoPath + "Output"
   private val fullOutput = OutputDir + "\\fullOutput.csv"
   private val faultOutput = OutputDir + "\\faultOutput.csv"
-  private val outputLock = new Lock
 
-  private val instanceIds: List[Int] = List.range(0, instances)
 
   private def loadToken(): String = {
     val tokenFile = Source.fromFile("github.token")
@@ -100,81 +98,38 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
   }
 
 
-  def run(wh: () => Unit, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
+  def run(wh: () => Unit): Unit = {
     createOutputFile()
     wh()
     val repoInfo = new RepoInfo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), "master", repoPath)
-    instanceIds.par.foreach(runInstance(_, repoInfo, op))
-  }
-
-  private def runInstance(id: Int, repoInfo: RepoInfo, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
-    val instancePath = repoPath + id
+    val instancePath = repoPath + "Old"
 
     /* Init the repo for the instance */
-    println("Start init repo: " + id)
+    println("Start init repo")
     val repo = new Repo(repoUser, repoName, instancePath, repoInfo)
-    println("Done loading repo: " + id)
+    println("Done loading repo")
 
     /* Init the analyser for the instance */
     val an = new Analyser(createMetrics(), instancePath, instanceThreads)
-    println("Done init codeAnalysis.analyser: " + id)
+    println("Done init codeAnalysis.analyser")
 
     /* Get the faults and select the correct chunk. */
     val faults = repoInfo.faults
-    val chunk = faults.grouped(math.ceil(faults.length.toDouble / instances).toInt).toList(id)
-
-    var count = 0
-    var prevCommit: Commit = null
-
-    println("Start => " + id)
-    /* Analyse each fault. */
-    chunk.foreach {
-      x =>
-        /* Commit to previous commit. */
-        repo.checkoutPreviousCommit(x.commit)
-        an.refresh()
-
-        /* Get the result. */
-        val results = if (prevCommit != null) {
-          val files = repo.changedFiles(prevCommit, x.commit).map(x => instancePath + "\\" + x)
-          an.analyse(files)
-        } else {
-          an.analyse()
-        }
-
-        /* Run output function. */
-        op(instancePath, x, results)
-
-        prevCommit = x.commit
-        count += 1
-        println(count + "/" + chunk.length + ":  " + results.length + " -> " + x.commit.sha + " => " + id)
-    }
-  }
+    val faultyFiles = faults.foldLeft(List[String]())((a, b) => a ::: b.commit.files)
 
 
-  def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): Unit = {
+    val results = an.analyse()
+
     val header: List[String] = getObjectHeaders ::: getFunctionHeaders
-    results.foreach {
+
+    results.foreach{
       y =>
-        val lines = fault.commit.getPatchData(y.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
         y.results.foreach {
           case obj: ObjectResult =>
-            lines match {
-              case Some(patch) =>
-                outputLock.acquire()
-                if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),  faultOutput)
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _), fullOutput)
-                }else{
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
-                }
-                outputLock.release()
-              case _ =>
-                outputLock.acquire()
-                Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
-                outputLock.release()
-            }
+            val count = faultyFiles.count(x => x.equals(obj.position.source.path.substring(instancePath.length + 1).replace("\\", "/")))
+            Output.writeOutput(obj.toCsvObjectAvr(header.length).map("HEAD," + count + "," + _), fullOutput)
         }
     }
+
   }
 }

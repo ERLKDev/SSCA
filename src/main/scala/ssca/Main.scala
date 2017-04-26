@@ -1,7 +1,7 @@
 package ssca
 
 import main.scala.metrics._
-import ssca.validator.Validator
+import ssca.validator.{OValidator, Validator}
 
 
 /**
@@ -19,6 +19,7 @@ object Main {
     val validator = new Validator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
     time(validator.run(validator.writeHeaders, validator.objectOutput))
+
   }
 
   def time[R](block: => R): R = {

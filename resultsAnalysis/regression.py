@@ -7,15 +7,15 @@ from pandas.stats.api import ols
 import statsmodels.api as sm
 from sklearn import datasets, linear_model
 
-df = pd.read_csv('fullOutput.csv', usecols=[1, 2, 3, 4, 8, 9, 11, 12])
+df = pd.read_csv('fullOutputSmall.csv', usecols=[1, 2, 3, 4, 8, 9, 11, 12])
 print df.keys()
-a = " DIT"
+a = "objectLOC"
 b = "faults"
 
 
-df = df.groupby(['path']).agg({b: np.sum, a: np.mean})
-df[a] = df[a].map(lambda x: x / 100.0)
-df[b] = df[b].map(lambda x: 1 if x > 0.0 else 0)
+# df = df.groupby(['path']).agg({b: np.sum, a: np.mean})
+# df[a] = df[a].map(lambda x: x / 100.0)
+# df[b] = df[b].map(lambda x: 1 if x > 10 else 0)
 # df = df.groupby(['path'])
 # df[a] = df[a].mean()
 

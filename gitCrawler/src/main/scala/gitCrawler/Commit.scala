@@ -16,7 +16,7 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
         case Some(commit) =>
           return commit
         case _ =>
-          val result = GhCommit.get_commit(info("user"), info("repo"), commitSummary.sha, Map("access_token" -> info("token")))()
+          val result = GhCommit.get_commit(info("user"), info("repo"), commitSummary.sha, Map("access_token" -> info("token"), "sha" -> info("branch")))()
           dataBase.writeCommit(result)
           return result
       }
