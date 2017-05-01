@@ -117,22 +117,24 @@ class Analysis:
 			newdf2 = df2[['bucket',a]].groupby('bucket').count()
 
 			newdf3 = newdf2[a] / newdf[a]
-			newdf3.plot(kind='bar')
-			plt.title(a)
+
+			fig, ax = plt.subplots()
+			newdf3.plot(kind='bar', ax=ax)
+			ax.set_title(a)
 
 			if (args.store):
-				self.storePlt("Dist-" + a)
+				self.storePlt("Dist-" + a, fig)
 			else:
 				plt.show()
 
 
-	def storePlt(self, name):
+	def storePlt(self, name, fig):
 		if args.png or args.all:
-			plt.savefig(args.destination + "/" + name + '.png', format='png')
+			fig.savefig(args.destination + "/" + name + '.png', format='png')
 		if args.eps or args.all:
-			plt.savefig(args.destination + "/" + name + '.eps', format='eps')
+			fig.savefig(args.destination + "/" + name + '.eps', format='eps')
 		if args.pdf or args.all:
-			plt.savefig(args.destination + "/" + name + '.pdf', format='pdf')
+			fig.savefig(args.destination + "/" + name + '.pdf', format='pdf')
 
 
 	def getNumTypes(self, df):
