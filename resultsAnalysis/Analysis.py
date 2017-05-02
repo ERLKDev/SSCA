@@ -15,6 +15,7 @@ class Analysis:
 		self.dependantKey = "faults"
 		self.faultTreshold = 10
 		self.args = args
+		self.regressionMethods = [sm.OLS, sm.GLS, sm.WLS, sm.GLSAR, sm.Logit]
 
 
 	def descriptive(self, df):
@@ -32,7 +33,14 @@ class Analysis:
 		print df.select_dtypes(include=['float64', 'int64', 'int', 'float']).corr()
 		print "\n" + self.seperationLine
 
+	def runRegression(self, X, y, method):
+		return method(y, X).fit()
+
 	def unRegression(self, df):
+		tmp = sys.stdout
+		if self.args.store:
+			sys.stdout = open(self.args.destination + "/" + a +"output.txt", 'w')
+
 		print self.seperationLine
 		print "Univariate Regressions\n\n"
 
@@ -42,24 +50,15 @@ class Analysis:
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
-			
-			result = sm.OLS(df[self.dependantKey], df[a]).fit()
-			print result.summary()
+			for x in self.regressionMethods:
+				result = runRegression(df[a], df[self.dependantKey], x)
 
-			result = sm.GLS(df[self.dependantKey], df[a]).fit()
-			print result.summary()
-
-			result = sm.WLS(df[self.dependantKey], df[a]).fit()
-			print result.summary()
-
-			result = sm.GLSAR(df[self.dependantKey], df[a]).fit()
-			print result.summary()
-
-			result = sm.Logit(df[self.dependantKey], df[a]).fit()
-			print result.summary()
+				print result.summary()
 
 
 		print "\n" + self.seperationLine
+
+		sys.stdout = tmp
 
 	def multiRegression(self, df):
 		print self.seperationLine
@@ -70,20 +69,9 @@ class Analysis:
 		df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
-		result = sm.OLS(df[self.dependantKey], df[numtypes]).fit()
-		print result.summary()
-
-		result = sm.GLS(df[self.dependantKey], df[numtypes]).fit()
-		print result.summary()
-
-		result = sm.WLS(df[self.dependantKey], df[numtypes]).fit()
-		print result.summary()
-
-		result = sm.GLSAR(df[self.dependantKey], df[numtypes]).fit()
-		print result.summary()
-
-		result = sm.Logit(df[self.dependantKey], df[numtypes]).fit()
-		print result.summary()
+		for x in self.regressionMethods:
+			result = runRegression(df[numtypes], df[self.dependantKey], x)
+			print result.summary()
 
 		print "\n" + self.seperationLine
 
@@ -118,23 +106,33 @@ class Analysis:
 
 			newdf3 = newdf2[a] / newdf[a]
 
-			fig, ax = plt.subplots()
-			newdf3.plot(kind='bar', ax=ax)
-			ax.set_title(a)
+			fig1, ax1 = plt.subplots()
+			newdf.plot(kind='bar', ax=ax1)
+			ax1.set_title(a + "-Distribution")
 
-			if (args.store):
-				self.storePlt("Dist-" + a, fig)
+			fig2, ax2 = plt.subplots()
+			newdf2.plot(kind='bar', ax=ax2)
+			ax2.set_title(a + "-Fault-Distribution")
+
+			fig3, ax3 = plt.subplots()
+			newdf3.plot(kind='bar', ax=ax3)
+			ax3.set_title(a + "-Weighted-Fault-Distribution")
+
+			if (self.args.store):
+				self.storePlt(a, a + "-Distribution", fig1)
+				self.storePlt(a, a + "-Fault-Distribution", fig2)
+				self.storePlt(a, a + "-Weighted-Fault-Distribution", fig3)
 			else:
 				plt.show()
 
 
-	def storePlt(self, name, fig):
+	def storePlt(self, metric, name, fig):
 		if args.png or args.all:
-			fig.savefig(args.destination + "/" + name + '.png', format='png')
+			fig.savefig(args.destination + "/" + metric + "/" + name + '.png', format='png')
 		if args.eps or args.all:
-			fig.savefig(args.destination + "/" + name + '.eps', format='eps')
+			fig.savefig(args.destination + "/" + metric + "/" + name + '.eps', format='eps')
 		if args.pdf or args.all:
-			fig.savefig(args.destination + "/" + name + '.pdf', format='pdf')
+			fig.savefig(args.destination + "/" + metric + "/" + name + '.pdf', format='pdf')
 
 
 	def getNumTypes(self, df):
@@ -146,15 +144,16 @@ class Analysis:
 	def getStatistics(self):
 
 		df = None
-		# create a store
+
 		if (self.args.columns != None):
 			df = pd.concat(pd.read_csv(self.args.input, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)
 		else:
 			df = pd.concat(pd.read_csv(self.args.input, chunksize=1000, iterator=True), ignore_index=True)
-		# store.append('df_key', df, complib='blosc', complevel=5)
 
 		if (self.args.store):
 			os.makedirs(self.args.destination)
+			for x in getNumTypes(df):
+				os.makedirs(self.args.destination + "/" + x)
 			sys.stdout = open(self.args.destination + "/output.txt", 'w')
 
 		if (not self.args.multireg):

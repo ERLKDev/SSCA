@@ -21,8 +21,11 @@ class Repo(userName: String, repoName: String, repoPath: String, repoInfo: RepoI
     */
   private def initGitRepo: Git = {
     val file = new File(repoPath)
-    if (!file.exists())
+    if (!file.exists()) {
+      //TODO make dir if not exists
+      //TODO remove remote
       GitR.runCommand(Paths.get(file.getParent), "git", "clone", "git@github.com:" + userName + "/" + repoName + ".git", repoPath)
+    }
     Git.open(file)
   }
 

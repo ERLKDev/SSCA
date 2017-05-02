@@ -148,6 +148,7 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
         prevCommit = x.commit
         count += 1
         println(count + "/" + chunk.length + ":  " + results.length + " -> " + x.commit.sha + " => " + id)
+        x.unload()
     }
   }
 

@@ -5,6 +5,11 @@ package gitCrawler
   */
 class Fault(commitV: Commit, issuesV: List[Issue]) {
 
-  val commit: Commit = commitV
-  val issues: List[Issue] = issuesV
+  var commit: Commit = commitV
+  var issues: List[Issue] = issuesV
+
+  def unload(): Unit = {
+    commit = null
+    issues = null
+  }
 }
