@@ -46,6 +46,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
       case (x, i) =>
         val preRunner = new PreRunner(compilerList(i))
         val metricRunner = new MetricRunner(compilerList(i))
+
         preRunner.run(preRunJobs, x)
         metricRunner.runFiles(metrics, x, projectContext)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
@@ -64,6 +65,10 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
 
   def analyse(): List[ResultUnit]  = {
     startAnalysis(projectFiles)
+  }
+
+  def close(): Unit = {
+    compilerList.foreach(x => x.global.askShutdown())
   }
 }
 

@@ -56,7 +56,7 @@ class Analysis:
 				result = self.runRegression(df[a], df[self.dependantKey], x)
 
 				print result.summary()
-
+		sys.stdout.flush()
 		sys.stdout = tmp
 
 		if not self.args.store:
@@ -166,12 +166,15 @@ class Analysis:
 			self.distribution(df)
 
 			self.descriptive(df)
+			sys.stdout.flush()
 
 			self.correlation(df)
-			
-			self.unRegression(df)
+			sys.stdout.flush()
 
+			self.unRegression(df)
+			sys.stdout.flush()
 		self.multiRegression(df)
+		sys.stdout.flush()
 
 
 if __name__ == "__main__":

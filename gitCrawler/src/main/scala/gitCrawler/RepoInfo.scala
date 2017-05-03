@@ -6,7 +6,7 @@ import dispatch.github.{GhCommit, GhIssue}
   * Created by erikl on 4/26/2017.
   */
 class RepoInfo(userName: String, repoName: String, token: String, labels: List[String], branch: String, repoPath: String) {
-  private val debug = true
+  private val debug = false
   private val debugTreshhold = 15
   private val info = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath, "branch" -> branch)
 
@@ -69,7 +69,7 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
     * @return
     */
   private def isIssue(commit: Commit) : Boolean = {
-    val pattern = """(?i)(clos(e[sd]?|ing)|fix(e[sd]|ing)?|resolv(e[sd]?)|#(\d+))""".r
+    val pattern = """(?i)(clos(e[sd]?|ing)|fix(e[sd]|ing)?|resolv(e[sd]?))""".r
 
     if ((pattern findAllIn commit.message).isEmpty)
       return false

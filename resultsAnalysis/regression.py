@@ -6,30 +6,31 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn import datasets, linear_model
 from scipy import stats
+import LinearRegression as lr
 
-df = pd.read_csv('fullOutputO.csv')
+df = pd.read_csv('fullOutput.csv')
 
-a = "WMCcc"
+a = "PatternSize"
 b = "faults"
 
 
-# def wavg(group):
-# 	r = []
-# 	for x in group.keys():
-# 		if str(x) == b:
-# 			r.append(group[b].sum())
-# 		elif x == "path" or x == "commit":
-# 			r.append(group[x])
-# 		else:
-# 			r.append(group[x].mean())
-# 	return pd.Series(r, index=group.keys())
+def wavg(group):
+	r = []
+	for x in group.keys():
+		if str(x) == b:
+			r.append(group[b].sum())
+		elif x == "path" or x == "commit":
+			r.append(group[x])
+		else:
+			r.append(group[x].mean())
+	return pd.Series(r, index=group.keys())
 
 
 # numtypes = list(df.select_dtypes(include=['float64', 'int64', 'int', 'float']).keys())
 # numtypes.remove(b)
 
-# df = df.groupby(['path']).apply(wavg)
-df[b] = df[b].map(lambda x: 1 if x > 10 else 0)
+df = df.groupby(['path']).apply(wavg)
+df[b] = df[b].map(lambda x: 1 if x > 0.0 else 0)
 
 # df = df.groupby(['path']).agg({b: np.sum, a: np.mean})
 # # df[a] = df[a].map(lambda x: x / 100.0)
@@ -84,13 +85,13 @@ df[b] = df[b].map(lambda x: 1 if x > 10 else 0)
 # print df
 # print len(filter(lambda y: y[0] > 0, bB))
 
-# size = int(math.ceil(len(df) *0.30))
+size = int(math.ceil(len(df) *0.30))
 # X = df.as_matrix([a])
 # Y = df.as_matrix([b])
-# X_test = df.as_matrix([a])[-size:]
-# y_test = df.as_matrix([b])[-size:]
-# X_train = df.as_matrix([a])[:-size]
-# y_train = df.as_matrix([b])[:-size]
+X_test = df.as_matrix([a])[-size:]
+y_test = df.as_matrix([b])[-size:]
+X_train = df.as_matrix([a])[:-size]
+y_train = df.as_matrix([b])[:-size]
 
 # # df = pd.DataFrame({a :xX, b :yY})
 
@@ -126,32 +127,32 @@ df[b] = df[b].map(lambda x: 1 if x > 10 else 0)
 
 
 # a = numtypes
-res = sm.Logit(df[b], df[a]).fit()
-print res.summary()
+# res = sm.Logit(df[b], df[a]).fit()
+# print res.summary()
 
-predictres = res.predict(df[a])
+# predictres = res.predict(df[a])
 
-tre = 0.5
+# tre = 0.5
 
-t_t = 0
-t_f = 0
-f_t = 0
-f_f = 0
-for i in range(len(df[b])):
+# t_t = 0
+# t_f = 0
+# f_t = 0
+# f_f = 0
+# for i in range(len(df[b])):
 
-	if (bool(df[b].iloc[i]) and predictres[i] >= tre):
-		t_t += 1
-	elif (bool(df[b].iloc[i]) and predictres[i] < tre): 
-		t_f += 1
-	elif (not bool(df[b].iloc[i]) and predictres[i] >= tre):
-		f_t += 1
-	else:
-		f_f += 1
+# 	if (bool(df[b].iloc[i]) and predictres[i] >= tre):
+# 		t_t += 1
+# 	elif (bool(df[b].iloc[i]) and predictres[i] < tre): 
+# 		t_f += 1
+# 	elif (not bool(df[b].iloc[i]) and predictres[i] >= tre):
+# 		f_t += 1
+# 	else:
+# 		f_f += 1
 
-print "Fault and a fault predicted = " + str(t_t)
-print "No fault and no fault predicted = " + str(f_f)
-print "Fault and a  no fault predicted = " + str(t_f)
-print "No fault and a fault predicted = " + str(f_t)
+# print "Fault and a fault predicted = " + str(t_t)
+# print "No fault and no fault predicted = " + str(f_f)
+# print "Fault and a  no fault predicted = " + str(t_f)
+# print "No fault and a fault predicted = " + str(f_t)
 
 # xv = np.reshape(np.arange(0.0, df[a].max(), df[a].max()/10000.0), (-1, 1))
 
@@ -192,30 +193,30 @@ print "No fault and a fault predicted = " + str(f_t)
 
 
 
-# # Create linear regression object
-# regr = lr.LinearRegression()
+# Create linear regression object
+regr = lr.LinearRegression()
 
-# # Train the model using the training sets
-# regr.fit(X_train, y_train)
+# Train the model using the training sets
+regr.fit(X_train, y_train)
 
-# # The coefficients
-# print('Coefficients: \n', regr.coef_)
-# print('Coefficients: \n', regr.p)
+# The coefficients
+print('Coefficients: \n', regr.coef_)
+print('Coefficients: \n', regr.p)
 
-# # The mean squared error
-# print("Mean squared error: %f"
-#       % np.mean((regr.predict(X_test) - y_test) ** 2))
-# # Explained variance score: 1 is perfect prediction
-# print('Variance score: %f' % regr.score(X_test, y_test))
+# The mean squared error
+print("Mean squared error: %f"
+      % np.mean((regr.predict(X_test) - y_test) ** 2))
+# Explained variance score: 1 is perfect prediction
+print('Variance score: %f' % regr.score(X_test, y_test))
 
-# # Plot outputs
-# plt.scatter(X_test, y_test,  color='black')
-# plt.plot(X_test, regr.predict(X_test), color='blue',
-#          linewidth=3)
+# Plot outputs
+plt.scatter(X_test, y_test,  color='black')
+plt.plot(X_test, regr.predict(X_test), color='blue',
+         linewidth=3)
 
-# plt.xticks(())
-# plt.yticks(())
+plt.xticks(())
+plt.yticks(())
 # plt.savefig('destination_path.eps', format='eps')
 # plt.savefig('destination_path.pdf', format='pdf')
 # plt.savefig('destination_path.png', format='png')
-# plt.show()
+plt.show()

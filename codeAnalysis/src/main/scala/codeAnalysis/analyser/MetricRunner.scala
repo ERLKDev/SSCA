@@ -89,7 +89,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
     * @return the results of the codeAnalysis.metrics on the list of files
     */
   def runFiles(metrics: List[Metric], files: List[File], projectContext: ProjectContext): List[ResultUnit] = {
-    files.foldLeft(List[ResultUnit]())((a, b) =>  a ::: List(run(metrics, b, projectContext))).filter(_ != null)
+    files.map(x => run(metrics, x, projectContext)).filter(_ != null)
   }
 
 

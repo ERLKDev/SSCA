@@ -19,8 +19,10 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
   private val token = loadToken()
 
   private val OutputDir = repoPath + "OutputO"
-  private val fullOutput = OutputDir + "\\fullOutput.csv"
-  private val faultOutput = OutputDir + "\\faultOutput.csv"
+  createOutputDir()
+
+  private val fullOutput = new Output(OutputDir + "\\fullOutput.csv", true)
+  private val faultOutput = new Output(OutputDir + "\\faultOutput.csv", true)
 
 
   private def loadToken(): String = {
@@ -30,17 +32,9 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
     githubToken
   }
 
-  private def createOutputFile(): Unit = {
+  private def createOutputDir(): Unit = {
     val outputDir = new File(OutputDir)
     outputDir.mkdirs()
-
-    val fullOutputFile = new File(fullOutput)
-    fullOutputFile.delete()
-    fullOutputFile.createNewFile()
-
-    val faultOutputFile = new File(faultOutput)
-    faultOutputFile.delete()
-    faultOutputFile.createNewFile()
   }
 
   private def metricsHeader(): (List[String], List[String]) = {
@@ -75,21 +69,21 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
 
   def writeObjectHeaders(): Unit = {
     val (objHeader, _) = metricsHeader()
-    Output.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")), fullOutput)
-    Output.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")), faultOutput)
+    fullOutput.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")))
   }
 
   def writeFunctionHeader(): Unit = {
     val (_, funHeader) = metricsHeader()
-    Output.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")), fullOutput)
-    Output.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")), faultOutput)
+    fullOutput.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")))
   }
 
   def writeHeaders(): Unit = {
     val (objHeader, funHeader) = metricsHeader()
     val header = objHeader:::funHeader
-    Output.writeOutput(List("commit,faults,path, " + header.mkString(",")), fullOutput)
-    Output.writeOutput(List("commit,faults,path, " + header.mkString(",")), faultOutput)
+    fullOutput.writeOutput(List("commit,faults,path, " + header.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path, " + header.mkString(",")))
   }
 
 
@@ -99,7 +93,6 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
 
 
   def run(wh: () => Unit): Unit = {
-    createOutputFile()
     wh()
     val repoInfo = new RepoInfo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), "master", repoPath)
     val instancePath = repoPath + "0"
@@ -122,14 +115,19 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
 
     val header: List[String] = getObjectHeaders ::: getFunctionHeaders
 
-    results.foreach{
-      y =>
-        y.results.foreach {
-          case obj: ObjectResult =>
-            val count = faultyFiles.count(x => x.equals(obj.position.source.path.substring(instancePath.length + 1).replace("\\", "/")))
-            Output.writeOutput(obj.toCsvObjectAvr(header.length).map("HEAD," + count + "," + _), fullOutput)
+    val output = results.foldLeft(List[String]()){
+      (r, y) =>
+        r ::: y.results.foldLeft(List[String]()) {
+          (a, b) =>
+            b match {
+              case obj: ObjectResult =>
+                val count = faultyFiles.count(x => x.equals(obj.position.source.path.substring(instancePath.length + 1).replace("\\", "/")))
+                a ::: obj.toCsvObjectAvr(header.length).map("HEAD," + count + "," + _)
+            }
         }
     }
+    fullOutput.writeOutput(output)
+    fullOutput.close()
 
   }
 }

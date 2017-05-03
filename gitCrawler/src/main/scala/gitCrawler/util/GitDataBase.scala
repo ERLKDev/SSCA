@@ -62,12 +62,18 @@ class GitDataBase(repoPath: String) {
 
   private def read(id: String): Option[String] = {
     val fp = new File(repoPath + "Data\\" + id)
-    if(!fp.exists())
+    if (!fp.exists())
       return None
 
     val file = Source.fromFile(fp)
-    val result = Some(file.mkString)
-    file.close()
-    result
+    try {
+      val result = Some(file.mkString)
+      file.close()
+      result
+    }catch {
+      case _=>
+        file.close()
+        None
+    }
   }
 }

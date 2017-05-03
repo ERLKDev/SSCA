@@ -3,10 +3,12 @@ package ssca.validator
 import java.io.File
 
 import codeAnalysis.analyser.result.{ObjectResult, ResultUnit}
+import dispatch.Http
 import gitCrawler.{Commit, Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Lock
 import scala.io.Source
 
@@ -18,12 +20,17 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
 
   private val token = loadToken()
 
-  private val OutputDir = repoPath + "Output"
-  private val fullOutput = OutputDir + "\\fullOutput.csv"
-  private val faultOutput = OutputDir + "\\faultOutput.csv"
   private val outputLock = new Lock
-
   private val instanceIds: List[Int] = List.range(0, instances)
+
+  private val OutputDir = repoPath + "Output"
+
+  createOutputDir()
+
+  private val fullOutput = new Output(OutputDir + "\\fullOutput.csv", true)
+  private val faultOutput = new Output(OutputDir + "\\faultOutput.csv", true)
+
+  private var totalCount = 0
 
   private def loadToken(): String = {
     val tokenFile = Source.fromFile("github.token")
@@ -32,17 +39,9 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
     githubToken
   }
 
-  private def createOutputFile(): Unit = {
+  private def createOutputDir(): Unit = {
     val outputDir = new File(OutputDir)
     outputDir.mkdirs()
-
-    val fullOutputFile = new File(fullOutput)
-    fullOutputFile.delete()
-    fullOutputFile.createNewFile()
-
-    val faultOutputFile = new File(faultOutput)
-    faultOutputFile.delete()
-    faultOutputFile.createNewFile()
   }
 
   private def metricsHeader(): (List[String], List[String]) = {
@@ -77,21 +76,21 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
 
   def writeObjectHeaders(): Unit = {
     val (objHeader, _) = metricsHeader()
-    Output.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")), fullOutput)
-    Output.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")), faultOutput)
+    fullOutput.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")))
   }
 
   def writeFunctionHeader(): Unit = {
     val (_, funHeader) = metricsHeader()
-    Output.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")), fullOutput)
-    Output.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")), faultOutput)
+    fullOutput.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")))
   }
 
   def writeHeaders(): Unit = {
     val (objHeader, funHeader) = metricsHeader()
     val header = objHeader:::funHeader
-    Output.writeOutput(List("commit,faults,path, " + header.mkString(",")), fullOutput)
-    Output.writeOutput(List("commit,faults,path, " + header.mkString(",")), faultOutput)
+    fullOutput.writeOutput(List("commit,faults,path, " + header.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path, " + header.mkString(",")))
   }
 
 
@@ -100,14 +99,18 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
   }
 
 
-  def run(wh: () => Unit, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
-    createOutputFile()
+  def run(wh: () => Unit, op: (String, Fault, List[ResultUnit]) => (List[String], List[String])): Unit = {
     wh()
+    totalCount = 0
+
     val repoInfo = new RepoInfo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), "master", repoPath)
     instanceIds.par.foreach(runInstance(_, repoInfo, op))
+    faultOutput.close()
+    fullOutput.close()
+    Http.shutdown()
   }
 
-  private def runInstance(id: Int, repoInfo: RepoInfo, op: (String, Fault, List[ResultUnit]) => Unit): Unit = {
+  private def runInstance(id: Int, repoInfo: RepoInfo, op: (String, Fault, List[ResultUnit]) => (List[String], List[String])): Unit = {
     val instancePath = repoPath + id
 
     /* Init the repo for the instance */
@@ -134,48 +137,77 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
         repo.checkoutPreviousCommit(x.commit)
         an.refresh()
 
+
         /* Get the result. */
         val results = if (prevCommit != null) {
           val files = repo.changedFiles(prevCommit, x.commit).map(x => instancePath + "\\" + x)
           an.analyse(files)
         } else {
+          println("analyse")
           an.analyse()
         }
 
         /* Run output function. */
-        op(instancePath, x, results)
+        val output = op(instancePath, x, results)
+
+        count += 1
+
+        outputLock.acquire()
+        faultOutput.writeOutput(output._1)
+        fullOutput.writeOutput(output._2)
+        totalCount += 1
+        outputLock.release()
+
+        val nextSha = {
+          val index = chunk.indexOf(x) + 1
+          if (index < chunk.length)
+            chunk(index).commit.sha
+          else
+            "Last"
+        }
+
+        println(id + ":\t" + count + "/" + chunk.length + "(" + (count * 100) / chunk.length + "%)\t\tTotal: "
+          + totalCount + "/" + faults.length + "(" + (totalCount * 100) / faults.length + "%)\t\t"
+          + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
 
         prevCommit = x.commit
-        count += 1
-        println(count + "/" + chunk.length + ":  " + results.length + " -> " + x.commit.sha + " => " + id)
         x.unload()
     }
+    println(id + " Done!")
+    an.close()
   }
 
 
-  def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): Unit = {
+  def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): (List[String], List[String]) = {
     val header: List[String] = getObjectHeaders ::: getFunctionHeaders
-    results.foreach {
-      y =>
+    results.foldLeft((List[String](), List[String]())) {
+      (r, y) =>
         val lines = fault.commit.getPatchData(y.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
-        y.results.foreach {
-          case obj: ObjectResult =>
-            lines match {
-              case Some(patch) =>
-                outputLock.acquire()
-                if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),  faultOutput)
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _), fullOutput)
-                }else{
-                  Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
+        val res = y.results.foldLeft((List[String](), List[String]())) {
+          (a, b) =>
+            b match {
+              case obj: ObjectResult =>
+                lines match {
+                  case Some(patch) =>
+                    if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
+                      (a._1 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),
+                        a._2 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _))
+                    } else {
+                      (a._1, a._2 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _))
+                    }
+                  case _ =>
+                    (a._1, a._2 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _))
                 }
-                outputLock.release()
-              case _ =>
-                outputLock.acquire()
-                Output.writeOutput(obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 0 + "," + _), fullOutput)
-                outputLock.release()
             }
         }
+        (r._1 ::: res._1, r._2 ::: res._2)
     }
+  }
+  def time[R](block: => R): R = {
+    val t0 = System.nanoTime()
+    val result = block    // call-by-name
+    val t1 = System.nanoTime()
+    println("Done in: " + (t1 - t0) + "ns (" + ((t1 - t0).toDouble / 1000000000.0) + "seconds)")
+    result
   }
 }
