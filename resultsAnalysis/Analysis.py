@@ -34,15 +34,14 @@ class Analysis:
 		print "\n" + self.seperationLine
 
 	def runRegression(self, X, y, method):
-		return method(y, X).fit()
+		return method(y, sm.add_constant(X)).fit()
 
 	def unRegression(self, df):
 		tmp = sys.stdout
-		if self.args.store:
-			sys.stdout = open(self.args.destination + "/" + a +"output.txt", 'w')
 
-		print self.seperationLine
-		print "Univariate Regressions\n\n"
+		if not self.args.store:
+			print self.seperationLine
+			print "Univariate Regressions\n\n"
 
 		numtypes = self.getNumTypes(df)
 
@@ -50,15 +49,19 @@ class Analysis:
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
+			if self.args.store:
+				sys.stdout = open(self.args.destination + "/" + a + "/" +"output.txt", 'w')
+
 			for x in self.regressionMethods:
-				result = runRegression(df[a], df[self.dependantKey], x)
+				result = self.runRegression(df[a], df[self.dependantKey], x)
 
 				print result.summary()
 
-
-		print "\n" + self.seperationLine
-
 		sys.stdout = tmp
+
+		if not self.args.store:
+			print "\n" + self.seperationLine
+
 
 	def multiRegression(self, df):
 		print self.seperationLine
@@ -70,7 +73,7 @@ class Analysis:
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for x in self.regressionMethods:
-			result = runRegression(df[numtypes], df[self.dependantKey], x)
+			result = self.runRegression(df[numtypes], df[self.dependantKey], x)
 			print result.summary()
 
 		print "\n" + self.seperationLine
@@ -93,7 +96,7 @@ class Analysis:
 
 		for a in self.getNumTypes(df):
 			df1 = df.copy()
-			binarray = [(df1[a].max() / float(size)) * x for x in range(size + 1)]
+			binarray = [df1[a].quantile(.03) + (df1[a].quantile(.97) / float(size)) * x for x in range(size + 1)]
 			df1[self.dependantKey] = df1[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 			df2 = df1[(df1[self.dependantKey] > 0.0)].copy()
@@ -124,6 +127,9 @@ class Analysis:
 				self.storePlt(a, a + "-Weighted-Fault-Distribution", fig3)
 			else:
 				plt.show()
+			plt.close(fig1)
+			plt.close(fig2)
+			plt.close(fig3)
 
 
 	def storePlt(self, metric, name, fig):
@@ -152,18 +158,18 @@ class Analysis:
 
 		if (self.args.store):
 			os.makedirs(self.args.destination)
-			for x in getNumTypes(df):
+			for x in self.getNumTypes(df):
 				os.makedirs(self.args.destination + "/" + x)
 			sys.stdout = open(self.args.destination + "/output.txt", 'w')
 
 		if (not self.args.multireg):
+			self.distribution(df)
+
 			self.descriptive(df)
 
 			self.correlation(df)
 			
 			self.unRegression(df)
-
-			self.distribution(df)
 
 		self.multiRegression(df)
 
