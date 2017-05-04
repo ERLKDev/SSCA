@@ -16,7 +16,7 @@ object Main {
     val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val labels = List("bug", "failed", "needs-attention")
 
-    val validator = new Validator(repoUser, repoName, repoPath, 4, 5, metrics, labels)
+    val validator = new Validator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
     time(validator.run(validator.writeHeaders, validator.objectOutput))
 

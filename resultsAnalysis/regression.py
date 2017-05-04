@@ -7,10 +7,11 @@ import statsmodels.api as sm
 from sklearn import datasets, linear_model
 from scipy import stats
 import LinearRegression as lr
+import LogisticRegression as ls
 
-df = pd.read_csv('fullOutput.csv')
+df = pd.concat(pd.read_csv("fullOutput.csv", chunksize=1000, iterator=True), ignore_index=True)
 
-a = "PatternSize"
+a = " DIT"
 b = "faults"
 
 
@@ -30,7 +31,7 @@ def wavg(group):
 # numtypes.remove(b)
 
 df = df.groupby(['path']).apply(wavg)
-df[b] = df[b].map(lambda x: 1 if x > 0.0 else 0)
+df[b] = df[b].map(lambda x: 1 if x > 38.0 else 0)
 
 # df = df.groupby(['path']).agg({b: np.sum, a: np.mean})
 # # df[a] = df[a].map(lambda x: x / 100.0)
@@ -101,8 +102,8 @@ y_train = df.as_matrix([b])[:-size]
 # # print len(X_train), len(X_test)
 
 
-# result = sm.OLS(df[b], df[a]).fit()
-# print result.summary()
+result = sm.OLS(df[b], sm.add_constant(df[a])).fit()
+print result.summary()
 
 # result = sm.GLS(df[b], df[a]).fit()
 # print result.summary()
@@ -114,8 +115,8 @@ y_train = df.as_matrix([b])[:-size]
 # result = sm.GLSAR(df[b], df[a]).fit()
 # print result.summary()
 
-# result = sm.Logit(df[b], df[a]).fit()
-# print result.summary()
+result = sm.Logit(df[b], sm.add_constant(df[a])).fit()
+print result.summary()
 
 
 
@@ -197,25 +198,26 @@ y_train = df.as_matrix([b])[:-size]
 regr = lr.LinearRegression()
 
 # Train the model using the training sets
-regr.fit(X_train, y_train)
+regr.fit(sm.add_constant(X_train), y_train)
 
 # The coefficients
 print('Coefficients: \n', regr.coef_)
-print('Coefficients: \n', regr.p)
+print('P: \n', regr.p)
 
 # The mean squared error
 print("Mean squared error: %f"
-      % np.mean((regr.predict(X_test) - y_test) ** 2))
+      % np.mean((regr.predict(sm.add_constant(X_test)) - y_test) ** 2))
 # Explained variance score: 1 is perfect prediction
-print('Variance score: %f' % regr.score(X_test, y_test))
+print('Variance score: %f' % regr.score(sm.add_constant(X_test), y_test))
 
 # Plot outputs
+println(X_test)
 plt.scatter(X_test, y_test,  color='black')
-plt.plot(X_test, regr.predict(X_test), color='blue',
-         linewidth=3)
+plt.plot(X_test, regr.predict(sm.add_constant(X_test)), color='blue', linewidth=3)
 
-plt.xticks(())
-plt.yticks(())
+
+# plt.xticks(())
+# plt.yticks(())
 # plt.savefig('destination_path.eps', format='eps')
 # plt.savefig('destination_path.pdf', format='pdf')
 # plt.savefig('destination_path.png', format='png')
