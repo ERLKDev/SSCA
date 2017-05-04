@@ -41,7 +41,7 @@ class CompilerS {
   def treeFromFile(file: SourceFile): AST = {
     val response = new Response[global.Tree]
 
-    global.ask(() => global.askParsedEntered(file, false, response))
+    global.ask(() => global.askLoadedTyped(file, false, response))
 
     response.get match {
       case Left(tree) => {

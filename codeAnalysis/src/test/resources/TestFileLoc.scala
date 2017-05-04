@@ -1,4 +1,4 @@
-class TestFile1 {
+class TestFileLoc {
   def test1(): Unit = {
 
   }

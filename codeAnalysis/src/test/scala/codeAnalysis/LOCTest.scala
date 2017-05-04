@@ -12,8 +12,8 @@ import main.scala.metrics._
 class LOCTest extends UnitSpec {
   var metrics: List[Metric] = List(new Loc)
   var analyser: Analyser = new Analyser(metrics, testRoot, 1)
-  var result: ResultUnit = analyser.analyse(testRoot + "TestFile1.scala")
-  var class1: ObjectResult = result.getClassByName("TestFile1").get
+  var result: ResultUnit = analyser.analyse(testRoot + "TestFileLoc.scala")
+  var class1: ObjectResult = result.getClassByName("TestFileLoc").get
 
 
   test("No function statements") {

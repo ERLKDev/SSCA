@@ -22,14 +22,15 @@ class OutDegree extends FunctionMetric{
   override def run(tree: FunctionDef, code: List[String]): List[MetricResult] = {
     def countFunctionCalls(tree : AST) : List[String] = tree match {
       case x : FunctionCall =>
-        tree.children.foldLeft(List[String]())((a,b) => x.name :: a ::: countFunctionCalls(b))
+        val g = (x.owner +"." + x.name) :: tree.children.foldLeft(List[String]())((a,b) => a ::: countFunctionCalls(b))
+        g
       case _ =>
         tree.children.foldLeft(List[String]())((a,b) => a ::: countFunctionCalls(b))
     }
 
     val functionCalls = countFunctionCalls(tree)
     List(
-      new MetricResult(tree.pos, tree.name + "$function", "OutDegree", functionCalls.size),
-      new MetricResult(tree.pos, tree.name + "$function", "OutDegreeDistinct", functionCalls.distinct.size))
+      new MetricResult(tree.pos, tree.name + "$function", "OutDegree", functionCalls.length),
+      new MetricResult(tree.pos, tree.name + "$function", "OutDegreeDistinct", functionCalls.distinct.length))
   }
 }
