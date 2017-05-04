@@ -18,9 +18,9 @@ trait ComplexUtil {
       case x: For =>
         tree.children.foldLeft(1)((a, b) => a + recursive(b))
       case x: IfStatement =>
-        tree.children.foldLeft(1 /*+ getLogicalAndOr(x.cond)*/)((a, b) => a + recursive(b))
+        tree.children.foldLeft(1)((a, b) => a + recursive(b))
       case x: Case =>
-        tree.children.foldLeft(/*getCaseAlternatives(x.pat)*/0)((a, b) => a + recursive(b))
+        tree.children.foldLeft(1)((a, b) => a + recursive(b))
       case _ =>
         tree.children.foldLeft(0)((a, b) => a + recursive(b))
     }

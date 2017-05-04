@@ -60,29 +60,28 @@ class WMC extends ObjectMetric with ComplexUtil{
   private def wmc(tree: AST, name: String): List[MetricResult] = {
     var wmcNormal = 0
     var wmcCC = 0
-    var wmcNestNormal = 0
-    var wmcNestCC = 0
+    var wmcNormalInit = 0
+    var wmcCCInit = 0
 
-    def allFunctions(tree: AST, level: Int): Unit = tree match {
+
+    tree.children.foreach {
       case x: FunctionDef => {
-        wmcNestNormal += 1
-        wmcNestCC += measureComplexity(x)
-        if (level == 0) {
+        if (x.name != "<init>") {
           wmcCC += measureComplexity(x)
           wmcNormal += 1
         }
-        tree.children.foreach(x => allFunctions(x, level + 1))
       }
       case _ =>
-        tree.children.foreach(x => allFunctions(x, level))
     }
 
-    allFunctions(tree, 0)
+    wmcCCInit = wmcNormal + measureComplexity(tree)
+    wmcNormalInit = 1 + wmcNormal
+
     List(
       new MetricResult(tree.pos, name + "$object", "WMCnormal", wmcNormal),
       new MetricResult(tree.pos, name + "$object", "WMCcc", wmcCC),
-      new MetricResult(tree.pos, name + "$object", "WMCnestNormal", wmcNestNormal),
-      new MetricResult(tree.pos, name + "$object", "WMCnestCC", wmcNestCC)
+      new MetricResult(tree.pos, name + "$object", "WMCnormalInit", wmcNormalInit),
+      new MetricResult(tree.pos, name + "$object", "WMCccInit", wmcCCInit)
     )
   }
 }

@@ -20,72 +20,81 @@ class OutDegreeTest extends UnitSpec{
   }
 
   test("No function calls") {
-    val out = getMethodMetric("test1", "OutDegree")
-    val outDistinct = getMethodMetric("test1", "OutDegreeDistinct")
+    val method = "test1"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 0)
     assert(outDistinct == 0)
   }
 
   test("One function call") {
-    val out = getMethodMetric("test2", "OutDegree")
-    val outDistinct = getMethodMetric("test2", "OutDegreeDistinct")
+    val method = "test2"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 1)
     assert(outDistinct == 1)
   }
 
   test("Two function calls") {
-    val out = getMethodMetric("test3", "OutDegree")
-    val outDistinct = getMethodMetric("test3", "OutDegreeDistinct")
+    val method = "test3"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 2)
     assert(outDistinct == 2)
   }
 
   test("Three function calls") {
-    val out = getMethodMetric("test4", "OutDegree")
-    val outDistinct = getMethodMetric("test4", "OutDegreeDistinct")
+    val method = "test4"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 3)
     assert(outDistinct == 3)
   }
 
   test("Two Distinct function call") {
-    val out = getMethodMetric("test5", "OutDegree")
-    val outDistinct = getMethodMetric("test5", "OutDegreeDistinct")
+    val method = "test5"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 3)
     assert(outDistinct == 2)
   }
 
   test("Three Distinct function calls") {
-    val out = getMethodMetric("test6", "OutDegree")
-    val outDistinct = getMethodMetric("test6", "OutDegreeDistinct")
+    val method = "test6"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 5)
     assert(outDistinct == 3)
   }
 
   test("Nested function function calls") {
-    val out = getMethodMetric("test7", "OutDegree")
-    val outDistinct = getMethodMetric("test7", "OutDegreeDistinct")
+    val method = "test7"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 3)
     assert(outDistinct == 2)
   }
 
   test("Function call as argument") {
-    val out = getMethodMetric("test8", "OutDegree")
-    val outDistinct = getMethodMetric("test8", "OutDegreeDistinct")
+    val method = "test8"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 3)
     assert(outDistinct == 2)
   }
 
   test("Higher order function as argument") {
-    val out = getMethodMetric("test9", "OutDegree")
-    val outDistinct = getMethodMetric("test9", "OutDegreeDistinct")
+    val method = "test9"
+    val out = getMethodMetric(method, "OutDegree")
+    val outDistinct = getMethodMetric(method, "OutDegreeDistinct")
 
     assert(out == 3)
     assert(outDistinct == 2)

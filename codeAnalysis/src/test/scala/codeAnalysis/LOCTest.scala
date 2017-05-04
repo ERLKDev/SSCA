@@ -15,11 +15,15 @@ class LOCTest extends UnitSpec {
   var result: ResultUnit = analyser.analyse(testRoot + "TestFileLoc.scala")
   var class1: ObjectResult = result.getClassByName("TestFileLoc").get
 
+  def getMethodMetric(name: String, metric: String): Int = {
+    class1.getFunctionByName(name).get.getMetricByName(metric).get.value.toInt
+  }
 
   test("No function statements") {
-    val loc = class1.getFunctionByName("test1").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test1").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test1").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test1"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 2)
     assert(sloc == 2)
@@ -27,9 +31,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("One function statements") {
-    val loc = class1.getFunctionByName("test2").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test2").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test2").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test2"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 3)
     assert(sloc == 3)
@@ -37,9 +42,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("Two function statements") {
-    val loc = class1.getFunctionByName("test3").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test3").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test3").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test3"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 4)
     assert(sloc == 4)
@@ -47,9 +53,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("Blank line in statements") {
-    val loc = class1.getFunctionByName("test4").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test4").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test4").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test4"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 4)
     assert(sloc == 4)
@@ -57,9 +64,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("Comment in statements") {
-    val loc = class1.getFunctionByName("test5").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test5").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test5").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test5"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 5)
     assert(sloc == 4)
@@ -67,9 +75,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("One line multi-line comment in statements") {
-    val loc = class1.getFunctionByName("test6").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test6").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test6").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test6"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 5)
     assert(sloc == 4)
@@ -77,9 +86,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("Three line multi-line comment in statements with three comment lines") {
-    val loc = class1.getFunctionByName("test7").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test7").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test7").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test7"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 7)
     assert(sloc == 4)
@@ -87,9 +97,10 @@ class LOCTest extends UnitSpec {
   }
 
   test("Three line multi-line comment in statements with one comment line") {
-    val loc = class1.getFunctionByName("test8").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test8").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test8").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test8"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 7)
     assert(sloc == 4)
@@ -97,18 +108,20 @@ class LOCTest extends UnitSpec {
   }
 
   test("Comment in statements on code line") {
-    val loc = class1.getFunctionByName("test9").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test9").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test9").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test9"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
     assert(loc == 4)
     assert(sloc == 4)
     assert(cloc == 1)
   }
 
   test("Three line multi-line comment in statements with one comment line on code line") {
-    val loc = class1.getFunctionByName("test10").get.getMetricByName("functionLOC").get.value.toInt
-    val sloc = class1.getFunctionByName("test10").get.getMetricByName("functionSLOC").get.value.toInt
-    val cloc = class1.getFunctionByName("test10").get.getMetricByName("functionCLOC").get.value.toInt
+    val method = "test10"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
 
     assert(loc == 5)
     assert(sloc == 4)
