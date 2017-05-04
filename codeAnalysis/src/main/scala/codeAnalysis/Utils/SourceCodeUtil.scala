@@ -50,10 +50,16 @@ trait SourceCodeUtil {
     * @return
     */
   def removeComments(code: List[String]): List[String] = {
-    val codeWMC = stringToLines("""\/\*([\s\S]*?)\*\/""".r.replaceAllIn(linesToString(code), ""))
-    removeWhiteLines(codeWMC.filter(s =>("""^((\s)*\/\/.*)""".r findFirstIn s).isEmpty))
+    val codeWithoutC = stringToLines("""((\/\*([\s\S]*?)\*\/)|\/\/(.*))""".r.replaceAllIn(linesToString(code), ""))
+    removeWhiteLines(codeWithoutC)
   }
 
+
+  def getComments(code: List[String]): List[String] = {
+    val codeWithC = """.*((\/\*([\s\S]*?)\*\/)|\/\/(.*)).*""".r.findAllIn(linesToString(code)).mkString
+    val codeWithNC = stringToLines("""([ \t]*((\/\*)|(\*\/)|(\*))[ \t]*)""".r.replaceAllIn(codeWithC, ""))
+    removeWhiteLines(codeWithNC)
+  }
 
   /**
     * Function that gets the list of files where a certain string in occurs

@@ -10,6 +10,10 @@ import scala.reflect.internal.util.RangePosition
   */
 class ObjectResult(position : RangePosition, val name : String, val objectType: ObjectType) extends ResultUnit(position){
 
+  def isObjectByName(name: String): Boolean = {
+    name == this.name
+  }
+
   override def toString: String = "\n" + position + " " + name + "$" + objectType + "{\n" + results.map(x => "\t" + x).mkString("\n") + "\n}\n"
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())

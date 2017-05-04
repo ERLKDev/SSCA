@@ -21,4 +21,11 @@ class FileResult(position: RangePosition, val name : String) extends ResultUnit(
 
   override def toCsvObjectAvr(size: Int): List[String] = results.foldLeft(List[String]())((a, b) => a ::: b.toCsvObjectAvr(size).map(x => x))
 
+  def isFileByName(name: String): Boolean = {
+    name == this.name
+  }
+
+  def isFileByPath(path: String): Boolean = {
+    path == this.position.source.path
+  }
 }

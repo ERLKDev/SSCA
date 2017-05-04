@@ -10,6 +10,10 @@ import scala.reflect.internal.util.RangePosition
   */
 class FunctionResult(position : RangePosition, val name : String) extends ResultUnit(position) with ResultUtil{
 
+  def isFunctionByName(name: String): Boolean = {
+    name == this.name
+  }
+
   override def toString: String = "\n" + position + " " + name + "$Function" + "{\n" + results.map(x => "\t" + x).mkString("\n") + "\n}\n"
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())

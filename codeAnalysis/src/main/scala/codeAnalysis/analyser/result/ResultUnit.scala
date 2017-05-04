@@ -1,5 +1,6 @@
 package codeAnalysis.analyser.result
 
+import main.scala.analyser.result.MetricResult
 import main.scala.analyser.util.ResultUtil
 
 import scala.collection.mutable.ListBuffer
@@ -21,5 +22,32 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
 
   def includes(startLine: Int, stopLine: Int) : Boolean = {
     position.includes(createPosition(position.source.path, startLine, startLine))
+  }
+
+  def getClassByName(name: String): Option[ObjectResult] = {
+    results.find{
+      case obj: ObjectResult =>
+        obj.name == name
+      case _ =>
+        false
+    }.asInstanceOf[Option[ObjectResult]]
+  }
+
+  def getFunctionByName(name: String): Option[FunctionResult] = {
+    results.find{
+      case obj: FunctionResult =>
+        obj.name == name
+      case _ =>
+        false
+    }.asInstanceOf[Option[FunctionResult]]
+  }
+
+  def getMetricByName(name: String): Option[MetricResult] = {
+    results.find{
+      case obj: MetricResult =>
+        obj.metricName == name
+      case _ =>
+        false
+    }.asInstanceOf[Option[MetricResult]]
   }
 }
