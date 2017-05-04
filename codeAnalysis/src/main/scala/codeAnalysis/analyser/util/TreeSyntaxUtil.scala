@@ -40,18 +40,19 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
 
       case x: ClassDef =>
         if (isTrait(x))
-          return TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols), getName(x), getObjectPackage(x.symbol))
+          return TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol))
         if (isAbstractClass(x))
-          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols),getName(x), getObjectPackage(x.symbol), true)
-        if (isClass(x))
-          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols),getName(x), getObjectPackage(x.symbol), false)
+          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol), true)
+        if (isClass(x)) {
+          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol), false)
+        }
         if (isAnonymousClass(x))
-          return AnonymousClass(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols))
+          return AnonymousClass(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses))
         null
 
       case x: ModuleDef =>
         if (isObject(x))
-          return ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.parentSymbols),getName(x), getObjectPackage(x.symbol))
+          return ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol))
         null
 
       case x: DefDef =>

@@ -45,11 +45,13 @@ class DIT extends ObjectMetric {
     * @return
     */
   private def countInheritanceDepth(parents: List[Parent]) : Int = {
-    parents.foldLeft(0){
+    parents.foldLeft(0) {
       (a, b) =>
         b match {
           case x: ClassParent =>
-            1 + countInheritanceDepth(x.parents)
+            if (x.pack + x.name == "java.lang.Object")
+              return math.max(1, a)
+            math.max(1 + countInheritanceDepth(x.parents), a)
           case _ =>
             a
         }
