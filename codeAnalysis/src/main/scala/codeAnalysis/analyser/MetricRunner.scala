@@ -86,7 +86,7 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric]) extends ProjectU
     * @return the results of the codeAnalysis.metrics on the list of files
     */
   def runFiles(metrics: List[Metric], files: List[File]): List[ResultUnit] = {
-    files.map(x => run(metrics, x)).filter(_ != null)
+    files.map(x => run(x)).filter(_ != null)
   }
 
 

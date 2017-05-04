@@ -46,7 +46,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
         val preRunner = new PreRunner(compilerList(i))
-        val metricRunner = new MetricRunner(compilerList(i))
+        val metricRunner = new MetricRunner(compilerList(i), metrics)
 
         preRunner.run(preRunJobs, x)
         metricRunner.runFiles(metrics, x)
