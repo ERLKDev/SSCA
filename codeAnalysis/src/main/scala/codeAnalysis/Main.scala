@@ -14,7 +14,7 @@ object Main {
     val metrics = List(new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
     val an = new Analyser(metrics, "C:\\tmp\\gitAkkaAkka1", 4)
 
-    time {an.analyse(a).foreach(x => println(x))}
+    time {println(an.analyse(a))}
 
     println("done")
   }

@@ -13,17 +13,15 @@ import main.scala.analyser.util.{ProjectUtil, ResultUtil}
 /**
   * Created by Erik on 5-4-2017.
   */
-class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
+class MetricRunner(compiler: CompilerS, metrics : List[Metric]) extends ProjectUtil with ResultUtil{
 
 
   /**
     * Function to run the codeAnalysis.metrics on a single file
-    * @param metrics a list with the codeAnalysis.metrics
     * @param file the file on which the codeAnalysis.metrics should be executed
-    * @param projectContext the project context
     * @return the results of the codeAnalysis.metrics on the project
     */
-  def run(metrics : List[Metric], file: File, projectContext: ProjectContext): ResultUnit ={
+  def run(file: File): ResultUnit ={
     def traverse(tree: AST, parent: ResultUnit) : ResultUnit = tree match {
       case null =>
         tree.children.foreach(x => traverse(x, parent))
@@ -31,7 +29,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
 
       case node: ObjectDefinition =>
         val result = new ObjectResult(node.pos, node.name, ObjectType.ObjectT)
-        result.addResult(executeObjectMetrics(metrics, node))
+        result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
         parent.addResult(result)
@@ -39,7 +37,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
 
       case node: ClassDefinition=>
         val result = new ObjectResult(node.pos, node.name, ObjectType.ClassT)
-        result.addResult(executeObjectMetrics(metrics, node))
+        result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
         parent.addResult(result)
@@ -47,7 +45,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
 
       case node: TraitDefinition=>
         val result = new ObjectResult(node.pos, node.name, ObjectType.TraitT)
-        result.addResult(executeObjectMetrics(metrics, node))
+        result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
         parent.addResult(result)
@@ -55,7 +53,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
 
       case node: FunctionDef =>
         val result = new FunctionResult(node.pos, node.name)
-        result.addResult(executeFunctionMetrics(metrics, node))
+        result.addResult(executeFunctionMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
         parent.addResult(result)
@@ -85,16 +83,15 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
     * Function to run the codeAnalysis.metrics on the file list.
     * @param metrics a list with the codeAnalysis.metrics
     * @param files a list of files
-    * @param projectContext the project context
     * @return the results of the codeAnalysis.metrics on the list of files
     */
-  def runFiles(metrics: List[Metric], files: List[File], projectContext: ProjectContext): List[ResultUnit] = {
-    files.map(x => run(metrics, x, projectContext)).filter(_ != null)
+  def runFiles(metrics: List[Metric], files: List[File]): List[ResultUnit] = {
+    files.map(x => run(metrics, x)).filter(_ != null)
   }
 
 
   /* Function that is called to execute the object codeAnalysis.metrics. */
-  private def executeObjectMetrics(metrics : List[Metric], tree: AST): List[MetricResult] ={
+  private def executeObjectMetrics(tree: AST): List[MetricResult] ={
     val code = getOriginalSourceCode(tree)
     if (code == null)
       return List[MetricResult]()
@@ -118,7 +115,7 @@ class MetricRunner(compiler: CompilerS) extends ProjectUtil with ResultUtil{
   }
 
   /* Function that is called to execute the function codeAnalysis.metrics. */
-  private def executeFunctionMetrics(metrics : List[Metric], tree: FunctionDef): List[MetricResult] = {
+  private def executeFunctionMetrics(tree: FunctionDef): List[MetricResult] = {
     val code = getOriginalSourceCode(tree)
     if (code == null)
       return List[MetricResult]()

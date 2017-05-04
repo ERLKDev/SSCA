@@ -32,6 +32,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
   def refresh(): Unit = {
     projectContext = new ProjectContext(projectFiles)
     projectFiles = getProjectFiles(projectPath).toList
+    metrics.foreach(_.init(projectContext))
   }
 
 
@@ -48,15 +49,15 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
         val metricRunner = new MetricRunner(compilerList(i))
 
         preRunner.run(preRunJobs, x)
-        metricRunner.runFiles(metrics, x, projectContext)
+        metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
 
     results = addResults(results, result)
     results
   }
 
-  def analyse(paths: String): List[ResultUnit] = {
-    startAnalysis(List(new File(paths)))
+  def analyse(path: String): ResultUnit = {
+    startAnalysis(List(new File(path))).head
   }
 
   def analyse(paths: List[String]): List[ResultUnit] = {
