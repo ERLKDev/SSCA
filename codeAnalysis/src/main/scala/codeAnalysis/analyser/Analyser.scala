@@ -2,7 +2,6 @@ package main.scala.analyser
 
 import java.io.File
 
-import codeAnalysis.STimer
 import codeAnalysis.analyser.Compiler.CompilerS
 import codeAnalysis.analyser.PreRunner
 import codeAnalysis.analyser.result.ResultUnit
@@ -54,7 +53,8 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
         metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
 
-    addResults(results, result)
+    results = addResults(results, result)
+    results
   }
 
   def analyse(path: String): ResultUnit = {

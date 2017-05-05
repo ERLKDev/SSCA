@@ -29,7 +29,7 @@ def wavg(group):
 
 # numtypes = list(df.select_dtypes(include=['float64', 'int64', 'int', 'float']).keys())
 # numtypes.remove(b)
-print df
+
 df = df.groupby(['path']).apply(wavg)
 df[b] = df[b].map(lambda x: 1 if x > 0.0 else 0)
 

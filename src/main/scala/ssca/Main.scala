@@ -14,8 +14,8 @@ object Main {
     val repoName = "akka"
     val repoPath = "..\\tmp\\git" + repoUser.capitalize + repoName.capitalize
 
-    val metrics = List(new Loc)
-    val labels = List("bug", "failed", "needs-attention")
+    val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC)
+    val labels = List("bug")
 
     val validator = new Validator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
