@@ -11,17 +11,11 @@ case class PackageDefinition(override val children: List[AST], override val pos:
 
 case class TraitDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String) extends AST(children, pos)
 
-case class ClassDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String, isAbstract: Boolean) extends AST(children, pos)
+case class ClassDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String, isAbstract: Boolean, nested: Boolean, anonymous: Boolean) extends AST(children, pos)
 
-case class ObjectDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String) extends AST(children, pos)
+case class ObjectDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String, nested: Boolean) extends AST(children, pos)
 
-case class AnonymousClass(override val children: List[AST], override val pos: RangePosition, parents: List[Parent]) extends AST(children, pos)
-
-case class FunctionDef(override val children: List[AST], override val pos: RangePosition, name: String, owner: String) extends AST(children, pos)
-
-case class AnonymousFunction(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
-
-case class NestedFunction(override val children: List[AST], override val pos: RangePosition, name: String, owner: String) extends AST(children, pos)
+case class FunctionDef(override val children: List[AST], override val pos: RangePosition, name: String, owner: String, nested: Boolean, anonymous: Boolean) extends AST(children, pos)
 
 case class FunctionCall(override val children: List[AST], override val pos: RangePosition, name: String, owner: String) extends AST(children, pos)
 

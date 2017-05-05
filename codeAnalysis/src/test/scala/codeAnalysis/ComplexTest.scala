@@ -74,4 +74,13 @@ class ComplexTest extends UnitSpec{
 
     assert(cc == 4)
   }
+
+  test("Nested functions") {
+    val method = "test9"
+    val cc = getMethodMetric(method, "CC")
+    val ccNested = class1.getFunctionByName(method).get.getFunctionByName(method + "Nested").get.getMetricByName("CC").get.value.toInt
+
+    assert(cc == 2)
+    assert(ccNested == 2)
+  }
 }

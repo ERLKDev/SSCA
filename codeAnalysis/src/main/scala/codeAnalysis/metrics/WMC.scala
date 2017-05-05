@@ -63,16 +63,20 @@ class WMC extends ObjectMetric with ComplexUtil{
     var wmcNormalInit = 0
     var wmcCCInit = 0
 
-
-    tree.children.foreach {
+    def recursive(tree: AST): Unit = tree match {
       case x: FunctionDef => {
         if (x.name != "<init>") {
-          wmcCC += measureComplexity(x)
+          wmcCC += measureComplexity(x, false)
           wmcNormal += 1
         }
+        tree.children.foreach(recursive)
       }
+      case (_: ClassDefinition | _: ObjectDefinition ) =>
+
       case _ =>
+        tree.children.foreach(recursive)
     }
+    tree.children.foreach(recursive)
 
     wmcCCInit = wmcNormal + measureComplexity(tree)
     wmcNormalInit = 1 + wmcNormal

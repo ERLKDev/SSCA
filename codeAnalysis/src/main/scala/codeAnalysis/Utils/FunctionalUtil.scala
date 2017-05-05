@@ -26,8 +26,6 @@ trait FunctionalUtil {
     tree match {
       case x: FunctionDef =>
         recursive(x, x.owner + "." + x.name)
-      case x: NestedFunction =>
-        recursive(x, x.owner + "." + x.name)
       case _ =>
         false
     }

@@ -75,4 +75,18 @@ class TestFileComplex {
 
     }
   }
+
+  // 2
+  def test9(): Unit = {
+    // 2
+    def test9Nested(): Unit = {
+      if (true) {
+        println("test1")
+      }
+    }
+
+    if (true) {
+      println("test2")
+    }
+  }
 }

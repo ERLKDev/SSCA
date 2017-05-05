@@ -22,7 +22,6 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
     }
   }
 
-
   /**
     * Adds a wrapper to a tree
     * This makes the node easy to use
@@ -33,36 +32,16 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
   private def getAstNode(tree: Tree): AST = {
     try tree match {
       case x: PackageDef =>
-        if (isPackage(x)) {
-          return PackageDefinition(getChildren(x), getRangePos(tree))
-        }
-        null
+        return PackageDefinition(getChildren(x), getRangePos(tree))
 
       case x: ClassDef =>
-        if (isTrait(x))
-          return TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol))
-        if (isAbstractClass(x))
-          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol), true)
-        if (isClass(x)) {
-          return ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol), false)
-        }
-        if (isAnonymousClass(x))
-          return AnonymousClass(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses))
-        null
+        ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol), isAbstractClass(x), isNested(x), isAnonymousClass(x))
 
       case x: ModuleDef =>
-        if (isObject(x))
-          return ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol))
-        null
+        ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol), isNested(x))
 
       case x: DefDef =>
-        if (isAnonymousFunction(x))
-          return AnonymousFunction(getChildren(x), getRangePos(tree))
-        if (isNestedFunction(x))
-          return NestedFunction(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
-        if (isFunction(x))
-          return FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
-        null
+        FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x))
 
       case x: ValDef =>
         if (isValDef(x))
@@ -125,6 +104,7 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         null
     }catch{
       case x: Throwable =>
+        error("Error parsing")
         null
     }
   }
@@ -241,9 +221,13 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
     * @param tree the ast
     * @return
     */
-  def isNestedFunction(tree: Tree): Boolean = tree match {
+  def isNested(tree: Tree): Boolean = tree match {
     case x:DefDef =>
       x.symbol.owner.isMethod
+    case x:ClassDef =>
+      x.symbol.isNestedClass || x.symbol.owner.isTrait || x.symbol.owner.isClass || x.symbol.owner.isMethod || x.symbol.isModuleOrModuleClass
+    case x:ModuleDef =>
+      x.symbol.isNestedClass || x.symbol.owner.isTrait || x.symbol.owner.isClass || x.symbol.owner.isMethod || x.symbol.isModuleOrModuleClass
     case _ =>
       false
   }

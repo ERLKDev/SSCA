@@ -7,13 +7,16 @@ import codeAnalysis.analyser.AST._
   */
 trait ComplexUtil {
 
+
+  def measureComplexity(tree: AST): Int = measureComplexity(tree, true)
+
   /**
     * Function to measure the cyclomatic Complexity (CC)
     *
     * @param tree the ast tree
     * @return
     */
-  def measureComplexity(tree: AST): Int = {
+  def measureComplexity(tree: AST, nested: Boolean): Int = {
     def recursive(tree: AST): Int = tree match {
       case x: For =>
         tree.children.foldLeft(1)((a, b) => a + recursive(b))
@@ -21,11 +24,16 @@ trait ComplexUtil {
         tree.children.foldLeft(1)((a, b) => a + recursive(b))
       case x: Case =>
         tree.children.foldLeft(1)((a, b) => a + recursive(b))
+      case x: FunctionDef =>
+        if (!nested)
+          0
+        else
+          tree.children.foldLeft(0)((a, b) => a + recursive(b))
       case _ =>
         tree.children.foldLeft(0)((a, b) => a + recursive(b))
     }
 
-    1 + recursive(tree)
+    tree.children.foldLeft(1)((a, b) => a + recursive(b))
   }
 
 

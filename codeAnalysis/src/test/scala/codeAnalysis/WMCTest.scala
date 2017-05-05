@@ -21,10 +21,10 @@ class WMCTest extends UnitSpec{
     val wmcccinit = class1.getMetricByName("WMCccInit").get.value.toInt
     val wmcnormalinit = class1.getMetricByName("WMCnormalInit").get.value.toInt
 
-    assert(wmccc == 17)
-    assert(wmcnormal == 8)
+    assert(wmccc == 21)
+    assert(wmcnormal == 10)
 
-    assert(wmcccinit == 20)
-    assert(wmcnormalinit == 9)
+    assert(wmcccinit == 24)
+    assert(wmcnormalinit == 11)
   }
 }
