@@ -4,7 +4,7 @@ import codeAnalysis.TestSpecs.UnitSpec
 import codeAnalysis.analyser.result.{ObjectResult, ResultUnit}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.Metric
-import main.scala.metrics._
+import codeAnalysis.metrics._
 
 /**
   * Created by erikl on 5/4/2017.

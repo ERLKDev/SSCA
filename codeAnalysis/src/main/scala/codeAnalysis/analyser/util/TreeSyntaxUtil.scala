@@ -32,10 +32,13 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
   private def getAstNode(tree: Tree): AST = {
     try tree match {
       case x: PackageDef =>
-        return PackageDefinition(getChildren(x), getRangePos(tree))
+        PackageDefinition(getChildren(x), getRangePos(tree))
 
       case x: ClassDef =>
-        ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol), isAbstractClass(x), isNested(x), isAnonymousClass(x))
+        if (isTrait(x))
+          TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol))
+        else
+          ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol), isAbstractClass(x), isNested(x), isAnonymousClass(x))
 
       case x: ModuleDef =>
         ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol), isNested(x))
@@ -45,60 +48,55 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
 
       case x: ValDef =>
         if (isValDef(x))
-          return ValDefinition(getChildren(x), getRangePos(tree), x.name.toString)
-        if (isVarDef(x))
-          return VarDefinition(getChildren(x), getRangePos(tree), x.name.toString)
-        null
+          ValDefinition(getChildren(x), getRangePos(tree), x.name.toString)
+        else if (isVarDef(x))
+          VarDefinition(getChildren(x), getRangePos(tree), x.name.toString)
+        else
+          null
 
       case x: Ident =>
         if (isVal(x))
-          return Val(getChildren(x), getRangePos(tree), x.name.toString)
-        if (isVar(x))
-          return Var(getChildren(x), getRangePos(tree), x.name.toString)
-        null
+          Val(getChildren(x), getRangePos(tree), x.name.toString)
+        else if (isVar(x))
+          Var(getChildren(x), getRangePos(tree), x.name.toString)
+        else
+          null
 
       case x: Assign =>
         if (isAssignment(x) && isVal(x.lhs))
-          return ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
-        if (isAssignment(x) && isVar(x.lhs))
-          return VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
-        null
+          ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
+        else if (isAssignment(x) && isVar(x.lhs))
+          VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
+        else
+          null
 
       case x: Match =>
-        if (isMatch(x))
-          return MatchCase(getChildren(x), getRangePos(tree))
-        null
+        MatchCase(getChildren(x), getRangePos(tree))
 
       case x: CaseDef =>
-        if (isCase(x))
-          return Case(getChildren(x), getRangePos(tree))
-        null
+        Case(getChildren(x), getRangePos(tree))
 
       case x: Apply =>
         if (isFor(x))
-          return For(getChildren(x), getRangePos(tree))
-        if (isFunctionCall(x)) {
-          val a = FunctionCall(getChildren(x), getRangePos(tree), x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
-          return a
-        }
-        null
+          For(getChildren(x), getRangePos(tree))
+        else if (isFunctionCall(x))
+          FunctionCall(getChildren(x), getRangePos(tree), x.fun.symbol.name.toString, getOwner(x.fun.symbol.owner))
+        else
+          null
 
       case x: LabelDef =>
         if (isWhile(x))
-          return While(getChildren(x), getRangePos(tree))
-        if (isDoWhile(x))
-          return DoWhile(getChildren(x), getRangePos(tree))
-        null
+          While(getChildren(x), getRangePos(tree))
+        else if (isDoWhile(x))
+          DoWhile(getChildren(x), getRangePos(tree))
+        else
+          null
 
       case x: New =>
-        if (isNewClass(x))
-          return NewClass(getChildren(x), getRangePos(tree), x.tpt.symbol.name.toString)
-        null
+        NewClass(getChildren(x), getRangePos(tree), x.tpt.symbol.name.toString)
 
       case x: If =>
-        if (isIf(x))
-          return IfStatement(getChildren(x), getRangePos(tree))
-        null
+        IfStatement(getChildren(x), getRangePos(tree))
 
       case x =>
         null

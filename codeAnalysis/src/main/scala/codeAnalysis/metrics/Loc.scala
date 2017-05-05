@@ -1,4 +1,4 @@
-package main.scala.metrics
+package codeAnalysis.metrics
 
 import codeAnalysis.Utils.FunctionalUtil
 import main.scala.Utils.SourceCodeUtil

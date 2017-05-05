@@ -1,7 +1,7 @@
 package codeAnalysis
 
+import codeAnalysis.metrics._
 import main.scala.analyser.Analyser
-import main.scala.metrics._
 
 /**
   * Created by Erik on 5-4-2017.

@@ -1,4 +1,4 @@
-package main.scala.metrics
+package codeAnalysis.metrics
 
 import main.scala.Utils.ComplexUtil
 import main.scala.analyser.metric.FunctionMetric

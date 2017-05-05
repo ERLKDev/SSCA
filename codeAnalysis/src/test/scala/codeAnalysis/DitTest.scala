@@ -4,7 +4,7 @@ import codeAnalysis.TestSpecs.UnitSpec
 import codeAnalysis.analyser.result.ResultUnit
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.Metric
-import main.scala.metrics.DIT
+import codeAnalysis.metrics.DIT
 
 /**
   * Created by erikl on 5/4/2017.

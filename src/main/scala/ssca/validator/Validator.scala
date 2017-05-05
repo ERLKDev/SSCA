@@ -76,21 +76,21 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
 
   def writeObjectHeaders(): Unit = {
     val (objHeader, _) = metricsHeader()
-    fullOutput.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path, " + objHeader.mkString(",")))
+    fullOutput.writeOutput(List("commit,faults,path," + objHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path," + objHeader.mkString(",")))
   }
 
   def writeFunctionHeader(): Unit = {
     val (_, funHeader) = metricsHeader()
-    fullOutput.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path, " + funHeader.mkString(",")))
+    fullOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
   }
 
   def writeHeaders(): Unit = {
     val (objHeader, funHeader) = metricsHeader()
     val header = objHeader:::funHeader
-    fullOutput.writeOutput(List("commit,faults,path, " + header.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path, " + header.mkString(",")))
+    fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
   }
 
 

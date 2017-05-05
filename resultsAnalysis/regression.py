@@ -9,9 +9,9 @@ from scipy import stats
 import LinearRegression as lr
 import LogisticRegression as ls
 
-df = pd.concat(pd.read_csv("fullOutput.csv", usecols=[1, 2, 3], chunksize=1000, iterator=True), ignore_index=True)
+df = pd.concat(pd.read_csv("fullOutput.csv", usecols=[1, 2, 7], chunksize=1000, iterator=True), ignore_index=True)
 
-a = " DIT"
+a = "WMCcc"
 b = "faults"
 
 
@@ -31,9 +31,8 @@ def wavg(group):
 # numtypes.remove(b)
 print df
 df = df.groupby(['path']).apply(wavg)
-df[b] = df[b].map(lambda x: 1 if x > 38.0 else 0)
+df[b] = df[b].map(lambda x: 1 if x > 0.0 else 0)
 
-exit()
 
 # df = df.groupby(['path']).agg({b: np.sum, a: np.mean})
 # # df[a] = df[a].map(lambda x: x / 100.0)
