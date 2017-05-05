@@ -33,6 +33,26 @@ class Test7 extends A with F {
 
 }
 
+// DIT 1
+object Test8 {
+
+}
+
+// DIT 2
+object Test9 extends A {
+
+}
+
+// DIT 1
+trait Test10 {
+
+}
+
+// DIT 2
+trait Test11 extends A {
+
+}
+
 class A{
 
 }
