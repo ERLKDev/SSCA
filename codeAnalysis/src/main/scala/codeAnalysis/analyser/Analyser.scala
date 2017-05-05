@@ -15,8 +15,9 @@ import main.scala.analyser.util.{ProjectUtil, ResultUtil}
   * Created by Erik on 5-4-2017.
   */
 class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends ProjectUtil with ResultUtil{
-  private var projectFiles: List[File] = _
-  private val compilerList: List[CompilerS] =  List.fill(threads)(new CompilerS)
+  private var projectFiles: List[File] = List()
+
+  private val comp = new CompilerS
 
   private var projectContext: ProjectContext = _
   private var results: List[ResultUnit] = List()
@@ -46,15 +47,14 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     val chunks = paths.grouped(math.ceil(paths.length.toDouble / (if (threads < paths.length) threads else paths.length)).toInt).toList
     val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
-        val preRunner = new PreRunner(compilerList(i))
-        val metricRunner = new MetricRunner(compilerList(i), metrics)
+        val preRunner = new PreRunner(comp)
+        val metricRunner = new MetricRunner(comp, metrics)
 
         preRunner.run(preRunJobs, x)
         metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
 
-    results = addResults(results, result)
-    results
+    addResults(results, result)
   }
 
   def analyse(path: String): ResultUnit = {
@@ -70,7 +70,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
   }
 
   def close(): Unit = {
-    compilerList.foreach(x => x.global.askShutdown())
+    comp.global.askShutdown()
   }
 }
 

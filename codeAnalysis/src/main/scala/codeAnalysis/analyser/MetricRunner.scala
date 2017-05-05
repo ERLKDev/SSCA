@@ -5,7 +5,6 @@ import java.io.File
 import codeAnalysis.analyser.Compiler.CompilerS
 import codeAnalysis.analyser.result._
 import codeAnalysis.analyser.AST._
-import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import main.scala.analyser.result._
 import main.scala.analyser.util.{ProjectUtil, ResultUtil}
