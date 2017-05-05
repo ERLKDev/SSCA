@@ -1,5 +1,6 @@
 package ssca
 
+import codeAnalysis.STimer
 import codeAnalysis.metrics._
 import ssca.validator.{OValidator, Validator}
 
@@ -18,15 +19,7 @@ object Main {
 
     val validator = new Validator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
-    time(validator.run(validator.writeHeaders, validator.objectOutput))
+    STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
 
-  }
-
-  def time[R](block: => R): R = {
-    val t0 = System.nanoTime()
-    val result = block    // call-by-name
-    val t1 = System.nanoTime()
-    println("Done in: " + (t1 - t0) + "ns (" + ((t1 - t0).toDouble / 1000000000.0) + "seconds)")
-    result
   }
 }

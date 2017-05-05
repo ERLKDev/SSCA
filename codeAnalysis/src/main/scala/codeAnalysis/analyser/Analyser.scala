@@ -2,6 +2,7 @@ package main.scala.analyser
 
 import java.io.File
 
+import codeAnalysis.STimer
 import codeAnalysis.analyser.Compiler.CompilerS
 import codeAnalysis.analyser.PreRunner
 import codeAnalysis.analyser.result.ResultUnit
@@ -30,8 +31,8 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     * Refreshes the context
     */
   def refresh(): Unit = {
-    projectContext = new ProjectContext(projectFiles)
     projectFiles = getProjectFiles(projectPath).toList
+    projectContext = new ProjectContext(projectFiles)
     metrics.foreach(_.init(projectContext))
   }
 
