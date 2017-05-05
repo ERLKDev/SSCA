@@ -9,7 +9,7 @@ from scipy import stats
 import LinearRegression as lr
 import LogisticRegression as ls
 
-df = pd.concat(pd.read_csv("fullOutput.csv", chunksize=1000, iterator=True), ignore_index=True)
+df = pd.concat(pd.read_csv("fullOutput.csv", usecols=[1, 2, 3], chunksize=1000, iterator=True), ignore_index=True)
 
 a = " DIT"
 b = "faults"
@@ -29,9 +29,11 @@ def wavg(group):
 
 # numtypes = list(df.select_dtypes(include=['float64', 'int64', 'int', 'float']).keys())
 # numtypes.remove(b)
-
+print df
 df = df.groupby(['path']).apply(wavg)
 df[b] = df[b].map(lambda x: 1 if x > 38.0 else 0)
+
+exit()
 
 # df = df.groupby(['path']).agg({b: np.sum, a: np.mean})
 # # df[a] = df[a].map(lambda x: x / 100.0)
@@ -211,7 +213,7 @@ print("Mean squared error: %f"
 print('Variance score: %f' % regr.score(sm.add_constant(X_test), y_test))
 
 # Plot outputs
-println(X_test)
+print(X_test)
 plt.scatter(X_test, y_test,  color='black')
 plt.plot(X_test, regr.predict(sm.add_constant(X_test)), color='blue', linewidth=3)
 

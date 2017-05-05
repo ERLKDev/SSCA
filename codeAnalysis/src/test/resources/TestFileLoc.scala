@@ -1,4 +1,18 @@
 class TestFileLoc {
+
+  println("test")
+  //Single line comment
+
+
+
+  /* Multi
+   * line
+   * comment*/
+
+  /*
+  * Single multi line comment
+  */
+
   def test1(): Unit = {
 
   }
@@ -61,6 +75,13 @@ class TestFileLoc {
       line */
 
     println(1)
+  }
+
+  def test11(): Unit = {
+    /* multi
+     * line */
+    //Connected
+
   }
 
 }

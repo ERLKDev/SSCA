@@ -41,6 +41,10 @@ trait SourceCodeUtil {
     code.filter(s => ("""^\s*$""".r findFirstIn s).isEmpty)
   }
 
+  def removeRedundantMultiLineComments(code: List[String]): List[String] = {
+    stringToLines("""([ \t]*((\/\*)|(\*\/)|(\*))[ \t]*)""".r.replaceAllIn(linesToString(code), ""))
+  }
+
 
   /**
     * Function that removes comments from the code
@@ -56,7 +60,7 @@ trait SourceCodeUtil {
 
 
   def getComments(code: List[String]): List[String] = {
-    val codeWithC = """.*((\/\*([\s\S]*?)\*\/)|\/\/(.*)).*""".r.findAllIn(linesToString(code)).mkString
+    val codeWithC = """.*((\/\*([\s\S]*?)\*\/)|\/\/(.*)).*""".r.findAllIn(linesToString(code)).mkString("\n")
     val codeWithNC = stringToLines("""([ \t]*((\/\*)|(\*\/)|(\*))[ \t]*)""".r.replaceAllIn(codeWithC, ""))
     removeWhiteLines(codeWithNC)
   }

@@ -75,7 +75,7 @@ class Loc extends FunctionMetric with ObjectMetric with SourceCodeUtil with Func
     */
   private def countLocs(code: List[String], tree: AST, name: String, prefix: String): List[MetricResult] = {
     val codeWithoutComments = removeComments(code)
-    val codeWithComments = removeWhiteLines(code)
+    val codeWithComments = removeWhiteLines(removeRedundantMultiLineComments(code))
     val comments = getComments(code)
     val cd = if (codeWithComments.isEmpty) 0.0 else comments.size / codeWithoutComments.size.toFloat
     List(

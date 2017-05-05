@@ -102,7 +102,7 @@ class LOCTest extends UnitSpec {
     val sloc = getMethodMetric(method, "functionSLOC")
     val cloc = getMethodMetric(method, "functionCLOC")
 
-    assert(loc == 7)
+    assert(loc == 5)
     assert(sloc == 4)
     assert(cloc == 1)
   }
@@ -126,5 +126,26 @@ class LOCTest extends UnitSpec {
     assert(loc == 5)
     assert(sloc == 4)
     assert(cloc == 2)
+  }
+
+  test("Multi and single line comment connected") {
+    val method = "test11"
+    val loc = getMethodMetric(method, "functionLOC")
+    val sloc = getMethodMetric(method, "functionSLOC")
+    val cloc = getMethodMetric(method, "functionCLOC")
+
+    assert(loc == 5)
+    assert(sloc == 2)
+    assert(cloc == 3)
+  }
+
+  test("Check object lines") {
+    val loc = class1.getMetricByName("objectLOC").get.value.toInt
+    val sloc = class1.getMetricByName("objectSLOC").get.value.toInt
+    val cloc = class1.getMetricByName("objectCLOC").get.value.toInt
+
+    assert(loc == 57)
+    assert(sloc == 42)
+    assert(cloc == 17)
   }
 }
