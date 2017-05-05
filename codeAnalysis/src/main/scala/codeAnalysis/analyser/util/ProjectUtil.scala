@@ -20,8 +20,7 @@ trait ProjectUtil {
       val scalaFiles = these.filter(f => """.*\.scala$""".r.findFirstIn(f.getName).isDefined)
       scalaFiles ++ these.filter(_.isDirectory).flatMap(listFiles)
     }
-
-    listFiles(new File(projectPath)).filter(f => """\/src\/test\/""".r.findFirstIn(f.getName).isEmpty)
+    listFiles(new File(projectPath)).filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f.getName).isEmpty)
   }
 
   /**

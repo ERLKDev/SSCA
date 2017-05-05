@@ -12,8 +12,8 @@ import codeAnalysis.analyser.AST._
   */
 class Loc extends FunctionMetric with ObjectMetric with SourceCodeUtil with FunctionalUtil{
 
-  override def functionHeader: List[String] = List("functionLOC", "functionSLOC", "functionCD")
-  override def objectHeader: List[String] = List("objectLOC", "objectSLOC", "objectCD")
+  override def functionHeader: List[String] = List("functionLOC", "functionSLOC", "functionCLOC", "functionCD")
+  override def objectHeader: List[String] = List("objectLOC", "objectSLOC", "objectCLOC", "objectCD")
 
 
   /**

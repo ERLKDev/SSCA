@@ -10,7 +10,7 @@ import codeAnalysis.analyser.AST._
   */
 class WMC extends ObjectMetric with ComplexUtil{
 
-  override def objectHeader: List[String] = List("WMCnormal", "WMCcc", "WMCnestNormal", "WMCnestCC")
+  override def objectHeader: List[String] = List("WMCnormal", "WMCcc", "WMCnormalInit", "WMCccInit")
 
   /**
     * Calculates the weighted method complexity

@@ -1,5 +1,6 @@
 package ssca
 
+import codeAnalysis.metrics.Inheritance
 import main.scala.metrics._
 import ssca.validator.{OValidator, Validator}
 
@@ -13,7 +14,7 @@ object Main {
     val repoName = "akka"
     val repoPath = "..\\tmp\\git" + repoUser.capitalize + repoName.capitalize
 
-    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
+    val metrics = List(new Loc, new Complex, new WMC, new OutDegree, new PatternSize, new DIT, new Inheritance)
     val labels = List("bug", "failed", "needs-attention")
 
     val validator = new Validator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
