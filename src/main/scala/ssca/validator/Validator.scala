@@ -119,7 +119,7 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
-    val an = new Analyser(createMetrics(), instancePath, instanceThreads)
+    val an = new Analyser(createMetrics(), instancePath, instanceThreads, true)
     println("Done init codeAnalysis.analyser: " + id)
 
     /* Get the faults and select the correct chunk. */

@@ -13,7 +13,12 @@ import main.scala.analyser.util.{ProjectUtil, ResultUtil}
 /**
   * Created by Erik on 5-4-2017.
   */
-class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends ProjectUtil with ResultUtil{
+class Analyser(metrics: List[Metric], projectPath: String, threads: Int, cache: Boolean) extends ProjectUtil with ResultUtil{
+
+  def this(metrics: List[Metric], projectPath: String, threads: Int) = {
+    this(metrics, projectPath, threads, false)
+  }
+
   private var projectFiles: List[File] = List()
 
   private val comp = new CompilerS
@@ -53,8 +58,12 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
         metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
 
-    results = addResults(results, result)
-    results
+    if(cache) {
+      results = addResults(results, result)
+      results
+    }else{
+      result
+    }
   }
 
   def analyse(path: String): ResultUnit = {
