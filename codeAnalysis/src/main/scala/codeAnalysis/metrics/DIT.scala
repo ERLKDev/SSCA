@@ -19,22 +19,29 @@ class DIT extends ObjectMetric {
     * @return
     */
   override def run(tree: ObjectDefinition, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", countInheritanceDepth(tree.parents)))
+    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", 1 + countInheritanceDepth(tree.parents)))
   }
 
   /**
-    * Count the depth of inheritance of a class or trait
+    * Count the depth of inheritance of a class
     *
     * @param tree the ast from the object
     * @param code the code from the object
     * @return
     */
   override def run(tree: ClassDefinition, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", countInheritanceDepth(tree.parents)))
+    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", 1 + countInheritanceDepth(tree.parents)))
   }
 
+  /**
+    * Count the depth of inheritance of a trait
+    *
+    * @param tree the ast from the object
+    * @param code the code from the object
+    * @return
+    */
   override def run(tree: TraitDefinition, code: List[String]): List[MetricResult] = {
-    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", countInheritanceDepth(tree.parents)))
+    List(new MetricResult(tree.pos, tree.name + "$object", "DIT", 1 + countInheritanceDepth(tree.parents)))
   }
 
 
@@ -49,8 +56,6 @@ class DIT extends ObjectMetric {
       (a, b) =>
         b match {
           case x: ClassParent =>
-            if (x.pack + x.name == "java.lang.Object")
-              return math.max(1, a)
             math.max(1 + countInheritanceDepth(x.parents), a)
           case _ =>
             a

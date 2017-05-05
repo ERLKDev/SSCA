@@ -114,7 +114,10 @@ class TreeUtil(val compiler: CompilerS){
   def getParents(parents: List[Symbol]) : List[Parent] = {
     def recursive(x: Symbol) : List[Parent] = {
       x.parentSymbols.foldLeft(List[Parent]()){ (a, b) =>
-        if (b.isClass && !b.isTrait)
+        val name = getPackage(b) + b.nameString
+        if (name == "java.lang.Object" || name == "scala.Any")
+          a
+        else if (b.isClass && !b.isTrait)
           a ::: List(ClassParent(b.nameString, getPackage(b), recursive(b)))
         else if (b.isClass && b.isTrait)
           a ::: List(TraitParent(b.nameString, getPackage(b), recursive(b)))
