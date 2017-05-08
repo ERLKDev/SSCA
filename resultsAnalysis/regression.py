@@ -33,7 +33,7 @@ def plotLogisticRegression(df, result, x_label, y_label):
 
 	yhat = lambda x: 1.0 / (1.0 + math.e**(-(intercept + dep * x)))
 
-	xpts = np.linspace(0, 173, 1000)
+	xpts = np.linspace(0, df[x_label].max(), 1000)
 	ax.plot(xpts, map(yhat, xpts))
 
 	ax.plot(df[x_label], df[y_label], "o")
