@@ -16,7 +16,7 @@ class Analysis:
 		self.dependantKey = "faults"
 		self.faultTreshold = 0.0
 		self.args = args
-		self.standardizing = True
+		self.standardizing = False
 
 
 	def descriptive(self, df):
