@@ -16,6 +16,7 @@ class Analysis:
 		self.dependantKey = "faults"
 		self.faultTreshold = 0.0
 		self.args = args
+		self.standardizing = True
 
 
 	def descriptive(self, df):
@@ -43,7 +44,7 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
@@ -78,7 +79,7 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		result = reg.logitRegression(df[numtypes], df[self.dependantKey])
@@ -107,7 +108,7 @@ class Analysis:
 
 		for a in self.getNumTypes(df):
 			df1 = df.copy()
-			binarray = [df1[a].quantile(.03) + (df1[a].quantile(.97) / float(size)) * x for x in range(size + 1)]
+			binarray = [df1[a].quantile(.0) + (df1[a].quantile(1.0) / float(size)) * x for x in range(size + 1)]
 			df1[self.dependantKey] = df1[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 			df2 = df1[(df1[self.dependantKey] > 0.0)].copy()
@@ -166,6 +167,7 @@ class Analysis:
 		else:
 			df = pd.concat(pd.read_csv(self.args.input, chunksize=1000, iterator=True), ignore_index=True)
 
+
 		if (self.args.store):
 			os.makedirs(self.args.destination)
 			for x in self.getNumTypes(df):
@@ -179,9 +181,14 @@ class Analysis:
 			self.correlation(df)
 			sys.stdout.flush()
 
-			# self.distribution(df)
-			# sys.stdout.flush()
+			self.distribution(df)
+			sys.stdout.flush()
 
+		if self.standardizing:
+			for x in self.getNumTypes(df):
+				df[x] = (df[x] - df[x].mean()) / df[x].std()
+
+		if (not self.args.multireg):
 			self.unRegression(df)
 			sys.stdout.flush()
 

@@ -60,4 +60,8 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
     position.source.path + "|" + name + "%{" + objectType + "}," + fillCsvLine(metrics ::: funSum, size).mkString(",") :: objects
   }
+
+  def objectPath: String = {
+    position.source.path + "|" + name + "%{" + objectType + "}"
+  }
 }

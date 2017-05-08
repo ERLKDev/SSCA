@@ -104,12 +104,14 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
 
     /* Init the analyser for the instance */
     val an = new Analyser(createMetrics(), instancePath, instanceThreads)
-    println("Done init codeAnalysis.analyser")
+    println("Done init analyser")
 
     /* Get the faults and select the correct chunk. */
     val faults = repoInfo.faults
     val faultyFiles = faults.foldLeft(List[String]())((a, b) => a ::: b.commit.files)
 
+    repo.checkoutHead()
+    an.refresh()
 
     val results = an.analyse()
 
