@@ -7,15 +7,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
 import os
+import Regression as reg
 
 class Analysis:
 
 	def __init__(self, args):
 		self.seperationLine = ''.join(["-" for _ in range(80)]) + "\n"
 		self.dependantKey = "faults"
-		self.faultTreshold = 10
+		self.faultTreshold = 0.0
 		self.args = args
-		self.regressionMethods = [sm.OLS, sm.GLS, sm.WLS, sm.GLSAR, sm.Logit]
 
 
 	def descriptive(self, df):
@@ -33,8 +33,6 @@ class Analysis:
 		print df.select_dtypes(include=['float64', 'int64', 'int', 'float']).corr()
 		print "\n" + self.seperationLine
 
-	def runRegression(self, X, y, method):
-		return method(y, sm.add_constant(X)).fit()
 
 	def unRegression(self, df):
 		tmp = sys.stdout
@@ -45,17 +43,28 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
 			if self.args.store:
 				sys.stdout = open(self.args.destination + "/" + a + "/" +"output.txt", 'w')
 
-			for x in self.regressionMethods:
-				result = self.runRegression(df[a], df[self.dependantKey], x)
 
-				print result.summary()
+			result = reg.logitRegression(df[a], df[self.dependantKey])
+
+			print result.summary()
+			print ""
+			print reg.printResultMatrix(result)
+
+			fig, ax = reg.plotLogisticRegression(df, result, a, self.dependantKey)
+
+			if (self.args.store):
+				self.storePlt(a, a + "-LogitRegression", fig)
+			else:
+				plt.show()
+				plt.close(fig)
+
 		sys.stdout.flush()
 		sys.stdout = tmp
 
@@ -69,12 +78,14 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
-		for x in self.regressionMethods:
-			result = self.runRegression(df[numtypes], df[self.dependantKey], x)
-			print result.summary()
+		result = reg.logitRegression(df[numtypes], df[self.dependantKey])
+
+		print result.summary()
+		print ""
+		print reg.printResultMatrix(result, threshold=0.5)
 
 		print "\n" + self.seperationLine
 
@@ -148,7 +159,6 @@ class Analysis:
 
 
 	def getStatistics(self):
-
 		df = None
 
 		if (self.args.columns != None):
@@ -163,16 +173,18 @@ class Analysis:
 			sys.stdout = open(self.args.destination + "/output.txt", 'w')
 
 		if (not self.args.multireg):
-			self.distribution(df)
-
 			self.descriptive(df)
 			sys.stdout.flush()
 
 			self.correlation(df)
 			sys.stdout.flush()
 
+			# self.distribution(df)
+			# sys.stdout.flush()
+
 			self.unRegression(df)
 			sys.stdout.flush()
+
 		self.multiRegression(df)
 		sys.stdout.flush()
 

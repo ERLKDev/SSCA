@@ -21,8 +21,8 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
   private val OutputDir = repoPath + "OutputO"
   createOutputDir()
 
-  private val fullOutput = new Output(OutputDir + "\\fullOutput.csv", true)
-  private val faultOutput = new Output(OutputDir + "\\faultOutput.csv", true)
+  private val fullOutput = new Output(OutputDir + "\\fullOutputO.csv", true)
+  private val faultOutput = new Output(OutputDir + "\\faultOutputO.csv", true)
 
 
   private def loadToken(): String = {
@@ -94,7 +94,7 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
 
   def run(wh: () => Unit): Unit = {
     wh()
-    val repoInfo = new RepoInfo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), "master", repoPath)
+    val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
     val instancePath = repoPath + "0"
 
     /* Init the repo for the instance */

@@ -103,7 +103,7 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
     wh()
     totalCount = 0
 
-    val repoInfo = new RepoInfo(repoUser, repoName, token, List("bug", "failed", "needs-attention "), "master", repoPath)
+    val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
     instanceIds.par.foreach(runInstance(_, repoInfo, op))
     faultOutput.close()
     fullOutput.close()

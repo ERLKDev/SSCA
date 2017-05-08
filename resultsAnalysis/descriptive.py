@@ -6,5 +6,5 @@ def getDescriptive(path, cols):
 	return df.describe()
 
 if __name__ == "__main__":
-	print getDescriptive('faultOutput.csv', [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
+	print getDescriptive('fullOutput2.csv', [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
    
