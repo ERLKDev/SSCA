@@ -15,7 +15,7 @@ import scala.tools.nsc.reporters.ConsoleReporter
   * Created by erikl on 4/24/2017.
   */
 class CompilerS {
-  lazy val global : Global = {
+  lazy val global: Global = {
 
     val settings = new Settings
     settings.usejavacp.value = true
@@ -72,8 +72,14 @@ class CompilerS {
     if (!file.exists())
       return null
 
-    val code = AbstractFile.getFile(file)
-    val bfs = new BatchSourceFile(code, code.toCharArray)
-    treeFromFile(bfs)
+    try {
+      val code = AbstractFile.getFile(file)
+      val bfs = new BatchSourceFile(code, code.toCharArray)
+      treeFromFile(bfs)
+    }catch {
+      case _ =>
+        null
+    }
+
   }
 }

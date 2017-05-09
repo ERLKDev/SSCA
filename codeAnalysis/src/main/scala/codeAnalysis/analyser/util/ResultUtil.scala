@@ -59,6 +59,8 @@ trait ResultUtil {
       resultList.foldLeft(List[FunctionResult]())((a, b) => b match {
         case x: FunctionResult =>
           a ::: List(x) ::: recursive(x.results.toList)
+        case x: ObjectResult =>
+          a
         case _ =>
           a
       })

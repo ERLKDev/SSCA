@@ -140,7 +140,7 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
 
         /* Get the result. */
         val results = if (prevCommit != null) {
-          val files = repo.changedFiles(prevCommit, x.commit).map(x => instancePath + "\\" + x)
+          val files = repo.changedFiles(prevCommit, x.commit).map(x => instancePath + "\\" + x)  ::: x.commit.files.map(instancePath + "\\" + _)
           an.analyse(files)
         } else {
           println("analyse")
@@ -203,6 +203,7 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
         (r._1 ::: res._1, r._2 ::: res._2)
     }
   }
+
   def time[R](block: => R): R = {
     val t0 = System.nanoTime()
     val result = block    // call-by-name

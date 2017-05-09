@@ -2,7 +2,7 @@ package ssca
 
 import codeAnalysis.STimer
 import codeAnalysis.metrics._
-import ssca.validator.{OOValidator, OValidator, Validator}
+import ssca.validator.{OOValidator, OValidator, Validator, ValidatorN}
 
 
 /**
@@ -19,8 +19,9 @@ object Main {
 
     val validator = new Validator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
-    //STimer.time("Analysis", validator.run(validator.writeHeaders))
     STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
+    //STimer.time("Analysis", validator.run(validator.writeHeaders))
+    //STimer.time("Analysis", validator.run())
 
   }
 }

@@ -16,7 +16,7 @@ class Analysis:
 		self.dependantKey = "faults"
 		self.faultTreshold = 0.0
 		self.args = args
-		self.standardizing = False
+		self.standardizing = True
 
 
 	def descriptive(self, df):
@@ -44,7 +44,7 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
@@ -56,7 +56,7 @@ class Analysis:
 
 			print result.summary()
 			print ""
-			print reg.printResultMatrix(result)
+			print reg.printResultMatrix(result, df, a, self.dependantKey, threshold=0.5)
 
 			fig, ax = reg.plotLogisticRegression(df, result, a, self.dependantKey)
 
@@ -79,14 +79,14 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		result = reg.logitRegression(df[numtypes], df[self.dependantKey])
 
 		print result.summary()
 		print ""
-		print reg.printResultMatrix(result, threshold=0.5)
+		print reg.printResultMatrix(result, df, numtypes, self.dependantKey, threshold=0.5)
 
 		print "\n" + self.seperationLine
 

@@ -14,20 +14,20 @@ import scala.io.Source
 /**
   * Created by erikl on 4/25/2017.
   */
-class OOValidator(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                  instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
+class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances: Int,
+                 instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
 
   private val token = loadToken()
 
   private val outputLock = new Lock
   private val instanceIds: List[Int] = List.range(0, instances)
 
-  private val OutputDir = repoPath + "OutputOO"
+  private val OutputDir = repoPath + "Output"
 
   createOutputDir()
 
-  private val fullOutput = new Output(OutputDir + "\\fullOutputOO.csv", true)
-  private val faultOutput = new Output(OutputDir + "\\faultOutputOO.csv", true)
+  private val fullOutput = new Output(OutputDir + "\\fullOutput.csv", true)
+  private val faultOutput = new Output(OutputDir + "\\faultOutput.csv", true)
 
   private var totalCount = 0
 
@@ -98,49 +98,37 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
   }
 
 
-  def run(wh: () => Unit, op: (String, Fault, List[ResultUnit]) => List[String]): Unit = {
-    wh()
+  def run() : Unit = {
+    writeHeaders()
     totalCount = 0
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
-    val faultyClasses = instanceIds.par.map(x => runInstance(x, repoInfo, op)).foldLeft(List[String]())((a, b) => a ::: b)
+    val faultyClasses = instanceIds.par.map(runInstance(_, repoInfo)).foldLeft(List[String]())(_ ::: _)
 
+    println("Last phase")
+    println("Start init repo last phase")
+    val repo = new Repo(repoUser, repoName, repoPath + 0, repoInfo)
+    println("Done loading repo last phase")
 
-    println("Start init repo")
-    val repo = new Repo(repoUser, repoName, repoPath + "0", repoInfo)
-    println("Done loading repo")
+    /* Init the analyser for the instance */
+    val an = new Analyser(createMetrics(), repoPath + 0, instanceThreads, false)
+    println("Done init analyser last phase")
 
-
-    val an = new Analyser(createMetrics(), repoPath + "0", instanceThreads, false)
-    println("Done init analyser")
-
-    repo.checkoutHead()
-    an.refresh()
-
+    println("analyse")
     val results = an.analyse()
 
-    val header: List[String] = getObjectHeaders ::: getFunctionHeaders
+    val output = objectOutput2(faultyClasses, results)
 
-    val output = results.foldLeft(List[String]()){
-      (r, y) =>
-        r ::: y.results.foldLeft(List[String]()) {
-          (a, b) =>
-            b match {
-              case obj: ObjectResult =>
-                val count = faultyClasses.count(x => x == obj.objectPath)
-                a ::: obj.toCsvObjectAvr(header.length).map("HEAD," + count + "," + _)
-            }
-        }
-    }
-
+    outputLock.acquire()
     fullOutput.writeOutput(output)
+    outputLock.release()
 
     faultOutput.close()
     fullOutput.close()
     Http.shutdown()
   }
 
-  private def runInstance(id: Int, repoInfo: RepoInfo, op: (String, Fault, List[ResultUnit]) => List[String]): List[String] = {
+  private def runInstance(id: Int, repoInfo: RepoInfo): List[String] = {
     val instancePath = repoPath + id
 
     /* Init the repo for the instance */
@@ -149,40 +137,35 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
-    val an = new Analyser(createMetrics(), instancePath, instanceThreads, true)
-    println("Done init codeAnalysis.analyser: " + id)
+    val an = new Analyser(createMetrics(), instancePath, instanceThreads, false)
+    println("Done init analyser: " + id)
 
     /* Get the faults and select the correct chunk. */
     val faults = repoInfo.faults
     val chunk = faults.grouped(math.ceil(faults.length.toDouble / instances).toInt).toList(id)
 
     var count = 0
-    var prevCommit: Commit = null
 
     println("Start => " + id)
     /* Analyse each fault. */
-    val res = chunk.foldLeft(List[String]()) {
-      (r, x) =>
+    val faultyFiles = chunk.foldLeft(List[String]()) {
+      (a, x) =>
         /* Commit to previous commit. */
         repo.checkoutPreviousCommit(x.commit)
         an.refresh()
 
 
         /* Get the result. */
-        val results = if (prevCommit != null) {
-          val files = repo.changedFiles(prevCommit, x.commit).map(x => instancePath + "\\" + x)  ::: x.commit.files.map(instancePath + "\\" + _)
-          an.analyse(files)
-        } else {
-          println("analyse")
-          an.analyse()
-        }
+        val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = op(instancePath, x, results)
+        val output = objectOutput(instancePath, x, results)
 
         count += 1
 
         outputLock.acquire()
+        faultOutput.writeOutput(output._1)
+        fullOutput.writeOutput(output._2)
         totalCount += 1
         outputLock.release()
 
@@ -198,28 +181,30 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
           + totalCount + "/" + faults.length + "(" + (totalCount * 100) / faults.length + "%)\t\t"
           + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
 
-        prevCommit = x.commit
         x.unload()
-        r ::: output
+        a ::: output._3
     }
+
     println(id + " Done!")
     an.close()
-    res
+    faultyFiles
   }
 
 
-  def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): List[String] = {
-    results.foldLeft(List[String]()) {
+  def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): (List[String], List[String], List[String]) = {
+    val header: List[String] = getObjectHeaders ::: getFunctionHeaders
+    results.foldLeft((List[String](), List[String](), List[String]())) {
       (r, y) =>
         val lines = fault.commit.getPatchData(y.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
-        val res = y.results.foldLeft(List[String]()) {
+        val res = y.results.foldLeft((List[String](), List[String](), List[String]())) {
           (a, b) =>
             b match {
               case obj: ObjectResult =>
                 lines match {
                   case Some(patch) =>
                     if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                      a ::: List(obj.objectPath)
+                      (a._1 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),
+                        a._2 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _), obj.objectPath :: a._3)
                     } else {
                       a
                     }
@@ -228,15 +213,26 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
                 }
             }
         }
-        r:::res
+        (r._1 ::: res._1, r._2 ::: res._2, r._3 ::: res._3)
     }
   }
 
-  def time[R](block: => R): R = {
-    val t0 = System.nanoTime()
-    val result = block    // call-by-name
-    val t1 = System.nanoTime()
-    println("Done in: " + (t1 - t0) + "ns (" + ((t1 - t0).toDouble / 1000000000.0) + "seconds)")
-    result
+  def objectOutput2(faultyClasses: List[String], results: List[ResultUnit]): List[String] = {
+    val header: List[String] = getObjectHeaders ::: getFunctionHeaders
+    results.foldLeft(List[String]()) {
+      (r, y) =>
+        val res = y.results.foldLeft(List[String]()) {
+          (a, b) =>
+            b match {
+              case obj: ObjectResult =>
+                if (faultyClasses.contains(obj.objectPath)) {
+                  a
+                } else {
+                  a ::: obj.toCsvObjectAvr(header.length).map("HEAD," + 0 + "," + _)
+                }
+            }
+        }
+        r ::: res
+    }
   }
 }
