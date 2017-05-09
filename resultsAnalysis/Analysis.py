@@ -168,7 +168,11 @@ class Analysis:
 		df = None
 
 		if (self.args.columns != None):
-			df = pd.concat(pd.read_csv(self.args.input, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)
+			for x in self.args.input:
+				if df is None:
+					df = pd.concat(pd.read_csv(x, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)
+				else:
+					df = pd.concat([df, pd.concat(pd.read_csv(x, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)], ignore_index=True)
 		else:
 			df = pd.concat(pd.read_csv(self.args.input, chunksize=1000, iterator=True), ignore_index=True)
 
@@ -203,7 +207,7 @@ class Analysis:
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-i", "--input", help="The input file", dest="input", required=True)
+	parser.add_argument("-i", "--input", help="The input file", nargs='+', dest="input", required=True)
 	parser.add_argument("-c", "--columns", help="The columns", nargs='+', dest="columns", type=int)
 	parser.add_argument("-m", "--multireg", help="Multi regression only", action="store_true", dest="multireg")
 	parser.add_argument("-s", "--store", help="Store the results", action="store_true", dest="store")

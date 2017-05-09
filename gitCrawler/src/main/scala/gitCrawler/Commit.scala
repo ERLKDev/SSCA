@@ -1,5 +1,7 @@
 package gitCrawler
 
+import java.util.Date
+
 import dispatch.github.{GhCommit, GhCommitSummary}
 import gitCrawler.util.GitDataBase
 
@@ -41,6 +43,29 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     */
   def scalaFiles: List[String] = {
     commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename)).filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined)
+  }
+
+
+  /**
+    * Returns the date of the commit
+    * @return
+    */
+  def date: Date = {
+    commitSummary.commit.author.date
+  }
+
+
+  /**
+    * Checks whether the commit is committed between two dates
+    * @param from the from date
+    * @param until the until date
+    * @return
+    */
+  def isBetween(from: Date, until: Date): Boolean = {
+    val a = commitSummary.commit.author.date
+    val b = commitSummary.commit.author.date.before(until)
+    val c = commitSummary.commit.author.date.after(from)
+    commitSummary.commit.author.date.before(until) && commitSummary.commit.author.date.after(from)
   }
 
 
