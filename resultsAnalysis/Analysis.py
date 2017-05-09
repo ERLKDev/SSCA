@@ -26,6 +26,11 @@ class Analysis:
 		print df.select_dtypes(include=['float64', 'int64', 'int', 'float']).describe()
 		print "\n" + self.seperationLine
 
+		print self.seperationLine
+		print "Descriptive statistics faults\n\n"
+		print df[df[self.dependantKey] > 0].select_dtypes(include=['float64', 'int64', 'int', 'float']).describe()
+		print "\n" + self.seperationLine
+
 
 	def correlation(self, df):
 		# Prints the correlations
@@ -44,7 +49,7 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
@@ -79,7 +84,7 @@ class Analysis:
 
 		numtypes = self.getNumTypes(df)
 
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		result = reg.logitRegression(df[numtypes], df[self.dependantKey])

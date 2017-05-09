@@ -73,18 +73,6 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     funHeader
   }
 
-  def writeObjectHeaders(): Unit = {
-    val (objHeader, _) = metricsHeader()
-    fullOutput.writeOutput(List("commit,faults,path," + objHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + objHeader.mkString(",")))
-  }
-
-  def writeFunctionHeader(): Unit = {
-    val (_, funHeader) = metricsHeader()
-    fullOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
-  }
-
   def writeHeaders(): Unit = {
     val (objHeader, funHeader) = metricsHeader()
     val header = objHeader:::funHeader
@@ -118,7 +106,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     val results = an.analyse()
 
     val output = objectOutput2(faultyClasses, results)
-
+    println(results.length + "    " + output.length)
     outputLock.acquire()
     fullOutput.writeOutput(output)
     outputLock.release()
@@ -193,46 +181,69 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
   def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): (List[String], List[String], List[String]) = {
     val header: List[String] = getObjectHeaders ::: getFunctionHeaders
+
+
+    def recursive(result: ResultUnit) : (List[String], List[String], List[String]) =  {
+      val lines = fault.commit.getPatchData(result.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
+      result.results.foldLeft((List[String](), List[String](), List[String]())) {
+        (a, b) =>
+          b match {
+            case obj: ObjectResult =>
+              val out = recursive(obj)
+              lines match {
+                case Some(patch) =>
+                  if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
+                    (a._1 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),
+                      a._2 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _), obj.objectPath :: a._3)
+                  } else {
+                    (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
+                  }
+                case _ =>
+                  (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
+              }
+            case unit: ResultUnit =>
+              val out = recursive(unit)
+              (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
+            case _ =>
+              a
+          }
+      }
+    }
+
     results.foldLeft((List[String](), List[String](), List[String]())) {
       (r, y) =>
-        val lines = fault.commit.getPatchData(y.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
-        val res = y.results.foldLeft((List[String](), List[String](), List[String]())) {
-          (a, b) =>
-            b match {
-              case obj: ObjectResult =>
-                lines match {
-                  case Some(patch) =>
-                    if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                      (a._1 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _),
-                        a._2 ::: obj.toCsvObjectAvr(header.length).map(fault.commit.sha + "," + 1 + "," + _), obj.objectPath :: a._3)
-                    } else {
-                      a
-                    }
-                  case _ =>
-                    a
-                }
-            }
-        }
+        val res = recursive(y)
         (r._1 ::: res._1, r._2 ::: res._2, r._3 ::: res._3)
     }
   }
 
   def objectOutput2(faultyClasses: List[String], results: List[ResultUnit]): List[String] = {
+
     val header: List[String] = getObjectHeaders ::: getFunctionHeaders
+
+
+    def recursive(result: ResultUnit) : List[String] =  {
+      result.results.foldLeft(List[String]()) {
+        (a, b) =>
+          b match {
+            case obj: ObjectResult =>
+              if (faultyClasses.contains(obj.objectPath)) {
+                a ::: recursive(obj)
+              } else {
+                a ::: obj.toCsvObjectAvr(header.length).map("HEAD," + 0 + "," + _) ::: recursive(obj)
+              }
+            case unit: ResultUnit =>
+              a ::: recursive(unit)
+
+            case _ =>
+              a
+          }
+      }
+    }
+
     results.foldLeft(List[String]()) {
       (r, y) =>
-        val res = y.results.foldLeft(List[String]()) {
-          (a, b) =>
-            b match {
-              case obj: ObjectResult =>
-                if (faultyClasses.contains(obj.objectPath)) {
-                  a
-                } else {
-                  a ::: obj.toCsvObjectAvr(header.length).map("HEAD," + 0 + "," + _)
-                }
-            }
-        }
-        r ::: res
+        r ::: recursive(y)
     }
   }
 }

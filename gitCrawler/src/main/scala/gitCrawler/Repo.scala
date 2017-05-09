@@ -57,7 +57,7 @@ class Repo(userName: String, repoName: String, repoPath: String, repoInfo: RepoI
     */
   def checkoutPreviousCommit(commit: Commit): Unit = {
     GitR.runCommand(Paths.get(repoPath), "git", "reset", "--hard")
-    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", getPreviousCommitSha(commit))
+    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", commit.sha + "~1")
   }
 
   /**
