@@ -36,9 +36,11 @@ class ProjectContext(val compiler: CompilerS, files: List[File], val cacheEnable
   }
 
   def addPreCompiledFile(file: File, ast: AST) : Unit = {
-    if (compileCache.size + 1 > cacheSize)
-      compileCache.drop(1)
-    compileCache += (file -> ast)
+    if (cacheEnabled) {
+      if (compileCache.size + 1 > cacheSize)
+        compileCache.drop(1)
+      compileCache += (file -> ast)
+    }
   }
 
   def addFileToCache(file: File): Boolean = {

@@ -1,6 +1,7 @@
 package main.scala.Utils
 
 import java.io.File
+import java.nio.file.{Files, Paths}
 
 import scala.io.Source
 
@@ -74,9 +75,8 @@ trait SourceCodeUtil {
   def getFilesOccurrence(files: List[File], name: String): List[File] = {
     files.foldLeft(List[File]()){
       (a, b) =>
-        val file = Source.fromFile(b)
+        val file = new String(Files.readAllBytes(b.toPath))
         val result = name.r findFirstMatchIn file.mkString
-        file.close()
         if (result.nonEmpty)
           b :: a
         else

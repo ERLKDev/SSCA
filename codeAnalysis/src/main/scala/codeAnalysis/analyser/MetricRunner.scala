@@ -74,8 +74,7 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
     if (a == null) {
       null
     }else {
-      if (context.shouldCache(file))
-        context.addPreCompiledFile(file, a)
+      context.addPreCompiledFile(file, a)
       traverse(a, null)
     }
   }

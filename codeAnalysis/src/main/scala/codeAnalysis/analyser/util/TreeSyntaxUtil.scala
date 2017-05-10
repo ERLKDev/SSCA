@@ -43,13 +43,16 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol),getName(x), getObjectPackage(x.symbol), isNested(x))
 
       case x: DefDef =>
-        FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x))
+        if (x.symbol.isMethod && x.symbol.isSourceMethod && !x.symbol.isConstructor && !x.symbol.isSetter && !x.symbol.isGetter)
+          FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x))
+        else
+          null
 
       case x: ValDef =>
         if (isValDef(x))
-          ValDefinition(getChildren(x), getRangePos(tree), x.name.toString)
+          ValDefinition(getChildren(x), getRangePos(tree), getName(x))
         else if (isVarDef(x))
-          VarDefinition(getChildren(x), getRangePos(tree), x.name.toString)
+          VarDefinition(getChildren(x), getRangePos(tree), getName(x))
         else
           null
 
@@ -58,6 +61,12 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
           Val(getChildren(x), getRangePos(tree), x.name.toString)
         else if (isVar(x))
           Var(getChildren(x), getRangePos(tree), x.name.toString)
+        else
+          null
+
+      case x: Select =>
+        if (x.symbol.isValue && x.symbol.isMethod)
+          new Value(getChildren(x), getRangePos(tree), getName(x))
         else
           null
 
