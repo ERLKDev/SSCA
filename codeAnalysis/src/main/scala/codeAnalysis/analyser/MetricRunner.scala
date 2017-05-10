@@ -5,6 +5,7 @@ import java.io.File
 import codeAnalysis.analyser.Compiler.CompilerS
 import codeAnalysis.analyser.result._
 import codeAnalysis.analyser.AST._
+import main.scala.analyser.context.ProjectContext
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import main.scala.analyser.result._
 import main.scala.analyser.util.{ProjectUtil, ResultUtil}
@@ -12,7 +13,7 @@ import main.scala.analyser.util.{ProjectUtil, ResultUtil}
 /**
   * Created by Erik on 5-4-2017.
   */
-class MetricRunner(compiler: CompilerS, metrics : List[Metric]) extends ProjectUtil with ResultUtil{
+class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: ProjectContext) extends ProjectUtil with ResultUtil{
 
 
   /**
@@ -69,10 +70,12 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric]) extends ProjectU
     }
 
     /* Start traversal*/
-    val a = compiler.treeFromFile(file)
+    val a = if (context.isCached(file)) context.getCached(file).get else compiler.treeFromFile(file)
     if (a == null) {
       null
     }else {
+      if (context.shouldCache(file))
+        context.addPreCompiledFile(file, a)
       traverse(a, null)
     }
   }

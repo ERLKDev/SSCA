@@ -36,12 +36,11 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
 
       case x: ClassDef =>
         if (isTrait(x))
-          TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol))
+          TraitDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol), getName(x), getObjectPackage(x.symbol))
         else
-          ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses), getName(x), getObjectPackage(x.symbol), isAbstractClass(x), isNested(x), isAnonymousClass(x))
-
+          ClassDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol), getName(x), getObjectPackage(x.symbol), isAbstractClass(x), isNested(x), isAnonymousClass(x))
       case x: ModuleDef =>
-        ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol.baseClasses),getName(x), getObjectPackage(x.symbol), isNested(x))
+        ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol),getName(x), getObjectPackage(x.symbol), isNested(x))
 
       case x: DefDef =>
         FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x))

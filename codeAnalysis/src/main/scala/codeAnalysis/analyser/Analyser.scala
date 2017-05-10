@@ -37,7 +37,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int, cache: 
     */
   def refresh(): Unit = {
     projectFiles = getProjectFiles(projectPath).toList
-    projectContext = new ProjectContext(projectFiles)
+    projectContext = new ProjectContext(comp, projectFiles, true)
     metrics.foreach(_.init(projectContext))
   }
 
@@ -52,8 +52,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int, cache: 
     val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
         val preRunner = new PreRunner(comp)
-        val metricRunner = new MetricRunner(comp, metrics)
-
+        val metricRunner = new MetricRunner(comp, metrics, projectContext)
         preRunner.run(preRunJobs, x)
         metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
