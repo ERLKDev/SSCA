@@ -37,7 +37,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int, cache: 
     */
   def refresh(): Unit = {
     projectFiles = getProjectFiles(projectPath).toList
-    projectContext = new ProjectContext(comp, projectFiles, true)
+    projectContext = new ProjectContext(comp, projectFiles, true, 50)
     metrics.foreach(_.init(projectContext))
   }
 
