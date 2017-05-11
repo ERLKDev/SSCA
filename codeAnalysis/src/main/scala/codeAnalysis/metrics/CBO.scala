@@ -17,9 +17,6 @@ class CBO extends ObjectMetric with SourceCodeUtil{
   }
 
   override def run(tree: ClassDefinition, code: List[String]): List[MetricResult] = {
-    val x1 = getCoupledModules(tree)
-    val x2 = isCoupledTo(tree)
-    val noc2 = (getCoupledModules(tree) ::: isCoupledTo(tree)).distinct
     val noc = (getCoupledModules(tree) ::: isCoupledTo(tree)).distinct.length
     List(new MetricResult(tree.pos, tree.name, "CBO", noc))
   }
