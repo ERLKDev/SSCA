@@ -7,29 +7,29 @@ import scala.reflect.internal.util.RangePosition
   */
 class AST(val children: List[AST], val pos: RangePosition)
 
-class Module(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String) extends AST(children, pos)
-class Value(override val children: List[AST], override val pos: RangePosition, val name: String) extends AST(children, pos)
+class Module(override val children: List[AST], override val pos: RangePosition, val parents: List[Parent], val name: String, val pack: String) extends AST(children, pos)
+class Value(override val children: List[AST], override val pos: RangePosition, val name: String, val owner: String) extends AST(children, pos)
 class ValueDefinition(override val children: List[AST], override val pos: RangePosition, val name: String) extends AST(children, pos)
 
 
 case class PackageDefinition(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
 
-case class TraitDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String)
+case class TraitDefinition(override val children: List[AST], override val pos: RangePosition, override val parents: List[Parent], override val name: String, override val pack: String)
   extends Module(children, pos, parents, name, pack)
 
-case class ClassDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String, isAbstract: Boolean, nested: Boolean, anonymous: Boolean)
+case class ClassDefinition(override val children: List[AST], override val pos: RangePosition, override val parents: List[Parent], override val name: String, override val pack: String, isAbstract: Boolean, nested: Boolean, anonymous: Boolean)
   extends Module(children, pos, parents, name, pack)
 
-case class ObjectDefinition(override val children: List[AST], override val pos: RangePosition, parents: List[Parent], name: String, pack: String, nested: Boolean)
+case class ObjectDefinition(override val children: List[AST], override val pos: RangePosition, override val parents: List[Parent], override val name: String, override val pack: String, nested: Boolean)
   extends Module(children, pos, parents, name, pack)
 
 case class FunctionDef(override val children: List[AST], override val pos: RangePosition, name: String, owner: String, nested: Boolean, anonymous: Boolean) extends AST(children, pos)
 
 case class FunctionCall(override val children: List[AST], override val pos: RangePosition, name: String, owner: String) extends AST(children, pos)
 
-case class ValAssignment(override val children: List[AST], override val pos: RangePosition, variable: String) extends AST(children, pos)
+case class ValAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String) extends Value(children, pos, name, owner)
 
-case class VarAssignment(override val children: List[AST], override val pos: RangePosition, variable: String) extends AST(children, pos)
+case class VarAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String) extends Value(children, pos, name, owner)
 
 case class NewClass(override val children: List[AST], override val pos: RangePosition, name: String) extends AST(children, pos)
 
@@ -39,11 +39,11 @@ case class ValDefinition(override val children: List[AST], override val pos: Ran
 case class VarDefinition(override val children: List[AST], override val pos: RangePosition, override val name: String)
   extends ValueDefinition(children, pos, name)
 
-case class Var(override val children: List[AST], override val pos: RangePosition, override val name: String)
-  extends Value(children, pos, name)
+case class Var(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String)
+  extends Value(children, pos, name, owner)
 
-case class Val(override val children: List[AST], override val pos: RangePosition, override val name: String)
-  extends Value(children, pos, name)
+case class Val(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String)
+  extends Value(children, pos, name, owner)
 
 case class For(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
 

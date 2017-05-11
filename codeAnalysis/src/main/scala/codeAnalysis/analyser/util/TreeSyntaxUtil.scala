@@ -58,9 +58,9 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
 
       case x: Ident =>
         if (isVal(x))
-          Val(getChildren(x), getRangePos(tree), x.name.toString)
+          Val(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
         else if (isVar(x))
-          Var(getChildren(x), getRangePos(tree), x.name.toString)
+          Var(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
         else
           null
 
@@ -68,9 +68,9 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         if (x.symbol.isValue && x.symbol.isMethod) {
           val groups = """(.)\_\=""".r findFirstMatchIn getName(x)
           if (groups.nonEmpty) {
-            new Value(getChildren(x), getRangePos(tree), groups.get.group(1))
+            new Value(getChildren(x), getRangePos(tree), groups.get.group(1), getOwner(x.symbol.owner))
           }else{
-            new Value(getChildren(x), getRangePos(tree), getName(x))
+            new Value(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
           }
         }
         else
@@ -78,9 +78,9 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
 
       case x: Assign =>
         if (isAssignment(x) && isVal(x.lhs))
-          ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
+          ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner))
         else if (isAssignment(x) && isVar(x.lhs))
-          VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString)
+          VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner))
         else
           null
 

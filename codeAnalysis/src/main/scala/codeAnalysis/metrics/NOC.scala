@@ -2,7 +2,7 @@ package codeAnalysis.metrics
 
 import java.io.File
 
-import codeAnalysis.analyser.AST.{AST, ClassDefinition, ObjectDefinition, TraitDefinition}
+import codeAnalysis.analyser.AST._
 import main.scala.Utils.SourceCodeUtil
 import main.scala.analyser.metric.ObjectMetric
 import main.scala.analyser.result.MetricResult
@@ -37,28 +37,7 @@ class NOC extends ObjectMetric with SourceCodeUtil{
     */
   private def hasChildren(possibleFiles: List[File], name: String, pack: String): Int = {
     def recursive(tree: AST): Int = tree match {
-      case x: ClassDefinition =>
-        val n = x.parents.foldLeft(0){
-          (a, b) =>
-            val pName = b.pack + b.name
-            if (pName == pack + name)
-              a + 1
-            else
-              a
-        }
-        tree.children.foldLeft(n)((a,b) => a + recursive(b))
-      case x: ObjectDefinition =>
-        val n = x.parents.foldLeft(0){
-          (a, b) =>
-            val pName = b.pack + b.name
-            if (pName == pack + name)
-              a + 1
-            else
-              a
-        }
-        tree.children.foldLeft(n)((a,b) => a + recursive(b))
-
-      case x: TraitDefinition =>
+      case x: Module =>
         val n = x.parents.foldLeft(0){
           (a, b) =>
             val pName = b.pack + b.name
