@@ -11,46 +11,37 @@ class LCOM extends ObjectMetric {
   override def objectHeader: List[String] = List("LCOM", "LCOMneg")
 
   override def run(tree: ObjectDefinition, code: List[String]): List[MetricResult] = {
-    val pairs = getPairsFunction(tree, false)
-    val instanceValues = getVariables(tree)
-    val c = pairs.foldLeft(List[Boolean]()){
-      (a, x) =>
-        getUsedVariables(x._1, false).intersect(getUsedVariables(x._2, false)).exists(x => instanceValues.contains(x)) :: a
-    }
-    val p = c.count(x => !x)
-    val q = c.count(x => x)
-    val lcom = if (p - q > 0) p - q else 0
+    val (lcom, lcomN) = getLCOM(tree, false)
     List(new MetricResult(tree.pos, tree.name + "$object", "LCOM", lcom),
-      new MetricResult(tree.pos, tree.name + "$object", "LCOMneg", p - q))
+      new MetricResult(tree.pos, tree.name + "$object", "LCOMneg", lcomN))
   }
 
   override def run(tree: ClassDefinition, code: List[String]): List[MetricResult] = {
-    val pairs = getPairsFunction(tree, false)
-    val instanceValues = getVariables(tree)
-    val c = pairs.foldLeft(List[Boolean]()){
-      (a, x) =>
-        getUsedVariables(x._1, false).intersect(getUsedVariables(x._2, false)).exists(x => instanceValues.contains(x)) :: a
-    }
-    val p = c.count(x => !x)
-    val q = c.count(x => x)
-    val lcom = if (p - q > 0) p - q else 0
+    val (lcom, lcomN) = getLCOM(tree, false)
     List(new MetricResult(tree.pos, tree.name + "$object", "LCOM", lcom),
-      new MetricResult(tree.pos, tree.name + "$object", "LCOMneg", p - q))
+      new MetricResult(tree.pos, tree.name + "$object", "LCOMneg", lcomN))
   }
 
   override def run(tree: TraitDefinition, code: List[String]): List[MetricResult] = {
-    val pairs = getPairsFunction(tree, false)
+    val (lcom, lcomN) = getLCOM(tree, false)
+    List(new MetricResult(tree.pos, tree.name + "$object", "LCOM", lcom),
+      new MetricResult(tree.pos, tree.name + "$object", "LCOMneg", lcomN))
+  }
+
+
+  def getLCOM(tree: Module, nested: Boolean): (Int, Int) = {
+    val pairs = getPairsFunction(tree, nested)
     val instanceValues = getVariables(tree)
     val c = pairs.foldLeft(List[Boolean]()){
       (a, x) =>
-        getUsedVariables(x._1, false).intersect(getUsedVariables(x._2, false)).exists(x => instanceValues.contains(x)) :: a
+        getUsedVariables(x._1, nested).intersect(getUsedVariables(x._2, nested)).exists(x => instanceValues.contains(x)) :: a
     }
     val p = c.count(x => !x)
     val q = c.count(x => x)
     val lcom = if (p - q > 0) p - q else 0
-    List(new MetricResult(tree.pos, tree.name + "$object", "LCOM", lcom),
-      new MetricResult(tree.pos, tree.name + "$object", "LCOMneg", p - q))
+    (lcom, p - q)
   }
+
 
   def getVariables(tree: Module): List[String] = {
     tree.children.foldLeft(List[String]()) {
@@ -119,6 +110,4 @@ class LCOM extends ObjectMetric {
         }
     }
   }
-
-
 }
