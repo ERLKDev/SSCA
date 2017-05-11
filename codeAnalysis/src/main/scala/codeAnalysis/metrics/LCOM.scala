@@ -108,12 +108,6 @@ class LCOM extends ObjectMetric {
       (a, b) =>
         b match {
           case x: Value =>
-            val groups = """(.)\_\=""".r findFirstMatchIn  x.name
-            if (groups.nonEmpty) {
-              println(groups.get.group(1))
-              groups.get.group(1) :: a ::: getUsedVariables(b, nested)
-            }
-            else
               x.name :: a ::: getUsedVariables(b, nested)
           case x: FunctionDef =>
             if (nested)

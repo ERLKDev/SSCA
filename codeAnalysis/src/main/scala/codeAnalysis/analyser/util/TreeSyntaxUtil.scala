@@ -65,8 +65,14 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
           null
 
       case x: Select =>
-        if (x.symbol.isValue && x.symbol.isMethod)
-          new Value(getChildren(x), getRangePos(tree), getName(x))
+        if (x.symbol.isValue && x.symbol.isMethod) {
+          val groups = """(.)\_\=""".r findFirstMatchIn getName(x)
+          if (groups.nonEmpty) {
+            new Value(getChildren(x), getRangePos(tree), groups.get.group(1))
+          }else{
+            new Value(getChildren(x), getRangePos(tree), getName(x))
+          }
+        }
         else
           null
 
