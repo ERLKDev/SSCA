@@ -29,8 +29,6 @@ class LCOM extends ObjectMetric {
     val instanceValues = getVariables(tree)
     val c = pairs.foldLeft(List[Boolean]()){
       (a, x) =>
-        val x1 = getUsedVariables(x._1, false)
-        val x2 = getUsedVariables(x._2, false)
         getUsedVariables(x._1, false).intersect(getUsedVariables(x._2, false)).exists(x => instanceValues.contains(x)) :: a
     }
     val p = c.count(x => !x)
@@ -110,7 +108,13 @@ class LCOM extends ObjectMetric {
       (a, b) =>
         b match {
           case x: Value =>
-            x.name :: a ::: getUsedVariables(b, nested)
+            val groups = """(.)\_\=""".r findFirstMatchIn  x.name
+            if (groups.nonEmpty) {
+              println(groups.get.group(1))
+              groups.get.group(1) :: a ::: getUsedVariables(b, nested)
+            }
+            else
+              x.name :: a ::: getUsedVariables(b, nested)
           case x: FunctionDef =>
             if (nested)
               a ::: getUsedVariables(b, nested)

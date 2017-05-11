@@ -1,6 +1,11 @@
 // LCOM 0 (P=0, Q=0)
 class Test1 {
+  var a = 8
 
+  def g = {
+    a += 10
+    println(a)
+  }
 }
 
 // LCOM 0 (P=0, Q=0)
