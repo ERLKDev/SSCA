@@ -112,3 +112,17 @@ class Test8 {
     println("y")
   }
 }
+
+// LCOM 0 (P=0, Q=1)
+class Test9 {
+  var g = 9
+  var k = 10
+
+  def x: Unit = {
+    List().foreach(x => g *= 5)
+  }
+
+  def y: Unit = {
+    k += 19 + k * g
+  }
+}

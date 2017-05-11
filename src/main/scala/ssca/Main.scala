@@ -15,7 +15,7 @@ object Main {
     val repoName = "gitbucket"
     val repoPath = "..\\tmp\\git" + repoUser.capitalize + repoName.capitalize
 
-    val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new NOC)
+    val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new LCOM)
     val labels = List("bug")
 
     val validator = new ValidatorN(repoUser, repoName, repoPath, 3, 5, metrics, labels)

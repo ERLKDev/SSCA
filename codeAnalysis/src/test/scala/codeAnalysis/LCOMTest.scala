@@ -81,4 +81,12 @@ class LCOMTest extends UnitSpec{
     assert(lcom == 1)
     assert(lcomNeg == 1)
   }
+
+  test("Class with connected pair (complexer AST)") {
+    val className = "Test9"
+    val lcom = getClassValue(className, "LCOM")
+    val lcomNeg = getClassValue(className, "LCOMneg")
+    assert(lcom == 0)
+    assert(lcomNeg == -1)
+  }
 }
