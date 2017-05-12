@@ -1,6 +1,5 @@
 package ssca
 
-
 import codeAnalysis.STimer
 import codeAnalysis.metrics._
 import ssca.validator._
@@ -11,9 +10,9 @@ import ssca.validator._
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    val repoUser = "gitbucket"
-    val repoName = "gitbucket"
-    val repoPath = "..\\tmp\\git" + repoUser.capitalize + repoName.capitalize
+    val repoUser = "akka"
+    val repoName = "akka"
+    val repoPath = "C:\\Master Project data\\tmp\\git" + repoUser.capitalize + repoName.capitalize
 
     val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new LCOM, new RFC, new CBO, new NOC)
     val labels = List("bug")
