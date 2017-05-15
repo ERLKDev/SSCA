@@ -24,6 +24,36 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
     position.includes(createPosition(position.source.path, startLine, startLine))
   }
 
+  def metrics: List[MetricResult] = {
+    results.toList.filter{
+      case _: MetricResult => true
+      case _ => false
+    }.map(_.asInstanceOf[MetricResult])
+  }
+
+  def functions: List[FunctionResult] = {
+    results.toList.filter{
+      case _: FunctionResult => true
+      case _ => false
+    }.map(_.asInstanceOf[FunctionResult])
+  }
+
+  def objects: List[ObjectResult] = {
+    results.toList.filter{
+      case _: ObjectResult => true
+      case _ => false
+    }.map(_.asInstanceOf[ObjectResult])
+  }
+
+  def nestedFunctions: List[FunctionResult] = {
+      functions ::: functions.foldLeft(List[FunctionResult]())((a, b) => a ::: b.nestedFunctions)
+  }
+
+  def nestedObjects: List[ObjectResult] = {
+      objects ::: (functions ::: objects).foldLeft(List[ObjectResult]())((a, b) => a ::: b.nestedObjects)
+  }
+
+
   def getClassByName(name: String): Option[ObjectResult] = {
     results.find{
       case obj: ObjectResult =>

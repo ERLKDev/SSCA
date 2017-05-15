@@ -124,7 +124,7 @@ class OValidator(repoUser: String, repoName: String, repoPath: String, instanceT
             b match {
               case obj: ObjectResult =>
                 val count = faultyFiles.count(x => x.equals(obj.position.source.path.substring(instancePath.length + 1).replace("\\", "/")))
-                a ::: obj.toCsvObjectAvr(header.length).map("HEAD," + count + "," + _)
+                a ::: obj.toCSV.map("HEAD," + count + "," + _)
             }
         }
     }
