@@ -65,13 +65,16 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
           null
 
       case x: Select =>
-        if (x.symbol.isValue && x.symbol.isMethod) {
-          val groups = """(.)\_\=""".r findFirstMatchIn getName(x)
-          if (groups.nonEmpty) {
-            new Value(getChildren(x), getRangePos(tree), groups.get.group(1), getOwner(x.symbol.owner))
-          }else{
-            new Value(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
-          }
+        val groups = """(.)\_\=""".r findFirstMatchIn getName(x)
+        val scope = x.symbol.owner.asInstanceOf[ClassSymbol].info.decls.filter(y => y.isVar || y.isVal)
+        val name = if (groups.nonEmpty) groups.get.group(1) else getName(x)
+        val symbolType = scope.find(y => y.nameString == name)
+        if (symbolType.nonEmpty) {
+          val symbol = symbolType.get
+          if (symbol.isVar)
+            Var(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner))
+          else
+            Val(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner))
         }
         else
           null

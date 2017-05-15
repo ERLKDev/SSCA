@@ -1,6 +1,5 @@
 package ssca
 
-
 import codeAnalysis.STimer
 import codeAnalysis.metrics._
 import ssca.validator._
@@ -18,11 +17,11 @@ object Main {
     val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new LCOM, new RFC)
     val labels = List("bug")
 
-    val validator = new OOValidatorB(repoUser, repoName, repoPath, 3, 5, metrics, labels)
+    val validator = new ValidatorN(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
-    STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
+    //STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
     //STimer.time("Analysis", validator.run(validator.writeHeaders))
-    //STimer.time("Analysis", validator.run())
+    STimer.time("Analysis", validator.run())
 
   }
 }

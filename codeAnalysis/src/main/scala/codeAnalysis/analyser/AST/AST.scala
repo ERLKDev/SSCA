@@ -7,9 +7,9 @@ import scala.reflect.internal.util.RangePosition
   */
 class AST(val children: List[AST], val pos: RangePosition)
 
-class Module(override val children: List[AST], override val pos: RangePosition, val parents: List[Parent], val name: String, val pack: String) extends AST(children, pos)
-class Value(override val children: List[AST], override val pos: RangePosition, val name: String, val owner: String) extends AST(children, pos)
-class ValueDefinition(override val children: List[AST], override val pos: RangePosition, val name: String) extends AST(children, pos)
+abstract class Module(override val children: List[AST], override val pos: RangePosition, val parents: List[Parent], val name: String, val pack: String) extends AST(children, pos)
+abstract class Value(override val children: List[AST], override val pos: RangePosition, val name: String, val owner: String) extends AST(children, pos)
+abstract class ValueDefinition(override val children: List[AST], override val pos: RangePosition, val name: String) extends AST(children, pos)
 
 
 case class PackageDefinition(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
