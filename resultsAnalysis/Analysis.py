@@ -195,8 +195,8 @@ class Analysis:
 			self.correlation(df)
 			sys.stdout.flush()
 
-			self.distribution(df)
-			sys.stdout.flush()
+			# self.distribution(df)
+			# sys.stdout.flush()
 
 		if self.standardizing:
 			for x in self.getNumTypes(df):
