@@ -75,7 +75,8 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
   }
 
   def writeHeaders(): Unit = {
-    val (objHeader, funHeader) = metricsHeader()
+    val objHeader = getObjectHeaders
+    val funHeader = getFunctionHeaders
     val header = objHeader:::funHeader
     fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
     faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
@@ -106,7 +107,9 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     println("analyse")
     val results = an.analyse()
 
-    val output = objectOutput2(faultyClasses, results)
+    val tmpOutput = objectOutput2(faultyClasses, results)
+    val output = tmpOutput.map(x => x.replace(repoPath + 0, repoPath))
+
     println(results.length + "    " + output.length)
     outputLock.acquire()
     fullOutput.writeOutput(output)
@@ -148,10 +151,15 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
 
         /* Get the result. */
-        val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
+        val results = an.analyse(x.commit.scalaFiles.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = objectOutput(instancePath, x, results)
+        val tmpOutput = objectOutput(instancePath, x, results)
+        val output = (
+          tmpOutput._1.map(x => x.replace(instancePath, repoPath)),
+          tmpOutput._2.map(x => x.replace(instancePath, repoPath)),
+          tmpOutput._3.map(x => x.replace(instancePath, repoPath))
+        )
 
         count += 1
 
@@ -200,8 +208,8 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
               lines match {
                 case Some(patch) =>
                   if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                    (a._1 ::: obj.toCSV.map(fault.commit.sha + "," + 1 + "," + _),
-                      a._2 ::: obj.toCSV.map(fault.commit.sha + "," + 1 + "," + _), obj.objectPath :: a._3)
+                    (a._1 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 1 + "," + _),
+                      a._2 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 1 + "," + _), obj.objectPath :: a._3)
                   } else {
                     (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
                   }
@@ -237,7 +245,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
               if (faultyClasses.contains(obj.objectPath)) {
                 a ::: recursive(obj)
               } else {
-                a ::: obj.toCSV.map("HEAD," + 0 + "," + _) ::: recursive(obj)
+                a ::: obj.toCSV(header.length).map("HEAD," + 0 + "," + _) ::: recursive(obj)
               }
             case unit: ResultUnit =>
               a ::: recursive(unit)

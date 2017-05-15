@@ -190,13 +190,13 @@ class Validator(repoUser: String, repoName: String, repoPath: String, instances:
                 lines match {
                   case Some(patch) =>
                     if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                      (a._1 ::: obj.toCSV.map(fault.commit.sha + "," + 1 + "," + _),
-                        a._2 ::: obj.toCSV.map(fault.commit.sha + "," + 1 + "," + _))
+                      (a._1 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 1 + "," + _),
+                        a._2 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 1 + "," + _))
                     } else {
-                      (a._1, a._2 ::: obj.toCSV.map(fault.commit.sha + "," + 0 + "," + _))
+                      (a._1, a._2 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 0 + "," + _))
                     }
                   case _ =>
-                    (a._1, a._2 ::: obj.toCSV.map(fault.commit.sha + "," + 0 + "," + _))
+                    (a._1, a._2 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 0 + "," + _))
                 }
             }
         }

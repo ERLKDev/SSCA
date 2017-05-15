@@ -20,17 +20,18 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
   def normalize(): List[ObjectResult] = {
     val obj = new ObjectResult(position, name, objectType)
-    obj.addResult(nestedFunctions)
+    obj.addResult(metrics ::: nestedFunctions)
     obj :: nestedObjects.foldLeft(List[ObjectResult]())((a, b) => a ::: b.normalize())
   }
 
-  def toCSV: List[String] = {
+  def toCSV(headerSize: Int): List[String] = {
     val norm = normalize()
     norm.foldLeft(List[String]()){
       (a, b) =>
-        val metricString = metrics.sortWith(_.metricName < _.metricName).map(_.toCsv).mkString(",")
-        position.source.path + "|" + name + "%{" + objectType + "}," +
-          metricString + "," + avr(b.functions).map(_.toCsv).mkString(",") + "," + sum(b.functions).map(_.toCsv).mkString(",") :: a
+        val g = b.metrics
+        val metricString = b.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(b.functions).map(_.toCsv) ::: sum(b.functions).map(_.toCsv)
+
+        b.position.source.path + "|" + b.name + "%{" + b.objectType + "}," +  fillCsvLine(metricString, headerSize).mkString(",") :: a
     }
   }
 
