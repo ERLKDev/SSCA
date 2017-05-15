@@ -8,8 +8,8 @@ import scala.reflect.internal.util.RangePosition
 class AST(val children: List[AST], val pos: RangePosition)
 
 abstract class Module(override val children: List[AST], override val pos: RangePosition, val parents: List[Parent], val name: String, val pack: String) extends AST(children, pos)
-abstract class Value(override val children: List[AST], override val pos: RangePosition, val name: String, val owner: String) extends AST(children, pos)
-abstract class ValueDefinition(override val children: List[AST], override val pos: RangePosition, val name: String) extends AST(children, pos)
+abstract class Value(override val children: List[AST], override val pos: RangePosition, val name: String, val owner: String, val parameter: Boolean) extends AST(children, pos)
+abstract class ValueDefinition(override val children: List[AST], override val pos: RangePosition, val name: String, val owner: String, val parameter: Boolean) extends AST(children, pos)
 
 
 case class PackageDefinition(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
@@ -27,23 +27,25 @@ case class FunctionDef(override val children: List[AST], override val pos: Range
 
 case class FunctionCall(override val children: List[AST], override val pos: RangePosition, name: String, owner: String) extends AST(children, pos)
 
-case class ValAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String) extends Value(children, pos, name, owner)
+case class ValAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
+  extends Value(children, pos, name, owner, parameter)
 
-case class VarAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String) extends Value(children, pos, name, owner)
+case class VarAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
+  extends Value(children, pos, name, owner, parameter)
 
 case class NewClass(override val children: List[AST], override val pos: RangePosition, name: String) extends AST(children, pos)
 
-case class ValDefinition(override val children: List[AST], override val pos: RangePosition, override val name: String)
-  extends ValueDefinition(children, pos, name)
+case class ValDefinition(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
+  extends ValueDefinition(children, pos, name, owner, parameter)
 
-case class VarDefinition(override val children: List[AST], override val pos: RangePosition, override val name: String)
-  extends ValueDefinition(children, pos, name)
+case class VarDefinition(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
+  extends ValueDefinition(children, pos, name, owner, parameter)
 
-case class Var(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String)
-  extends Value(children, pos, name, owner)
+case class Var(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
+  extends Value(children, pos, name, owner, parameter)
 
-case class Val(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String)
-  extends Value(children, pos, name, owner)
+case class Val(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
+  extends Value(children, pos, name, owner, parameter)
 
 case class For(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
 
@@ -53,7 +55,7 @@ case class DoWhile(override val children: List[AST], override val pos: RangePosi
 
 case class MatchCase(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
 
-case class Case(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
+case class Case(override val children: List[AST], override val pos: RangePosition, pattern: List[AST]) extends AST(children, pos)
 
 case class CaseAlternative(override val children: List[AST], override val pos: RangePosition) extends AST(children, pos)
 

@@ -50,17 +50,17 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
 
       case x: ValDef =>
         if (isValDef(x))
-          ValDefinition(getChildren(x), getRangePos(tree), getName(x))
+          ValDefinition(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
         else if (isVarDef(x))
-          VarDefinition(getChildren(x), getRangePos(tree), getName(x))
+          VarDefinition(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
         else
           null
 
       case x: Ident =>
         if (isVal(x))
-          Val(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
+          Val(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
         else if (isVar(x))
-          Var(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner))
+          Var(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
         else
           null
 
@@ -72,26 +72,29 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         if (symbolType.nonEmpty) {
           val symbol = symbolType.get
           if (symbol.isVar)
-            Var(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner))
+            Var(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner), x.symbol.isParameter)
           else
-            Val(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner))
+            Val(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner), x.symbol.isParameter)
         }
         else
           null
 
       case x: Assign =>
         if (isAssignment(x) && isVal(x.lhs))
-          ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner))
+          ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner), x.symbol.isParameter)
         else if (isAssignment(x) && isVar(x.lhs))
-          VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner))
+          VarAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner), x.symbol.isParameter)
         else
           null
 
       case x: Match =>
         MatchCase(getChildren(x), getRangePos(tree))
 
+      case x: Bind =>
+        Val(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
+
       case x: CaseDef =>
-        Case(getChildren(x), getRangePos(tree))
+        Case(getChildren(x.body), getRangePos(tree), getChildren(x.pat))
 
       case x: Apply =>
         if (isFor(x))
