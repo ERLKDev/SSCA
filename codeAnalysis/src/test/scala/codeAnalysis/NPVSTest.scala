@@ -19,12 +19,59 @@ class NPVSTest extends UnitSpec{
     class1.getFunctionByName(name).get.getMetricByName(metric).get.value.toInt
   }
 
-  test("No function statements") {
+  test("Empty function") {
     val method = "test1"
     val npvs = getMethodMetric(method, "NPVS")
     val npvsMatch = getMethodMetric(method, "NPVSmatch")
+    val npvsMatchParms = getMethodMetric(method, "NPVSmatchParms")
+
+    assert(npvs == 0)
+    assert(npvsMatch == 0)
+    assert(npvsMatchParms == 0)
+  }
+
+  test("Function with one val definition") {
+    val method = "test2"
+    val npvs = getMethodMetric(method, "NPVS")
+    val npvsMatch = getMethodMetric(method, "NPVSmatch")
+    val npvsMatchParms = getMethodMetric(method, "NPVSmatchParms")
 
     assert(npvs == 1)
-    assert(npvsMatch == 1)
+    assert(npvsMatch == 0)
+    assert(npvsMatchParms == 0)
+  }
+
+  test("Function with one val parameter") {
+    val method = "test3"
+    val npvs = getMethodMetric(method, "NPVS")
+    val npvsMatch = getMethodMetric(method, "NPVSmatch")
+    val npvsMatchParms = getMethodMetric(method, "NPVSmatchParms")
+
+    assert(npvs == 1)
+    assert(npvsMatch == 0)
+    assert(npvsMatchParms == 1)
+  }
+
+  test("Function with match") {
+    val method = "test4"
+    val npvs = getMethodMetric(method, "NPVS")
+    val npvsMatch = getMethodMetric(method, "NPVSmatch")
+    val npvsMatchParms = getMethodMetric(method, "NPVSmatchParms")
+
+    assert(npvs == 2)
+    assert(npvsMatch == 2)
+    assert(npvsMatchParms == 2)
+  }
+
+
+  test("Function with match and param") {
+    val method = "test5"
+    val npvs = getMethodMetric(method, "NPVS")
+    val npvsMatch = getMethodMetric(method, "NPVSmatch")
+    val npvsMatchParms = getMethodMetric(method, "NPVSmatchParms")
+
+    assert(npvs == 3)
+    assert(npvsMatch == 2)
+    assert(npvsMatchParms == 3)
   }
 }

@@ -91,10 +91,10 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         MatchCase(getChildren(x), getRangePos(tree))
 
       case x: Bind =>
-        Val(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
+        ValDefinition(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), x.symbol.isParameter)
 
       case x: CaseDef =>
-        Case(getChildren(x.body), getRangePos(tree), getChildren(x.pat))
+        Case(getChildren(x), getRangePos(tree), getChildren(x.pat))
 
       case x: Apply =>
         if (isFor(x))

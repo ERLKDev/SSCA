@@ -1,13 +1,36 @@
 class TestFileNPVS{
-  def test1(y: Int) = {
-    println(y)
+  def test1(): Unit = {
 
-    val xList: List[String] = List()
+  }
 
-    xList match {
+
+  def test2(): Unit = {
+    val x: Int = 4
+  }
+
+
+  def test3(x: Int): Unit = {
+
+  }
+
+  def test4(): Unit = {
+    List() match {
       case Nil =>
 
       case (x::tail) =>
+
+      case _ =>
+
+    }
+  }
+
+  def test5(y: Int): Unit = {
+    List() match {
+      case Nil =>
+
+      case (x::tail) =>
+
+      case _ =>
 
     }
   }
