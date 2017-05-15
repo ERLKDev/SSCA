@@ -170,13 +170,7 @@ class OOValidatorB(repoUser: String, repoName: String, repoPath: String, instanc
 
 
         /* Get the result. */
-        val results = if (prevCommit != null) {
-          val files = repo.changedFiles(prevCommit, x.commit).map(x => instancePath + "\\" + x)  ::: x.commit.files.map(instancePath + "\\" + _)
-          an.analyse(files)
-        } else {
-          println("analyse")
-          an.analyse()
-        }
+        val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
         /* Run output function. */
         val output = op(instancePath, x, results)

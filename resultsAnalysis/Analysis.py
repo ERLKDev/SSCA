@@ -94,6 +94,7 @@ class Analysis:
 		print reg.printResultMatrix(result, df, numtypes, self.dependantKey, threshold=0.5)
 
 		print "\n" + self.seperationLine
+		return result
 
 
 	def wavg(self, group):
@@ -205,14 +206,28 @@ class Analysis:
 			self.unRegression(df)
 			sys.stdout.flush()
 
-		self.multiRegression(df)
+
+		result = self.multiRegression(df)
 		sys.stdout.flush()
+
+		if self.args.cross is not None:
+			for x in self.args.cross:
+				df = pd.concat(pd.read_csv(x, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)
+
+				print self.seperationLine
+				print "Cross validation --" + x + "\n\n"
+
+				numtypes = self.getNumTypes(df)
+				print reg.printResultMatrix(result, df, numtypes, self.dependantKey, threshold=0.5)
+				print "\n\n"
+	
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-i", "--input", help="The input file", nargs='+', dest="input", required=True)
 	parser.add_argument("-c", "--columns", help="The columns", nargs='+', dest="columns", type=int)
+	parser.add_argument("--cross", help="The files to be cross-system validated", nargs='+', dest="cross")
 	parser.add_argument("-m", "--multireg", help="Multi regression only", action="store_true", dest="multireg")
 	parser.add_argument("-s", "--store", help="Store the results", action="store_true", dest="store")
 	parser.add_argument("-d", "--destination" , help="The output path destination", dest="destination", default="./output")
