@@ -105,7 +105,9 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     println("analyse")
     val results = an.analyse()
 
-    val output = objectOutput2(faultyClasses, results)
+    val tmpOutput = objectOutput2(faultyClasses, results)
+    val output = tmpOutput.map(x => x.replace(repoPath + 0, repoPath))
+
     println(results.length + "    " + output.length)
     outputLock.acquire()
     fullOutput.writeOutput(output)
@@ -144,10 +146,15 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
 
         /* Get the result. */
-        val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
+        val results = an.analyse(x.commit.scalaFiles.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = objectOutput(instancePath, x, results)
+        val tmpOutput = objectOutput(instancePath, x, results)
+        val output = (
+          tmpOutput._1.map(x => x.replace(instancePath, repoPath)),
+          tmpOutput._2.map(x => x.replace(instancePath, repoPath)),
+          tmpOutput._3.map(x => x.replace(instancePath, repoPath))
+        )
 
         count += 1
 

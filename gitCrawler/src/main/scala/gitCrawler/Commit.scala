@@ -34,6 +34,7 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     */
   def files: List[String] = {
     commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename))
+      .filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f).isEmpty)
   }
 
 
@@ -42,7 +43,8 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     * @return
     */
   def scalaFiles: List[String] = {
-    commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename)).filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined)
+    commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename))
+      .filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined).filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f).isEmpty)
   }
 
 
@@ -62,9 +64,6 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     * @return
     */
   def isBetween(from: Date, until: Date): Boolean = {
-    val a = commitSummary.commit.author.date
-    val b = commitSummary.commit.author.date.before(until)
-    val c = commitSummary.commit.author.date.after(from)
     commitSummary.commit.author.date.before(until) && commitSummary.commit.author.date.after(from)
   }
 
