@@ -10,8 +10,7 @@ def correctness(predTable):
 def completeness(predTable):
 	return predTable[1, 1] / (predTable[1, 0] + predTable[1, 1])
 
-
-def printResultMatrix(result, df, x_label, y_label, threshold=0.5):
+def genPredTable(result, df, x_label, y_label, threshold=0.5):
 	predTable = result.pred_table(threshold=threshold)
 
 	predictions = map(lambda x: 1 if x > threshold else 0, result.predict(sm.add_constant(df[x_label])))
@@ -23,19 +22,37 @@ def printResultMatrix(result, df, x_label, y_label, threshold=0.5):
 	faultFault = len(filter(lambda x: x[0] == 1 and x[1] == 1, real_pred))
 
 	predTable = np.asarray([[nofaultNofault, nofaultFault], [faultNofault, faultFault]])
+	return predTable
+	
 
-	print predTable.astype(float)[1, 1]
+def printResultMatrix(result, df, x_label, y_label, threshold=0.5):
+	predTable = genPredTable(result, df, x_label, y_label, threshold)
+
 
 	print "Predicted\tNo Fault\tFault"
 	print "Actual"
-	print "No Fault\t{}\t\t{}".format(nofaultNofault, nofaultFault)
-	print "Fault\t\t{}\t\t{}".format(faultNofault, faultFault)
+	print "No Fault\t{}\t\t{}".format(predTable[0, 0], predTable[0, 1])
+	print "Fault\t\t{}\t\t{}".format(predTable[1, 0], predTable[1, 1])
 	print ""
 	print "Completeness: {}".format(completeness(predTable.astype(float)))
 	print "Correctness: {}".format(correctness(predTable.astype(float)))
 	print ""
 
+def createComCorGraph(result, df, x_label, y_label):
+	fig, ax = plt.subplots()
+	xpts = np.linspace(0, 1, 100)
 
+	comp = []
+	corr = []
+	for x in xpts:
+		predTable = genPredTable(result, df, x_label, y_label, x)
+		comp.append(completeness(predTable.astype(float)))
+		corr.append(correctness(predTable.astype(float)))
+
+	ax.plot(xpts, comp, "-r", label="completeness")
+	ax.plot(xpts, corr, "-b", label="correctness")
+	legend = ax.legend(loc='upper left')
+	return fig, ax
 
 
 def plotLogisticRegression(df, result, x_label, y_label):

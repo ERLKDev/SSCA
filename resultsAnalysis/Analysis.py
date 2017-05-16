@@ -8,6 +8,7 @@ import numpy as np
 import statsmodels.api as sm
 import os
 import Regression as reg
+import tablegen as tg
 
 class Analysis:
 
@@ -48,6 +49,7 @@ class Analysis:
 			print "Univariate Regressions\n\n"
 
 		numtypes = self.getNumTypes(df)
+		tableData = [["Metric", "Constant", "Coefficient", "P-value", "R^2", "Completeness", "Correctness"]]# np.zeros([0, 8])
 
 		# df = df.groupby(['path']).apply(self.wavg)
 		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
@@ -62,20 +64,35 @@ class Analysis:
 			print result.summary()
 			print ""
 			print reg.printResultMatrix(result, df, a, self.dependantKey, threshold=0.5)
+			print "\n\n"
+
+			predTable = reg.genPredTable(result, df, a, self.dependantKey, threshold=0.5)
+			comp = reg.completeness(predTable.astype(float))
+			corr = reg.correctness(predTable.astype(float))
+
+			tableData = np.vstack([tableData, [a, format(result.params[0], '.4f'), format(result.params[1], '.4f'), 
+				format(result.pvalues[1], '.4f'), format(result.prsquared, '.4f'), format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]])
+
+
 
 			fig, ax = reg.plotLogisticRegression(df, result, a, self.dependantKey)
+			fig2, ax2 = reg.createComCorGraph(result, df, a, self.dependantKey)
 
 			if (self.args.store):
 				self.storePlt(a, a + "-LogitRegression", fig)
+				self.storePlt(a, a + "-LogitRegressionCompCorr", fig2)
 			else:
 				plt.show()
-				plt.close(fig)
+			plt.close(fig)
+			plt.close(fig2)
 
 		sys.stdout.flush()
 		sys.stdout = tmp
 
-		if not self.args.store:
-			print "\n" + self.seperationLine
+		print tg.createTable(tableData)
+		sys.stdout.flush()
+
+		print "\n" + self.seperationLine
 
 
 	def multiRegression(self, df):
@@ -87,14 +104,32 @@ class Analysis:
 		# df = df.groupby(['path']).apply(self.wavg)
 		# df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 		testSize = int(len(df) * 0.20)
-		df_test = df.iloc[:testSize, :]
-		df_train = df.iloc[testSize:, :]
+		df_test = df#.iloc[:testSize, :]
+		df_train = df#.iloc[testSize:, :]
 
 		result = reg.logitRegression(df_train[numtypes], df_train[self.dependantKey])
 
 		print result.summary()
 		print ""
-		print reg.printResultMatrix(result, df_test, numtypes, self.dependantKey, threshold=0.5)
+		print reg.printResultMatrix(result, df_test, numtypes, self.dependantKey, threshold=0.4)
+
+		tableData = [["Metric", "Coefficient", "P-value"]]
+		for x in range(len(numtypes) + 1):
+			name = "Constant"
+			if x > 0:
+				name = numtypes[x - 1]
+
+			tableData = np.vstack([tableData, [name, format(result.params[x], '.4f'), format(result.pvalues[x], '.4f')]])
+
+		print tg.createTable(tableData)
+
+		fig, ax = reg.createComCorGraph(result, df_test, numtypes, self.dependantKey)
+
+		if (self.args.store):
+			self.storePlt("", "LogitRegressionCompCorr", fig)
+		else:
+			plt.show()
+		plt.close(fig)
 
 		print "\n" + self.seperationLine
 		return result
@@ -223,6 +258,14 @@ class Analysis:
 				numtypes = self.getNumTypes(df)
 				print reg.printResultMatrix(result, df, numtypes, self.dependantKey, threshold=0.5)
 				print "\n\n"
+
+				fig, ax = reg.createComCorGraph(result, df, numtypes, self.dependantKey)
+
+				if (self.args.store):
+					self.storePlt("", x + "-CrossLogitRegressionCompCorr", fig)
+				else:
+					plt.show()
+				plt.close(fig)
 	
 
 
