@@ -93,7 +93,8 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     totalCount = 0
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
-    val faultyClasses = instanceIds.par.map(runInstance(_, repoInfo)).foldLeft(List[String]())(_ ::: _)
+    val faultyClassesTmp = instanceIds.par.map(runInstance(_, repoInfo)).foldLeft(List[String]())(_ ::: _)
+    val faultyClasses = faultyClassesTmp.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
     println("Last phase")
     println("Start init repo last phase")
@@ -108,7 +109,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     val results = an.analyse()
 
     val tmpOutput = objectOutput2(faultyClasses, results)
-    val output = tmpOutput.map(x => x.replace(repoPath + 0, repoPath))
+    val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
     println(results.length + "    " + output.length)
     outputLock.acquire()
@@ -156,9 +157,9 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
         /* Run output function. */
         val tmpOutput = objectOutput(instancePath, x, results)
         val output = (
-          tmpOutput._1.map(x => x.replace(instancePath, repoPath)),
-          tmpOutput._2.map(x => x.replace(instancePath, repoPath)),
-          tmpOutput._3.map(x => x.replace(instancePath, repoPath))
+          tmpOutput._1.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath)),
+          tmpOutput._2.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath)),
+          tmpOutput._3.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
         )
 
         count += 1
@@ -208,8 +209,8 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
               lines match {
                 case Some(patch) =>
                   if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                    (a._1 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 1 + "," + _),
-                      a._2 ::: obj.toCSV(header.length).map(fault.commit.sha + "," + 1 + "," + _), obj.objectPath :: a._3)
+                    (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(header.length)),
+                      a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(header.length)), obj.objectPath :: a._3)
                   } else {
                     (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
                   }
@@ -242,10 +243,10 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
         (a, b) =>
           b match {
             case obj: ObjectResult =>
-              if (faultyClasses.contains(obj.objectPath)) {
+              if (faultyClasses.contains(obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))) {
                 a ::: recursive(obj)
               } else {
-                a ::: obj.toCSV(header.length).map("HEAD," + 0 + "," + _) ::: recursive(obj)
+                a ::: List("HEAD," + 0 + "," + obj.toCSV(header.length))::: recursive(obj)
               }
             case unit: ResultUnit =>
               a ::: recursive(unit)

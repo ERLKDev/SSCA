@@ -128,7 +128,7 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
             b match {
               case obj: ObjectResult =>
                 val count = faultyClasses.count(x => x == obj.objectPath)
-                a ::: obj.toCSV(header.length).map("HEAD," + count + "," + _)
+                a ::: List("HEAD," + count + "," + obj.toCSV(header.length))
             }
         }
     }

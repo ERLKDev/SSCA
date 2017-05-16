@@ -18,21 +18,18 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())
 
-  def normalize(): List[ObjectResult] = {
+  def normalize(): ObjectResult = {
     val obj = new ObjectResult(position, name, objectType)
     obj.addResult(metrics ::: nestedFunctions)
-    obj :: nestedObjects.foldLeft(List[ObjectResult]())((a, b) => a ::: b.normalize())
+    obj
   }
 
-  def toCSV(headerSize: Int): List[String] = {
+  def toCSV(headerSize: Int): String = {
     val norm = normalize()
-    norm.foldLeft(List[String]()){
-      (a, b) =>
-        val g = b.metrics
-        val metricString = b.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(b.functions).map(_.toCsv) ::: sum(b.functions).map(_.toCsv)
+    val g = norm.metrics
+    val metricString = norm.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(norm.functions).map(_.toCsv) ::: sum(norm.functions).map(_.toCsv)
 
-        b.position.source.path + "|" + b.name + "%{" + b.objectType + "}," +  fillCsvLine(metricString, headerSize).mkString(",") :: a
-    }
+    norm.position.source.path + "|" + norm.name + "%{" + norm.objectType + "}," +  fillCsvLine(metricString, headerSize).mkString(",")
   }
 
   def objectPath: String = {

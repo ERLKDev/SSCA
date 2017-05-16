@@ -14,15 +14,6 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
     name == this.name
   }
 
-  def normalize(): List[Result] = {
-    val functs = functions.foldLeft(List[Result]())((a, b) => a ::: b.normalize())
-    val objs = objects.foldLeft(List[Result]())((a, b) => a ::: b.normalize())
-    val func = new FunctionResult(position, name)
-    func.addResult(metrics)
-
-    objs ::: func :: functs
-  }
-
   override def toString: String = "\n" + position + " " + name + "$Function" + "{\n" + results.map(x => "\t" + x).mkString("\n") + "\n}\n"
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())
