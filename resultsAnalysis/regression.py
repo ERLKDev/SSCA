@@ -5,10 +5,15 @@ import pandas as pd
 import statsmodels.api as sm
 
 def correctness(predTable):
-	return predTable[1, 1] / (predTable[0, 1] + predTable[1, 1])
+	if (predTable[0, 1] + predTable[1, 1]) > 0.0:
+		return predTable[1, 1] / (predTable[0, 1] + predTable[1, 1])
+	return 0.0
 
 def completeness(predTable):
-	return predTable[1, 1] / (predTable[1, 0] + predTable[1, 1])
+	if (predTable[1, 0] + predTable[1, 1]) > 0.0:
+		return predTable[1, 1] / (predTable[1, 0] + predTable[1, 1])
+	return 0.0
+
 
 def genPredTable(result, df, x_label, y_label, threshold=0.5):
 	predTable = result.pred_table(threshold=threshold)
