@@ -85,13 +85,16 @@ class Analysis:
 		numtypes = self.getNumTypes(df)
 
 		# df = df.groupby(['path']).apply(self.wavg)
-		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		# df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		testSize = int(len(df) * 0.20)
+		df_test = df.iloc[:testSize, :]
+		df_train = df.iloc[testSize:, :]
 
-		result = reg.logitRegression(df[numtypes], df[self.dependantKey])
+		result = reg.logitRegression(df_train[numtypes], df_train[self.dependantKey])
 
 		print result.summary()
 		print ""
-		print reg.printResultMatrix(result, df, numtypes, self.dependantKey, threshold=0.5)
+		print reg.printResultMatrix(result, df_test, numtypes, self.dependantKey, threshold=0.5)
 
 		print "\n" + self.seperationLine
 		return result
@@ -180,7 +183,7 @@ class Analysis:
 		# self.dfTotal = df
 		# df = df.sample(frac=1)
 		# df = pd.concat([df[df[self.dependantKey] == 0].sample(n=int(len(df[df[self.dependantKey] == 0]) * 1.0)), df[df[self.dependantKey] > 0]], ignore_index=True)
-		# df = df.reindex(np.random.permutation(df.index))
+		df = df.reindex(np.random.permutation(df.index))
 
 		if (self.args.store):
 			os.makedirs(self.args.destination)

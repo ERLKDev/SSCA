@@ -15,12 +15,6 @@ class MetricResult(position : RangePosition, val name: String, val metricName : 
 
   override def flatten(): List[MetricResult] = List(this)
 
-  override def toCsvFunction: List[String] = List(value.toString)
-
-  override def toCsvObject: List[String] = toCsvFunction
-
-  override def toCsvObjectSum(size: Int): List[String] = toCsvFunction
-
-  override def toCsvObjectAvr(size: Int): List[String] = toCsvFunction
+  def toCsv: String = value.toString
 
 }
