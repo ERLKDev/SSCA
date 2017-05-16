@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def createTable(data, method="np", header=None):
+def createTable(data, method="np", header=None, caption="My caption", label="my-label"):
 	if method == "pd":
 		header = np.asarray(data.keys())
 		data = data.as_matrix()
@@ -25,6 +25,6 @@ def createTable(data, method="np", header=None):
 	print bodyRows
 	print "\\bottomrule"
 	print "\\end{tabular}"
-	print "\\caption{My caption}"
-	print "\\label{my-label}"
+	print "\\caption{" + caption + "}"
+	print "\\label{" + label + "}"
 	print "\\end{table}"

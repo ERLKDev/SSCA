@@ -9,6 +9,7 @@ import statsmodels.api as sm
 import os
 import Regression as reg
 import tablegen as tg
+import re
 
 class Analysis:
 
@@ -17,28 +18,57 @@ class Analysis:
 		self.dependantKey = "faults"
 		self.faultTreshold = 0.0
 		self.args = args
-		self.standardizing = True
+		self.standardizing = True #self.args.standardizing
+		self.tables = True #self.args.tables
 
 
 	def descriptive(self, df):
+		numtypes = self.getNumTypes(df)
+		result = df[numtypes].describe()
+
 		# Prints the descriptive statistics
 		print self.seperationLine
 		print "Descriptive statistics\n\n"
-		print df.select_dtypes(include=['float64', 'int64', 'int', 'float']).describe()
+		print result
 		print "\n" + self.seperationLine
 
+		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
+		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
+
+		if (self.tables):
+			tg.createTable(b)
+
+
+		# Prints the fault descriptive statistics
+		result = df[df[self.dependantKey] > 0][numtypes].describe()
 		print self.seperationLine
 		print "Descriptive statistics faults\n\n"
-		print df[df[self.dependantKey] > 0].select_dtypes(include=['float64', 'int64', 'int', 'float']).describe()
+		print result
 		print "\n" + self.seperationLine
+
+		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
+		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
+
+		if (self.tables):
+			tg.createTable(b)
 
 
 	def correlation(self, df):
 		# Prints the correlations
+		numtypes = self.getNumTypes(df)
+		result = df[numtypes].corr()
+
 		print self.seperationLine
 		print "Correlations\n\n"
-		print df.select_dtypes(include=['float64', 'int64', 'int', 'float']).corr()
+		print result
 		print "\n" + self.seperationLine
+
+
+		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
+		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
+
+		if (self.tables):
+			tg.createTable(b)
 
 
 	def unRegression(self, df):
@@ -86,13 +116,18 @@ class Analysis:
 			plt.close(fig)
 			plt.close(fig2)
 
+		print "\n" + self.seperationLine
+
 		sys.stdout.flush()
 		sys.stdout = tmp
 
-		print tg.createTable(tableData)
-		sys.stdout.flush()
+		if (self.tables):
+			print "\n\n" + self.seperationLine
+			print "\nUnivariate Regressions\n\n"
+			tg.createTable(tableData)
+			sys.stdout.flush()
 
-		print "\n" + self.seperationLine
+			print "\n" + self.seperationLine
 
 
 	def multiRegression(self, df):
@@ -121,7 +156,16 @@ class Analysis:
 
 			tableData = np.vstack([tableData, [name, format(result.params[x], '.4f'), format(result.pvalues[x], '.4f')]])
 
-		print tg.createTable(tableData)
+		if (self.tables):
+			tg.createTable(tableData)
+			print "\n\n"
+
+		predTable = reg.genPredTable(result, df_test, numtypes, self.dependantKey, threshold=0.5)
+		comp = reg.completeness(predTable.astype(float))
+		corr = reg.correctness(predTable.astype(float))
+
+		if (self.tables):
+			tg.createTable(np.array([["", "Completeness", "Correctness"], ["Multi. reg.", format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]]))
 
 		fig, ax = reg.createComCorGraph(result, df_test, numtypes, self.dependantKey)
 
@@ -213,7 +257,11 @@ class Analysis:
 				else:
 					df = pd.concat([df, pd.concat(pd.read_csv(x, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)], ignore_index=True)
 		else:
-			df = pd.concat(pd.read_csv(self.args.input, chunksize=1000, iterator=True), ignore_index=True)
+			for x in self.args.input:
+				if df is None:
+					df = pd.concat(pd.read_csv(x, chunksize=1000, iterator=True), ignore_index=True)
+				else:
+					df = pd.concat([df, pd.concat(pd.read_csv(x, chunksize=1000, iterator=True), ignore_index=True)], ignore_index=True)
 
 		# self.dfTotal = df
 		# df = df.sample(frac=1)
@@ -233,8 +281,8 @@ class Analysis:
 			self.correlation(df)
 			sys.stdout.flush()
 
-			# self.distribution(df)
-			# sys.stdout.flush()
+			self.distribution(df)
+			sys.stdout.flush()
 
 		if self.standardizing:
 			for x in self.getNumTypes(df):
