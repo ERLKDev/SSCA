@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
 import os
-import Regression as reg
+import regression as reg
 import tablegen as tg
 import re
 
@@ -82,7 +82,7 @@ class Analysis:
 		tableData = [["Metric", "Constant", "Coefficient", "P-value", "R^2", "Completeness", "Correctness"]]# np.zeros([0, 8])
 
 		# df = df.groupby(['path']).apply(self.wavg)
-		df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		# df[self.dependantKey] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
 			if self.args.store:
@@ -146,7 +146,7 @@ class Analysis:
 
 		print result.summary()
 		print ""
-		print reg.printResultMatrix(result, df_test, numtypes, self.dependantKey, threshold=0.4)
+		print reg.printResultMatrix(result, df_test, numtypes, self.dependantKey, threshold=0.5)
 
 		tableData = [["Metric", "Coefficient", "P-value"]]
 		for x in range(len(numtypes) + 1):
@@ -160,11 +160,15 @@ class Analysis:
 			tg.createTable(tableData)
 			print "\n\n"
 
-		predTable = reg.genPredTable(result, df_test, numtypes, self.dependantKey, threshold=0.5)
-		comp = reg.completeness(predTable.astype(float))
-		corr = reg.correctness(predTable.astype(float))
+			predTable = reg.genPredTable(result, df_test, numtypes, self.dependantKey, threshold=0.5)
+			comp = reg.completeness(predTable.astype(float))
+			corr = reg.correctness(predTable.astype(float))
 
-		if (self.tables):
+			a = np.vstack([["Not Faulty", "Faulty"], predTable.T]).T
+			b = np.vstack([["", "Not Faulty", "Faulty"], a])
+			tg.createTable(b)
+
+			print "\n\n"
 			tg.createTable(np.array([["", "Completeness", "Correctness"], ["Multi. reg.", format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]]))
 
 		fig, ax = reg.createComCorGraph(result, df_test, numtypes, self.dependantKey)

@@ -16,7 +16,7 @@ import scala.io.Source
   * Created by erikl on 4/25/2017.
   */
 class OOValidatorB(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                   instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
+                  instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
 
   private val token = loadToken()
 
@@ -71,23 +71,12 @@ class OOValidatorB(repoUser: String, repoName: String, repoPath: String, instanc
 
   private def getFunctionHeaders: List[String] = {
     val (_, funHeader) = metricsHeader()
-    funHeader
-  }
-
-  def writeObjectHeaders(): Unit = {
-    val (objHeader, _) = metricsHeader()
-    fullOutput.writeOutput(List("commit,faults,path," + objHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + objHeader.mkString(",")))
-  }
-
-  def writeFunctionHeader(): Unit = {
-    val (_, funHeader) = metricsHeader()
-    fullOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
+    funHeader.map("functionAvr" + _.capitalize) ::: funHeader.map("functionSum" + _.capitalize)
   }
 
   def writeHeaders(): Unit = {
-    val (objHeader, funHeader) = metricsHeader()
+    val objHeader = getObjectHeaders
+    val funHeader = getFunctionHeaders
     val header = objHeader:::funHeader
     fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
     faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
@@ -122,17 +111,18 @@ class OOValidatorB(repoUser: String, repoName: String, repoPath: String, instanc
 
     val header: List[String] = getObjectHeaders ::: getFunctionHeaders
 
-    val output = results.foldLeft(List[String]()){
+    val tmpOutput = results.foldLeft(List[String]()){
       (r, y) =>
         r ::: y.results.foldLeft(List[String]()) {
           (a, b) =>
             b match {
               case obj: ObjectResult =>
-                val count = faultyClasses.count(x => x == obj.objectPath)
+                val count = faultyClasses.count(x => x == obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
                 a ::: List("HEAD," + count + "," + obj.toCSV(header.length))
             }
         }
     }
+    val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath)).filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f).isEmpty)
 
     fullOutput.writeOutput(output)
 
@@ -173,7 +163,7 @@ class OOValidatorB(repoUser: String, repoName: String, repoPath: String, instanc
         val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = op(instancePath, x, results)
+        val output = op(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
         count += 1
 

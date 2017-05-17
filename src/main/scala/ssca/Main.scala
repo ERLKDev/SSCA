@@ -12,7 +12,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val repoUser = "akka"
     val repoName = "akka"
-    val repoPath = "..\\tmp\\git" + repoUser.capitalize + repoName.capitalize
+    val repoPath = "C:\\Master Project data\\tmp\\git" + repoUser.capitalize + repoName.capitalize
 
     val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new LCOM, new RFC, new NPVS, new PATC, new DON)
     val labels = List("bug")
