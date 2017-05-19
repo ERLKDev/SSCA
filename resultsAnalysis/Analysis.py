@@ -37,7 +37,7 @@ class Analysis:
 		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
 
 		if (self.tables):
-			tg.createTable(b, file=open(self.args.destination + "/" +"descriptve-table.txt", 'w'))
+			tg.createTable(b, file=open(self.args.destination + "/" +"descriptve-table.txt", 'w'), caption="Descriptive statistics")
 
 
 		# Prints the fault descriptive statistics
@@ -51,7 +51,7 @@ class Analysis:
 		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
 
 		if (self.tables):
-			tg.createTable(b, file=open(self.args.destination + "/" +"fault-descriptve-table.txt", 'w'))
+			tg.createTable(b, file=open(self.args.destination + "/" +"fault-descriptve-table.txt", 'w'),caption="Fault Descriptive statistics")
 
 
 	def correlation(self, df):
@@ -69,7 +69,7 @@ class Analysis:
 		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
 
 		if (self.tables):
-			tg.createTable(b, file=open(self.args.destination + "/" +"correlations-table.txt", 'w'))
+			tg.createTable(b, file=open(self.args.destination + "/" +"correlations-table.txt", 'w'), caption="Metric correlation")
 
 
 	def unRegression(self, df):
@@ -124,7 +124,7 @@ class Analysis:
 		sys.stdout = tmp
 
 		if (self.tables):
-			tg.createTable(tableData, file=open(self.args.destination + "/" +"univariate-regression-table.txt", 'w'))
+			tg.createTable(tableData, file=open(self.args.destination + "/" +"univariate-regression-table.txt", 'w'), caption="Univariate regression")
 			sys.stdout.flush()
 
 
@@ -157,7 +157,7 @@ class Analysis:
 			tableData = np.vstack([tableData, [name, format(result.params[x], '.4f'), format(result.pvalues[x], '.4f')]])
 
 		if (self.tables):
-			tg.createTable(tableData, file=open(self.args.destination + "/" +"multi-regression-table.txt", 'w'))
+			tg.createTable(tableData, file=open(self.args.destination + "/" +"multi-regression-table.txt", 'w'), caption="Multivariate regression")
 
 			predTable = reg.genPredTable(result, df_test, numtypes, self.dependentKey, self.dependentVar, threshold=0.5)
 			comp = reg.completeness(predTable.astype(float))
@@ -167,11 +167,11 @@ class Analysis:
 
 			a = np.vstack([["Not Faulty", "Faulty"], predTable.T]).T
 			b = np.vstack([["", "Not Faulty", "Faulty"], a])
-			tg.createTable(b, file=open(self.args.destination + "/" +"faulty-nonFaulty-table.txt", 'w'))
+			tg.createTable(b, file=open(self.args.destination + "/" +"faulty-nonFaulty-table.txt", 'w'), caption="Prediction table")
 
 
 			tableOutput = np.array([["", "Completeness", "Correctness"], ["Multi. reg.", format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]])
-			tg.createTable(tableOutput, file=open(self.args.destination + "/" +"completeness-correctness-table.txt", 'w'))
+			tg.createTable(tableOutput, file=open(self.args.destination + "/" +"completeness-correctness-table.txt", 'w'), caption="Multivariate regression: Completeness and correctness")
 
 		fig, ax = reg.createComCorGraph(result, df_test, numtypes, self.dependentKey, self.dependentVar)
 
