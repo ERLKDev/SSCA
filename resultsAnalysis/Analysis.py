@@ -178,7 +178,6 @@ class Analysis:
 		if self.args.ols:
 			result = reg.olsRegression(df_train[numtypes], df_train[self.dependentVar])
 		else:
-			numtypes.append(self.dependentVar)
 			result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
 
 		print result.summary()
