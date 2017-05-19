@@ -64,6 +64,7 @@ def createComCorGraph(result, df, x_label, y_label, dep):
 
 	ax.plot(xpts, comp, "-r", label="completeness")
 	ax.plot(xpts, corr, "-b", label="correctness")
+	ax.grid(True)
 	ax.set_xlabel('Threshold $\pi$')
 	ax.set_ylabel('Percentage %')
 	legend = ax.legend(loc='upper left')

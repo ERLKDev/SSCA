@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
+import sys
 
-def createTable(data, method="np", header=None, caption="My caption", label="my-label"):
+def createTable(data, method="np", header=None, caption="My caption", label="my-label", file=sys.stdout):
+	sysTmp = sys.stdout
+	sys.stdout = file
 	if method == "pd":
 		header = np.asarray(data.keys())
 		data = data.as_matrix()
@@ -28,3 +31,5 @@ def createTable(data, method="np", header=None, caption="My caption", label="my-
 	print "\\caption{" + caption + "}"
 	print "\\label{" + label + "}"
 	print "\\end{table}"
+
+	sys.stdout = sysTmp
