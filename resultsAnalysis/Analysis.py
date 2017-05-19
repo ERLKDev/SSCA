@@ -21,6 +21,7 @@ class Analysis:
 		self.args = args
 		self.standardizing = True #self.args.standardizing
 		self.tables = True #self.args.tables
+		self.sigTreshold = 0.05
 
 
 	def descriptive(self, df):
@@ -85,7 +86,7 @@ class Analysis:
 		df = df.copy()
 		# df = df.groupby(['path']).apply(self.wavg)
 
-		if self.args.osl:
+		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
 		else:
 			df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
@@ -102,8 +103,8 @@ class Analysis:
 			if self.args.store:
 				sys.stdout = open(self.args.destination + "/" + a + "/" +"output.txt", 'w')
 
-			if self.args.osl:
-				result = reg.oslRegression(df_train[a], df_train[self.dependentVar])
+			if self.args.ols:
+				result = reg.olsRegression(df_train[a], df_train[self.dependentVar])
 			else:
 				result = reg.logitRegression(df_train[a], df_train[self.dependentVar])
 
@@ -116,8 +117,16 @@ class Analysis:
 			comp = reg.completeness(predTable.astype(float))
 			corr = reg.correctness(predTable.astype(float))
 
-			tableData = np.vstack([tableData, [a, format(result.params[0], '.4f'), format(result.params[1], '.4f'), 
-				format(result.pvalues[1], '.4f'), format(result.rsquared if self.args.osl else result.prsquared, '.4f'), format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]])
+
+			const = format(result.params[0], '.4f')
+			coef = format(result.params[1], '.4f')
+			rsquared = format(result.rsquared if self.args.ols else result.prsquared, '.4f')
+			pvalue = format(result.pvalues[1], '.4f') if result.pvalues[1] > self.sigTreshold else "\\textbf{" + format(result.pvalues[1], '.4f') + "}"
+			comp = format(comp * 100, '.2f') + "\\%"
+			corr = format(corr * 100, '.2f') + "\\%"
+
+
+			tableData = np.vstack([tableData, [a, const, coef, pvalue, rsquared, comp, corr]])
 
 
 			fig, ax = reg.plotLogisticRegression(df_test, result, a, self.dependentVar)
@@ -151,7 +160,7 @@ class Analysis:
 
 		# df = df.groupby(['path']).apply(self.wavg)
 
-		if self.args.osl:
+		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
 		else:
 			df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
@@ -165,22 +174,22 @@ class Analysis:
 			df_test = df
 			df_train = df
 
-		if self.args.osl:
-			result = reg.oslRegression(df_train[numtypes], df_train[self.dependentVar])
+
+		if self.args.ols:
+			result = reg.olsRegression(df_train[a], df_train[self.dependentVar])
 		else:
-			result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
+			numtypes.append(self.dependentVar)
+			result = reg.logitRegression(df_train[a], df_train[self.dependentVar])
 
 		print result.summary()
 		print ""
 		reg.printResultMatrix(result, df_test, numtypes, self.dependentKey, self.dependentVar, threshold=0.5)
 
 		tableData = [["Metric", "Coefficient", "P-value"]]
-		for x in range(len(numtypes) + 1):
-			name = "Constant"
-			if x > 0:
-				name = numtypes[x - 1]
+		for x in range(len(result.params)):
 
-			tableData = np.vstack([tableData, [name, format(result.params[x], '.4f'), format(result.pvalues[x], '.4f')]])
+			pvalue = lambda x: format(result.pvalues[x], '.4f') if result.pvalues[x] > self.sigTreshold else "\\textbf{" + format(result.pvalues[x], '.4f') + "}"
+			tableData = np.vstack([tableData, [result.params.keys()[x], format(result.params[x], '.4f'), pvalue(x)]])
 
 		if (self.tables):
 			tg.createTable(tableData, file=open(self.args.destination + "/" +"multi-regression-table.txt", 'w'), caption="Multivariate regression")
@@ -361,7 +370,7 @@ if __name__ == "__main__":
 	parser.add_argument("--png" , help="Use image type png", dest="png", action="store_true")
 	parser.add_argument("--eps" , help="Use image type eps", dest="eps", action="store_true")
 	parser.add_argument("--pdf" , help="Use image type pdf", dest="pdf", action="store_true")
-	parser.add_argument("--osl" , help="Use OSL instead of logit", dest="osl", action="store_true")
+	parser.add_argument("--ols" , help="Use ols instead of logit", dest="ols", action="store_true")
 	parser.add_argument("-t", "--train", help="The training size", dest="trainSize", type=float)
 	args = parser.parse_args()
 

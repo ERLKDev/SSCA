@@ -3,6 +3,34 @@ import numpy as np
 import math
 import pandas as pd
 import statsmodels.api as sm
+import statsmodels.formula.api as smf
+from sklearn import linear_model
+
+def forward_selected(data, response):
+    remaining = set(data.columns)
+    remaining.remove(response)
+    selected = []
+    current_score, best_new_score = 0.0, 0.0
+    while remaining and current_score == best_new_score:
+        scores_with_candidates = []
+        for candidate in remaining:
+            formula = "{} ~ {} + 1".format(response,
+                                           ' + '.join(selected + [candidate]))
+            score = smf.logit(formula, data).fit().prsquared
+            scores_with_candidates.append((score, candidate))
+        scores_with_candidates.sort()
+        best_new_score, best_candidate = scores_with_candidates.pop()
+        if current_score < best_new_score:
+            remaining.remove(best_candidate)
+            selected.append(best_candidate)
+            current_score = best_new_score
+    formula = "{} ~ {} + 1".format(response,
+                                   ' + '.join(selected))
+
+    print formula
+    model = smf.logit(formula, data).fit()
+    return model
+
 
 def correctness(predTable):
 	if (predTable[0, 1] + predTable[1, 1]) > 0.0:
@@ -85,7 +113,7 @@ def logitRegression(x, y):
 	return module.fit()
 
 
-def oslRegression(x, y):
+def olsRegression(x, y):
 	module = sm.OLS(y, sm.add_constant(x))
 	return module.fit()
 
