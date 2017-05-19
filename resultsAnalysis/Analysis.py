@@ -84,31 +84,44 @@ class Analysis:
 
 		df = df.copy()
 		# df = df.groupby(['path']).apply(self.wavg)
-		df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+
+		if self.args.osl:
+			df[self.dependentVar] = df[self.dependentKey]
+		else:
+			df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+
+		if self.args.trainSize is not None:
+			testSize = int(len(df) * (1.0 - self.args.trainSize))
+			df_test = df.iloc[:testSize, :]
+			df_train = df.iloc[testSize:, :]
+		else:
+			df_test = df
+			df_train = df
 
 		for a in numtypes:
 			if self.args.store:
 				sys.stdout = open(self.args.destination + "/" + a + "/" +"output.txt", 'w')
 
-
-			result = reg.logitRegression(df[a], df[self.dependentVar])
+			if self.args.osl:
+				result = reg.oslRegression(df_train[a], df_train[self.dependentVar])
+			else:
+				result = reg.logitRegression(df_train[a], df_train[self.dependentVar])
 
 			print result.summary()
 			print ""
-			reg.printResultMatrix(result, df, a, self.dependentKey, self.dependentVar, threshold=0.5)
+			reg.printResultMatrix(result, df_test, a, self.dependentKey, self.dependentVar, threshold=0.5)
 			print "\n\n"
 
-			predTable = reg.genPredTable(result, df, a, self.dependentKey, self.dependentVar, threshold=0.5)
+			predTable = reg.genPredTable(result, df_test, a, self.dependentKey, self.dependentVar, threshold=0.5)
 			comp = reg.completeness(predTable.astype(float))
 			corr = reg.correctness(predTable.astype(float))
 
 			tableData = np.vstack([tableData, [a, format(result.params[0], '.4f'), format(result.params[1], '.4f'), 
-				format(result.pvalues[1], '.4f'), format(result.prsquared, '.4f'), format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]])
+				format(result.pvalues[1], '.4f'), format(result.rsquared if self.args.osl else result.prsquared, '.4f'), format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]])
 
 
-
-			fig, ax = reg.plotLogisticRegression(df, result, a, self.dependentVar)
-			fig2, ax2 = reg.createComCorGraph(result, df, a, self.dependentVar, self.dependentVar)
+			fig, ax = reg.plotLogisticRegression(df_test, result, a, self.dependentVar)
+			fig2, ax2 = reg.createComCorGraph(result, df_test, a, self.dependentVar, self.dependentVar)
 
 			if (self.args.store):
 				self.storePlt(a, a + "-LogitRegression", fig)
@@ -135,14 +148,27 @@ class Analysis:
 		numtypes = self.getNumTypes(df)
 
 		df = df.copy()
+
 		# df = df.groupby(['path']).apply(self.wavg)
-		df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
-		testSize = int(len(df) * 0.20)
-		df_test = df#.iloc[:testSize, :]
-		df_train = df#.iloc[testSize:, :]
+		if self.args.osl:
+			df[self.dependentVar] = df[self.dependentKey]
+		else:
+			df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
-		result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
+
+		if self.args.trainSize is not None:
+			testSize = int(len(df) * (1.0 - self.args.trainSize))
+			df_test = df.iloc[:testSize, :]
+			df_train = df.iloc[testSize:, :]
+		else:
+			df_test = df
+			df_train = df
+
+		if self.args.osl:
+			result = reg.oslRegression(df_train[numtypes], df_train[self.dependentVar])
+		else:
+			result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
 
 		print result.summary()
 		print ""
@@ -335,6 +361,8 @@ if __name__ == "__main__":
 	parser.add_argument("--png" , help="Use image type png", dest="png", action="store_true")
 	parser.add_argument("--eps" , help="Use image type eps", dest="eps", action="store_true")
 	parser.add_argument("--pdf" , help="Use image type pdf", dest="pdf", action="store_true")
+	parser.add_argument("--osl" , help="Use OSL instead of logit", dest="osl", action="store_true")
+	parser.add_argument("-t", "--train", help="The training size", dest="trainSize", type=float)
 	args = parser.parse_args()
 
 	analysis = Analysis(args)

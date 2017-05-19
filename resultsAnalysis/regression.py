@@ -16,20 +16,18 @@ def completeness(predTable):
 
 
 def genPredTable(result, df, x_label, y_label, dep, threshold=0.5):
-	predTable = result.pred_table(threshold=threshold)
-
 	predictions = map(lambda x: 1 if x > threshold else 0, result.predict(sm.add_constant(df[x_label])))
 	real_pred = np.vstack((df[y_label], df[dep], predictions)).T
 
 	nofaultNofault = len(filter(lambda x: x[1] == 0 and x[2] == 0, real_pred))
-	nofaultFault = len(filter(lambda x: x[1] == 0 and x[2] == 1, real_pred))
-	faultNofault = len(filter(lambda x: x[1] == 1 and x[2] == 0, real_pred))
-	faultFault = len(filter(lambda x: x[1] == 1 and x[2] == 1, real_pred))
+	nofaultFault = len(filter(lambda x: x[1] == 0 and x[2] > 0, real_pred))
+	faultNofault = len(filter(lambda x: x[1] > 0 and x[2] == 0, real_pred))
+	faultFault = len(filter(lambda x: x[1] > 0 and x[2] > 0, real_pred))
 
 
 
-	faultsNofaults = np.asarray(filter(lambda x: x[1] == 1 and x[2] == 0, real_pred))
-	faultsFaults = np.asarray(filter(lambda x: x[1] == 1 and x[2] == 1, real_pred))
+	faultsNofaults = np.asarray(filter(lambda x: x[1] > 0 and x[2] == 0, real_pred))
+	faultsFaults = np.asarray(filter(lambda x: x[1] > 0 and x[2] > 0, real_pred))
 
 	faultsNofaults = sum(faultsNofaults[:, 0]) if len(faultsNofaults > 0) else 0
 	faultsFaults = sum(faultsFaults[:, 0]) if len(faultsFaults > 0) else 0
@@ -40,7 +38,6 @@ def genPredTable(result, df, x_label, y_label, dep, threshold=0.5):
 
 def printResultMatrix(result, df, x_label, y_label, dep, threshold=0.5):
 	predTable = genPredTable(result, df, x_label, y_label, dep, threshold)
-
 
 	print "Predicted\tNo Fault\tFault"
 	print "Actual"
