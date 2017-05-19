@@ -15,8 +15,8 @@ class Analysis:
 
 	def __init__(self, args):
 		self.seperationLine = ''.join(["-" for _ in range(80)]) + "\n"
-		self.dependantKey = "faults"
-		self.dependantVar = "DependantVar"
+		self.dependentKey = "faults"
+		self.dependentVar = "dependentVar"
 		self.faultTreshold = 0.0
 		self.args = args
 		self.standardizing = True #self.args.standardizing
@@ -41,7 +41,7 @@ class Analysis:
 
 
 		# Prints the fault descriptive statistics
-		result = df[df[self.dependantKey] > 0][numtypes].describe()
+		result = df[df[self.dependentKey] > 0][numtypes].describe()
 		print self.seperationLine
 		print "Descriptive statistics faults\n\n"
 		print result
@@ -84,21 +84,21 @@ class Analysis:
 
 		df = df.copy()
 		# df = df.groupby(['path']).apply(self.wavg)
-		df[self.dependantVar] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
 		for a in numtypes:
 			if self.args.store:
 				sys.stdout = open(self.args.destination + "/" + a + "/" +"output.txt", 'w')
 
 
-			result = reg.logitRegression(df[a], df[self.dependantVar])
+			result = reg.logitRegression(df[a], df[self.dependentVar])
 
 			print result.summary()
 			print ""
-			print reg.printResultMatrix(result, df, a, self.dependantKey, self.dependantVar, threshold=0.5)
+			print reg.printResultMatrix(result, df, a, self.dependentKey, self.dependentVar, threshold=0.5)
 			print "\n\n"
 
-			predTable = reg.genPredTable(result, df, a, self.dependantKey, self.dependantVar, threshold=0.5)
+			predTable = reg.genPredTable(result, df, a, self.dependentKey, self.dependentVar, threshold=0.5)
 			comp = reg.completeness(predTable.astype(float))
 			corr = reg.correctness(predTable.astype(float))
 
@@ -107,8 +107,8 @@ class Analysis:
 
 
 
-			fig, ax = reg.plotLogisticRegression(df, result, a, self.dependantVar)
-			fig2, ax2 = reg.createComCorGraph(result, df, a, self.dependantVar, self.dependantVar)
+			fig, ax = reg.plotLogisticRegression(df, result, a, self.dependentVar)
+			fig2, ax2 = reg.createComCorGraph(result, df, a, self.dependentVar, self.dependentVar)
 
 			if (self.args.store):
 				self.storePlt(a, a + "-LogitRegression", fig)
@@ -140,17 +140,17 @@ class Analysis:
 
 		df = df.copy()
 		# df = df.groupby(['path']).apply(self.wavg)
-		df[self.dependantVar] = df[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 		
 		testSize = int(len(df) * 0.20)
 		df_test = df#.iloc[:testSize, :]
 		df_train = df#.iloc[testSize:, :]
 
-		result = reg.logitRegression(df_train[numtypes], df_train[self.dependantVar])
+		result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
 
 		print result.summary()
 		print ""
-		print reg.printResultMatrix(result, df_test, numtypes, self.dependantKey, self.dependantVar, threshold=0.5)
+		print reg.printResultMatrix(result, df_test, numtypes, self.dependentKey, self.dependentVar, threshold=0.5)
 
 		tableData = [["Metric", "Coefficient", "P-value"]]
 		for x in range(len(numtypes) + 1):
@@ -164,7 +164,7 @@ class Analysis:
 			tg.createTable(tableData)
 			print "\n\n"
 
-			predTable = reg.genPredTable(result, df_test, numtypes, self.dependantKey, self.dependantVar, threshold=0.5)
+			predTable = reg.genPredTable(result, df_test, numtypes, self.dependentKey, self.dependentVar, threshold=0.5)
 			comp = reg.completeness(predTable.astype(float))
 			corr = reg.correctness(predTable.astype(float))
 
@@ -177,7 +177,7 @@ class Analysis:
 			print "\n\n"
 			tg.createTable(np.array([["", "Completeness", "Correctness"], ["Multi. reg.", format(comp * 100, '.2f') + "\\%", format(corr * 100, '.2f') + "\\%"]]))
 
-		fig, ax = reg.createComCorGraph(result, df_test, numtypes, self.dependantKey, self.dependantVar)
+		fig, ax = reg.createComCorGraph(result, df_test, numtypes, self.dependentKey, self.dependentVar)
 
 		if (self.args.store):
 			self.storePlt("", "LogitRegressionCompCorr", fig)
@@ -192,8 +192,8 @@ class Analysis:
 	def wavg(self, group):
 		r = []
 		for x in group.keys():
-			if str(x) == self.dependantKey:
-				r.append(group[self.dependantKey].sum())
+			if str(x) == self.dependentKey:
+				r.append(group[self.dependentKey].sum())
 			elif x == "path":
 				r.append(group[x])
 			else:
@@ -207,9 +207,9 @@ class Analysis:
 		for a in self.getNumTypes(df):
 			df1 = df.copy()
 			binarray = [df1[a].quantile(.0) + (df1[a].quantile(1.0) / float(size)) * x for x in range(size + 1)]
-			df1[self.dependantKey] = df1[self.dependantKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+			df1[self.dependentKey] = df1[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
-			df2 = df1[(df1[self.dependantKey] > 0.0)].copy()
+			df2 = df1[(df1[self.dependentKey] > 0.0)].copy()
 
 			df2["bucket"] = pd.cut(df2[a], bins=binarray)
 			df1["bucket"] = pd.cut(df1[a], bins=binarray)
@@ -253,7 +253,7 @@ class Analysis:
 
 	def getNumTypes(self, df):
 		numtypes = list(df.select_dtypes(include=['float64', 'int64', 'int', 'float']).keys())
-		numtypes.remove(self.dependantKey)
+		numtypes.remove(self.dependentKey)
 		return numtypes
 
 
@@ -275,7 +275,7 @@ class Analysis:
 
 		# self.dfTotal = df
 		# df = df.sample(frac=1)
-		# df = pd.concat([df[df[self.dependantKey] == 0].sample(n=int(len(df[df[self.dependantKey] == 0]) * 1.0)), df[df[self.dependantKey] > 0]], ignore_index=True)
+		# df = pd.concat([df[df[self.dependentKey] == 0].sample(n=int(len(df[df[self.dependentKey] == 0]) * 1.0)), df[df[self.dependentKey] > 0]], ignore_index=True)
 		df = df.reindex(np.random.permutation(df.index))
 
 		if (self.args.store):
@@ -314,10 +314,10 @@ class Analysis:
 				print "Cross validation --" + x + "\n\n"
 
 				numtypes = self.getNumTypes(df)
-				print reg.printResultMatrix(result, df, numtypes, self.dependantKey, threshold=0.5)
+				print reg.printResultMatrix(result, df, numtypes, self.dependentKey, threshold=0.5)
 				print "\n\n"
 
-				fig, ax = reg.createComCorGraph(result, df, numtypes, self.dependantKey)
+				fig, ax = reg.createComCorGraph(result, df, numtypes, self.dependentKey)
 
 				if (self.args.store):
 					self.storePlt("", x + "-CrossLogitRegressionCompCorr", fig)
