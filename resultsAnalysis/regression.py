@@ -10,47 +10,55 @@ def correctness(predTable):
 	return 0.0
 
 def completeness(predTable):
-	if (predTable[1, 0] + predTable[1, 1]) > 0.0:
-		return predTable[1, 1] / (predTable[1, 0] + predTable[1, 1])
+	if (predTable[2, 0] + predTable[2, 1]) > 0.0:
+		return predTable[2, 1] / (predTable[2, 0] + predTable[2, 1])
 	return 0.0
 
 
-def genPredTable(result, df, x_label, y_label, threshold=0.5):
+def genPredTable(result, df, x_label, y_label, dep, threshold=0.5):
 	predTable = result.pred_table(threshold=threshold)
 
 	predictions = map(lambda x: 1 if x > threshold else 0, result.predict(sm.add_constant(df[x_label])))
-	real_pred = np.vstack((df[y_label], predictions)).T
+	real_pred = np.vstack((df[y_label], df[dep], predictions)).T
 
-	nofaultNofault = len(filter(lambda x: x[0] == 0 and x[1] == 0, real_pred))
-	nofaultFault = len(filter(lambda x: x[0] == 0 and x[1] == 1, real_pred))
-	faultNofault = len(filter(lambda x: x[0] == 1 and x[1] == 0, real_pred))
-	faultFault = len(filter(lambda x: x[0] == 1 and x[1] == 1, real_pred))
+	nofaultNofault = len(filter(lambda x: x[1] == 0 and x[2] == 0, real_pred))
+	nofaultFault = len(filter(lambda x: x[1] == 0 and x[2] == 1, real_pred))
+	faultNofault = len(filter(lambda x: x[1] == 1 and x[2] == 0, real_pred))
+	faultFault = len(filter(lambda x: x[1] == 1 and x[2] == 1, real_pred))
 
-	predTable = np.asarray([[nofaultNofault, nofaultFault], [faultNofault, faultFault]])
+
+
+	faultsNofaults = np.asarray(filter(lambda x: x[1] == 1 and x[2] == 0, real_pred))
+	faultsFaults = np.asarray(filter(lambda x: x[1] == 1 and x[2] == 1, real_pred))
+
+	faultsNofaults = sum(faultsNofaults[:, 0]) if len(faultsNofaults > 0) else 0
+	faultsFaults = sum(faultsFaults[:, 0]) if len(faultsFaults > 0) else 0
+
+	predTable = np.asarray([[nofaultNofault, nofaultFault], [faultNofault, faultFault], [faultsNofaults, faultsFaults]])
 	return predTable
 	
 
-def printResultMatrix(result, df, x_label, y_label, threshold=0.5):
-	predTable = genPredTable(result, df, x_label, y_label, threshold)
+def printResultMatrix(result, df, x_label, y_label, dep, threshold=0.5):
+	predTable = genPredTable(result, df, x_label, y_label, dep, threshold)
 
 
 	print "Predicted\tNo Fault\tFault"
 	print "Actual"
 	print "No Fault\t{}\t\t{}".format(predTable[0, 0], predTable[0, 1])
-	print "Fault\t\t{}\t\t{}".format(predTable[1, 0], predTable[1, 1])
+	print "Fault\t\t{} ({})\t\t{} ({})".format(predTable[1, 0], predTable[2, 0], predTable[1, 1], predTable[2, 1])
 	print ""
 	print "Completeness: {}".format(completeness(predTable.astype(float)))
 	print "Correctness: {}".format(correctness(predTable.astype(float)))
 	print ""
 
-def createComCorGraph(result, df, x_label, y_label):
+def createComCorGraph(result, df, x_label, y_label, dep):
 	fig, ax = plt.subplots()
 	xpts = np.linspace(0, 1, 100)
 
 	comp = []
 	corr = []
 	for x in xpts:
-		predTable = genPredTable(result, df, x_label, y_label, x)
+		predTable = genPredTable(result, df, x_label, y_label, dep, x)
 		comp.append(completeness(predTable.astype(float)))
 		corr.append(correctness(predTable.astype(float)))
 
