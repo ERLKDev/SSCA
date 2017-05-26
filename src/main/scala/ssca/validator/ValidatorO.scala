@@ -17,16 +17,12 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
   private var totalCount = 0
 
   def run(): Unit = {
-    totalCount = 0
-
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
+
     val faultyClasses = instanceIds.par.map(x => runInstance(x, repoInfo)).foldLeft(List[String]())((a, b) => a ::: b)
 
-
-    println("Start init repo")
     val repo = new Repo(repoUser, repoName, repoPath + "0", repoInfo)
     println("Done loading repo")
-
 
     val an = new Analyser(createMetrics(), repoPath + "0", instanceThreads)
     println("Done init analyser")
@@ -35,6 +31,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     an.refresh()
 
     val results = an.analyse()
+
 
     val tmpOutput = results.foldLeft(List[String]()){
       (r, y) =>
@@ -47,6 +44,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
             }
         }
     }
+
     val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
     writeFullOutput(output)
@@ -59,7 +57,6 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     val instancePath = repoPath + id
 
     /* Init the repo for the instance */
-    println("Start init repo: " + id)
     val repo = new Repo(repoUser, repoName, instancePath, repoInfo)
     println("Done loading repo: " + id)
 
@@ -81,7 +78,6 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         /* Commit to previous commit. */
         repo.checkoutPreviousCommit(x.commit)
         an.refresh()
-
 
         /* Get the result. */
         val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
