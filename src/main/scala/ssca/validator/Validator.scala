@@ -101,7 +101,7 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     */
   private def functionHeaders: List[String] = {
     val (_, funHeader) = metricsHeader()
-    funHeader.map("functionAvr" + _.capitalize) ::: funHeader.map("functionSum" + _.capitalize)
+    funHeader.map("functionAvr" + _.capitalize) ::: funHeader.map("functionSum" + _.capitalize) ::: funHeader.map("functionMax" + _.capitalize)
   }
 
   /**

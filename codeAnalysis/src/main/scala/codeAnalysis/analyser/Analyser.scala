@@ -17,6 +17,8 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
   private var projectFiles: List[File] = List()
   private var projectContext: ProjectContext = _
 
+  private val compilers: List[CompilerS] = List.fill(threads)(new CompilerS)
+
   /* Always refresh the context on init*/
   refresh()
 
@@ -44,7 +46,7 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     val chunks = paths.grouped(math.ceil(paths.length.toDouble / (if (threads < paths.length) threads else paths.length)).toInt).toList
     val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
-        val metricRunner = new MetricRunner(comp, metrics, projectContext)
+        val metricRunner = new MetricRunner(compilers(i), metrics, projectContext)
 
         metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
@@ -84,7 +86,8 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     * Function to close the metric analysis
     */
   def close(): Unit = {
-    comp.global.askShutdown()
+    compilers.foreach(x => x.global.askShutdown())
+    //comp.global.askShutdown()
   }
 }
 

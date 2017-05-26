@@ -27,7 +27,8 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
   def toCSV(headerSize: Int): String = {
     val norm = normalize()
     val g = norm.metrics
-    val metricString = norm.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(norm.functions).map(_.toCsv) ::: sum(norm.functions).map(_.toCsv)
+    val metricString =
+      norm.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(norm.functions).map(_.toCsv) ::: sum(norm.functions).map(_.toCsv) ::: max(norm.functions).map(_.toCsv)
 
     norm.position.source.path + "|" + norm.name + "%{" + norm.objectType + "}," +  fillCsvLine(metricString, headerSize).mkString(",")
   }
@@ -44,5 +45,10 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
   def sum(functions: List[FunctionResult]) : List[MetricResult] = {
     functions.foldLeft(List[List[MetricResult]]())((a, b) => b.metrics.sortWith(_.metricName < _.metricName) :: a)
       .transpose.map(x => new MetricResult(position, name, "functionSum" + x.head.metricName.capitalize, x.map(_.value.toDouble).sum))
+  }
+
+  def max(functions: List[FunctionResult]) : List[MetricResult] = {
+    functions.foldLeft(List[List[MetricResult]]())((a, b) => b.metrics.sortWith(_.metricName < _.metricName) :: a)
+      .transpose.map(x => new MetricResult(position, name, "functionSum" + x.head.metricName.capitalize, x.map(_.value.toDouble).max))
   }
 }
