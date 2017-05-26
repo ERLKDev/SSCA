@@ -15,6 +15,11 @@ import scala.tools.nsc.reporters.ConsoleReporter
   * Created by erikl on 4/24/2017.
   */
 class CompilerS {
+  val treeSyntaxUtil: TreeSyntaxUtil = new TreeSyntaxUtil(this)
+
+  /**
+    * Initializes the standard scala compiler.
+    */
   lazy val global: Global = {
 
     val settings = new Settings
@@ -30,7 +35,6 @@ class CompilerS {
     global
   }
 
-  val treeSyntaxUtil: TreeSyntaxUtil = new TreeSyntaxUtil(this)
 
   /**
     * Function to get the ast tree from a file
@@ -52,6 +56,7 @@ class CompilerS {
     }
   }
 
+
   /**
     * Function to get the ast tree from a file
     *
@@ -61,6 +66,7 @@ class CompilerS {
   def treeFromFile(path: String): AST = {
     treeFromFile(new File(path))
   }
+
 
   /**
     * Function to get the ast tree from a file
@@ -77,7 +83,7 @@ class CompilerS {
       val bfs = new BatchSourceFile(code, code.toCharArray)
       treeFromFile(bfs)
     }catch {
-      case _ =>
+      case _: Throwable =>
         null
     }
 

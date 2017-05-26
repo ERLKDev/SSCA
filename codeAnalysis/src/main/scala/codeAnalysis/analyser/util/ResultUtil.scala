@@ -13,63 +13,12 @@ import scala.tools.nsc.util
   */
 trait ResultUtil {
 
-  def removeOldResults(results: List[ResultUnit], files: List[File]): List[ResultUnit] = results match {
-    case Nil =>
-      List()
-    case x::tail =>
-      x match {
-        case y: FileResult =>
-          if (files.map(_.getPath).contains(y.position.source.path))
-            x::removeOldResults(tail, files)
-          else
-            removeOldResults(tail, files)
-        case _ =>
-          removeOldResults(tail, files)
-      }
-  }
-
-  def addResults(results: List[ResultUnit], newResults: List[ResultUnit]): List[ResultUnit] = {
-    def removeOld(results: List[ResultUnit]): List[ResultUnit] = results match {
-      case Nil =>
-        List()
-      case x::tail =>
-        if (newResults.exists(y => y.position.source.path == x.position.source.path))
-          removeOld(tail)
-        else
-          x::removeOld(tail)
-    }
-    removeOld(results) ::: newResults
-  }
-
-  def getObjects(results: List[Result]): List[ObjectResult] = {
-    def recursive(resultList: List[Result]): List[ObjectResult] = {
-      resultList.foldLeft(List[ObjectResult]())((a, b) => b match {
-        case x: ObjectResult =>
-          a ::: List(x) ::: recursive(x.results.toList)
-        case _ =>
-          a
-      })
-    }
-
-    recursive(results)
-  }
-
-  def getFunctions(results: List[Result]): List[FunctionResult] = {
-    def recursive(resultList: List[Result]): List[FunctionResult] = {
-      resultList.foldLeft(List[FunctionResult]())((a, b) => b match {
-        case x: FunctionResult =>
-          a ::: List(x) ::: recursive(x.results.toList)
-        case x: ObjectResult =>
-          a
-        case _ =>
-          a
-      })
-    }
-
-    recursive(results)
-  }
-
-
+  /**
+    * Fills the csv line with tailing zeros if the line is of a shorter length
+    * @param line
+    * @param size
+    * @return
+    */
   def fillCsvLine(line: List[String], size: Int) : List[String] = {
     if (size == 0 || line.length >= size)
       return line
@@ -77,6 +26,14 @@ trait ResultUtil {
     fillCsvLine(line, size - 1) ::: List("0")
   }
 
+  /**
+    * Creates a position
+    *
+    * @param path the file path
+    * @param startLine the start line of the node
+    * @param stopLine the stop line of the node
+    * @return
+    */
   def createPosition(path: String, startLine: Int, stopLine: Int): RangePosition = {
     def getOffsetFromLine(code: String, line: Int, incLast: Boolean): Int = {
       val codeLines = code.split("\n").toList

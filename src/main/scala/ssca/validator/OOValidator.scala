@@ -100,7 +100,7 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
     println("Done loading repo")
 
 
-    val an = new Analyser(createMetrics(), repoPath + "0", instanceThreads, false)
+    val an = new Analyser(createMetrics(), repoPath + "0", instanceThreads)
     println("Done init analyser")
 
     repo.checkoutHead()
@@ -139,7 +139,7 @@ class OOValidator(repoUser: String, repoName: String, repoPath: String, instance
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
-    val an = new Analyser(createMetrics(), instancePath, instanceThreads, true)
+    val an = new Analyser(createMetrics(), instancePath, instanceThreads)
     println("Done init codeAnalysis.analyser: " + id)
 
     /* Get the faults and select the correct chunk. */

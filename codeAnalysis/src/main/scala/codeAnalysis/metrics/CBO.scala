@@ -49,14 +49,14 @@ class CBO extends ObjectMetric with SourceCodeUtil{
     }
 
 
-    getFilesOccurrence(projectContext.getFiles, tree.name).foldLeft(List[String]()){
+    getFilesOccurrence(getContext.getFiles, tree.name).foldLeft(List[String]()){
       (a, b) =>
-        val c = if (projectContext.isCached(b)) projectContext.getCached(b).get else projectContext.compiler.treeFromFile(b)
+        val c = if (getContext.isCached(b)) getContext.getCached(b).get else getContext.compiler.treeFromFile(b)
         if (c == null) {
           a
         }else {
-          projectContext.addFileToCache(b)
-          projectContext.addPreCompiledFile(b, c)
+          getContext.addFileToCache(b)
+          getContext.addPreCompiledFile(b, c)
           a ::: recursive(c)
         }
     }

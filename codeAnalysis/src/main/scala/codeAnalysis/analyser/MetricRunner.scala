@@ -27,24 +27,8 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
         tree.children.foreach(x => traverse(x, parent))
         parent
 
-      case node: ObjectDefinition =>
+      case node: Module =>
         val result = new ObjectResult(node.pos, node.name, ObjectType.ObjectT)
-        result.addResult(executeObjectMetrics(node))
-        tree.children.foreach(x => traverse(x, result))
-
-        parent.addResult(result)
-        parent
-
-      case node: ClassDefinition=>
-        val result = new ObjectResult(node.pos, node.name, ObjectType.ClassT)
-        result.addResult(executeObjectMetrics(node))
-        tree.children.foreach(x => traverse(x, result))
-
-        parent.addResult(result)
-        parent
-
-      case node: TraitDefinition=>
-        val result = new ObjectResult(node.pos, node.name, ObjectType.TraitT)
         result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
@@ -70,12 +54,12 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
     }
 
     /* Start traversal*/
-    val a = if (context.isCached(file)) context.getCached(file).get else compiler.treeFromFile(file)
-    if (a == null) {
+    val cachedFile = if (context.isCached(file)) context.getCached(file).get else compiler.treeFromFile(file)
+    if (cachedFile == null) {
       null
     }else {
-      context.addPreCompiledFile(file, a)
-      traverse(a, null)
+      context.addPreCompiledFile(file, cachedFile)
+      traverse(cachedFile, null)
     }
   }
 
@@ -91,7 +75,13 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
   }
 
 
-  /* Function that is called to execute the object codeAnalysis.metrics. */
+  /**
+    * Function that is called when a module is found
+    * This function runs the module metrics
+    *
+    * @param tree
+    * @return
+    */
   private def executeObjectMetrics(tree: AST): List[MetricResult] ={
     val code = getOriginalSourceCode(tree)
     if (code == null)
@@ -115,7 +105,12 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
     }
   }
 
-  /* Function that is called to execute the function codeAnalysis.metrics. */
+  /**
+    * Function that is called when a function is found
+    * This function runs the function metrics
+    * @param tree
+    * @return
+    */
   private def executeFunctionMetrics(tree: FunctionDef): List[MetricResult] = {
     val code = getOriginalSourceCode(tree)
     if (code == null)

@@ -111,6 +111,12 @@ class TreeUtil(val compiler: CompilerS){
   }
 
 
+  /**
+    * Gets the parents of a node
+    *
+    * @param x the symbol of the node
+    * @return
+    */
   def getParents(x: Symbol) : List[Parent] = {
     def recursive(y: Symbol) : List[Parent] = {
       val name = getPackage(y) + y.nameString

@@ -100,7 +100,7 @@ class ValidatorNB(repoUser: String, repoName: String, repoPath: String, instance
     println("Done loading repo last phase")
 
     /* Init the analyser for the instance */
-    val an = new Analyser(createMetrics(), repoPath + 0, instanceThreads, false)
+    val an = new Analyser(createMetrics(), repoPath + 0, instanceThreads)
     println("Done init analyser last phase")
 
     println("analyse")
@@ -126,7 +126,7 @@ class ValidatorNB(repoUser: String, repoName: String, repoPath: String, instance
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
-    val an = new Analyser(createMetrics(), instancePath, instanceThreads, false)
+    val an = new Analyser(createMetrics(), instancePath, instanceThreads)
     println("Done init analyser: " + id)
 
     /* Get the faults and select the correct chunk. */

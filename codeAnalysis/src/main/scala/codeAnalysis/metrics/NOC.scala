@@ -18,12 +18,12 @@ class NOC extends ObjectMetric with SourceCodeUtil{
   }
 
   override def run(tree: ClassDefinition, code: List[String]): List[MetricResult] = {
-    val noc = hasChildren(getFilesOccurrence(projectContext.getFiles, tree.name), tree.name, tree.pack)
+    val noc = hasChildren(getFilesOccurrence(getContext.getFiles, tree.name), tree.name, tree.pack)
     List(new MetricResult(tree.pos, tree.name, "NOC", noc))
   }
 
   override def run(tree: TraitDefinition, code: List[String]): List[MetricResult] = {
-    val noc = hasChildren(getFilesOccurrence(projectContext.getFiles, tree.name), tree.name, tree.pack)
+    val noc = hasChildren(getFilesOccurrence(getContext.getFiles, tree.name), tree.name, tree.pack)
     List(new MetricResult(tree.pos, tree.name, "NOC", noc))
   }
 
@@ -54,12 +54,12 @@ class NOC extends ObjectMetric with SourceCodeUtil{
 
     possibleFiles.foldLeft(0){
       (a, b) =>
-        val c = if (projectContext.isCached(b)) projectContext.getCached(b).get else projectContext.compiler.treeFromFile(b)
+        val c = if (getContext.isCached(b)) getContext.getCached(b).get else getContext.compiler.treeFromFile(b)
         if (c == null) {
           a
         }else {
-          projectContext.addFileToCache(b)
-          projectContext.addPreCompiledFile(b, c)
+          getContext.addFileToCache(b)
+          getContext.addPreCompiledFile(b, c)
           a + recursive(c)
         }
     }
