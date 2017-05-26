@@ -34,7 +34,7 @@ trait FunctionalUtil {
   }
 
   /**
-    * Counts the ammount of side effects in a tree (var's)
+    * Counts the amount of side effects in a tree (var's)
     *
     * @param tree the ast
     * @return
