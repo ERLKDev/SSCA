@@ -6,6 +6,8 @@ import codeAnalysis.analyser.AST._
   * Created by Erik on 14-4-2017.
   */
 trait FunctionalUtil {
+  private val functionalFuncs = List("foldLeft", "foldRight")
+
   /**
     * Checks whether the function is recursive or not
     *
@@ -42,5 +44,34 @@ trait FunctionalUtil {
       1
     case _ =>
       tree.children.foldLeft(0)((a, b) => a + countSideEffects(b))
+  }
+
+
+  /**
+    * Checks if a function is nested
+    * @param tree
+    * @return
+    */
+  def isNested(tree: FunctionDef): Boolean = {
+    tree.nested
+  }
+
+  /**
+    * Counts the number of functional function calls
+    * @param tree
+    * @return
+    */
+  def countFunctionalFuncCalls(tree: AST): Int = tree match {
+    case node: FunctionCall =>
+      if (functionalFuncs.contains(node.name))
+        tree.children.foldLeft(1)((a, b) => a + countFunctionalFuncCalls(b))
+      else
+        tree.children.foldLeft(0)((a, b) => a + countFunctionalFuncCalls(b))
+    case _ =>
+      tree.children.foldLeft(0)((a, b) => a + countFunctionalFuncCalls(b))
+  }
+
+  def testB(op: () => Unit): Unit = {
+
   }
 }

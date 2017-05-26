@@ -9,10 +9,10 @@ import main.scala.analyser.Analyser
 object Main {
 
   def main (args: Array[String] ): Unit = {
-    val a = "C:\\tmp\\gitAkkaAkka1\\akka-testkit\\src\\main\\scala\\akka\\testkit\\javadsl\\TestKit.scala"
+    val a = "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis\\src\\main\\scala\\codeAnalysis\\Utils\\FunctionalUtil.scala"
 
-    val metrics = List(new Complex, new WMC, new OutDegree, new PatternSize, new DIT)
-    val an = new Analyser(metrics, "C:\\tmp\\gitAkkaAkka1", 4)
+    val metrics = List(new Complex)
+    val an = new Analyser(metrics, "C:\\Users\\ErikL\\IdeaProjects\\SSCA\\codeAnalysis", 1)
 
     STimer.time("Analyse", println(an.analyse(a)))
 
