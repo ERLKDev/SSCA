@@ -19,9 +19,9 @@ object Main {
 
     val validator = new OOValidator(repoUser, repoName, repoPath, 3, 5, metrics, labels)
 
-    STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
+    //STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
     //STimer.time("Analysis", validator.run(validator.writeHeaders))
-    //STimer.time("Analysis", validator.run())
+    STimer.time("Analysis", validator.run())
 
   }
 }

@@ -1,95 +1,27 @@
 package ssca.validator
 
-import java.io.File
-
 import codeAnalysis.analyser.result.{ObjectResult, ResultUnit}
 import dispatch.Http
-import gitCrawler.{Commit, Fault, Repo, RepoInfo}
+import gitCrawler.{Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
-import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
-
-import scala.concurrent.Lock
-import scala.io.Source
+import main.scala.analyser.metric.Metric
 
 /**
   * Created by erikl on 4/25/2017.
   */
 class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                 instanceThreads: Int, metrics: List[Metric], labels: List[String]) {
+                 instanceThreads: Int, metrics: List[Metric], labels: List[String])
+  extends Validator(repoPath, metrics){
 
-  private val token = loadToken()
 
-  private val outputLock = new Lock
   private val instanceIds: List[Int] = List.range(0, instances)
 
   private val OutputDir = repoPath + "Output"
 
-  createOutputDir()
-
-  private val fullOutput = new Output(OutputDir + "\\fullOutput.csv", true)
-  private val faultOutput = new Output(OutputDir + "\\faultOutput.csv", true)
-
   private var totalCount = 0
   private var outputLines = 0
 
-  private def loadToken(): String = {
-    val tokenFile = Source.fromFile("github.token")
-    val githubToken = tokenFile.getLines.mkString
-    tokenFile.close()
-    githubToken
-  }
-
-  private def createOutputDir(): Unit = {
-    val outputDir = new File(OutputDir)
-    outputDir.mkdirs()
-  }
-
-  private def metricsHeader(): (List[String], List[String]) = {
-    val (objHeader, funHeader) = metrics.foldLeft((List[String](), List[String]())){
-      (a, b) =>
-        a match {
-          case (i, k) =>
-            if (b.isInstanceOf[ObjectMetric] && b.isInstanceOf[FunctionMetric])
-              (i:::b.asInstanceOf[ObjectMetric].objectHeader, k:::b.asInstanceOf[FunctionMetric].functionHeader)
-            else
-              b match {
-                case x: ObjectMetric =>
-                  (i:::x.objectHeader, k)
-                case x: FunctionMetric =>
-                  (i, k:::x.functionHeader)
-              }
-        }
-    }
-
-    (objHeader.sortWith(_ < _), funHeader.sortWith(_ < _))
-  }
-
-  private def getObjectHeaders: List[String] = {
-    val (objHeader, _) = metricsHeader()
-    objHeader
-  }
-
-  private def getFunctionHeaders: List[String] = {
-    val (_, funHeader) = metricsHeader()
-    funHeader.map("functionAvr" + _.capitalize) ::: funHeader.map("functionSum" + _.capitalize)
-  }
-
-  def writeHeaders(): Unit = {
-    val objHeader = getObjectHeaders
-    val funHeader = getFunctionHeaders
-    val header = objHeader:::funHeader
-    fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
-  }
-
-
-  private def createMetrics(): List[Metric] = {
-    metrics.foldLeft(List[Metric]())((a, b) => a ::: List(b.newInstance()))
-  }
-
-
   def run() : Unit = {
-    writeHeaders()
     totalCount = 0
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
@@ -112,13 +44,13 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
     println(results.length + "    " + output.length)
+    writeFullOutput(output)
+
     outputLock.acquire()
-    fullOutput.writeOutput(output)
     outputLines += output.length
     outputLock.release()
 
-    faultOutput.close()
-    fullOutput.close()
+    closeOutputs()
     Http.shutdown()
 
     println("Total output lines: " + outputLines)
@@ -164,11 +96,13 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
         count += 1
 
-        outputLock.acquire()
         if (output._1.nonEmpty)
-          faultOutput.writeOutput(output._1)
+          writeFaultOutput(output._1)
         if (output._2.nonEmpty)
-          fullOutput.writeOutput(output._2)
+          writeFullOutput(output._2)
+
+
+        outputLock.acquire()
         totalCount += 1
         outputLines += output._2.length
         outputLock.release()
@@ -196,9 +130,6 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
 
   def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): (List[String], List[String], List[String]) = {
-    val header: List[String] = getObjectHeaders ::: getFunctionHeaders
-
-
     def recursive(result: ResultUnit) : (List[String], List[String], List[String]) =  {
       val lines = fault.commit.getPatchData(result.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
       result.results.foldLeft((List[String](), List[String](), List[String]())) {
@@ -209,8 +140,8 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
               lines match {
                 case Some(patch) =>
                   if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                    (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(header.length)),
-                      a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(header.length)), obj.objectPath :: a._3)
+                    (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)),
+                      a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)), obj.objectPath :: a._3)
                   } else {
                     (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
                   }
@@ -235,9 +166,6 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
   def objectOutput2(faultyClasses: List[String], results: List[ResultUnit]): List[String] = {
 
-    val header: List[String] = getObjectHeaders ::: getFunctionHeaders
-
-
     def recursive(result: ResultUnit) : List[String] =  {
       result.results.foldLeft(List[String]()) {
         (a, b) =>
@@ -246,7 +174,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
               if (faultyClasses.contains(obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))) {
                 a ::: recursive(obj)
               } else {
-                a ::: List("HEAD," + 0 + "," + obj.toCSV(header.length))::: recursive(obj)
+                a ::: List("HEAD," + 0 + "," + obj.toCSV(headerLength))::: recursive(obj)
               }
             case unit: ResultUnit =>
               a ::: recursive(unit)
