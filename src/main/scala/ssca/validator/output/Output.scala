@@ -6,13 +6,13 @@ import java.io.{File, FileWriter}
   * Created by erikl on 4/21/2017.
   */
 class Output(path: String, reset: Boolean) {
-  private val writer = new FileWriter(path, true)
-
   if(reset) {
     val file = new File(path)
     file.delete()
     file.createNewFile()
   }
+
+  private val writer = new FileWriter(path, true)
 
   /**
     * Writes the output to a file
