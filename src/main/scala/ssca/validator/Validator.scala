@@ -81,6 +81,7 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
         }
     }
 
+    /* Sort headers */
     (objHeader.sortWith(_ < _), funHeader.sortWith(_ < _))
   }
 
@@ -89,7 +90,7 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     *
     * @return
     */
-  private def getObjectHeaders: List[String] = {
+  private def objectHeaders: List[String] = {
     val (objHeader, _) = metricsHeader()
     objHeader
   }
@@ -98,7 +99,7 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     * Get the function headers
     * @return
     */
-  private def getFunctionHeaders: List[String] = {
+  private def functionHeaders: List[String] = {
     val (_, funHeader) = metricsHeader()
     funHeader.map("functionAvr" + _.capitalize) ::: funHeader.map("functionSum" + _.capitalize)
   }
@@ -107,9 +108,8 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     * Writes the headers to a file
     */
   private def writeHeaders(): Unit = {
-    val objHeader = getObjectHeaders
-    val funHeader = getFunctionHeaders
-    val header = objHeader:::funHeader
+    val header = objectHeaders:::functionHeaders
+
     fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
     faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
   }
@@ -119,7 +119,7 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     * @return
     */
   def headerLength: Int = {
-    (getObjectHeaders ::: getFunctionHeaders).length
+    (objectHeaders ::: functionHeaders).length
   }
 
   /**

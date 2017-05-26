@@ -9,8 +9,8 @@ import main.scala.analyser.metric.Metric
 /**
   * Created by erikl on 4/25/2017.
   */
-class OOValidator(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                  instanceThreads: Int, metrics: List[Metric], labels: List[String])
+class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances: Int,
+                 instanceThreads: Int, metrics: List[Metric], labels: List[String])
   extends Validator(repoPath, metrics){
 
   private val instanceIds: List[Int] = List.range(0, instances)
