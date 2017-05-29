@@ -21,7 +21,7 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
   def toCSV(headerSize: Int): String = {
     val metricString = metrics.sortWith(_.metricName < _.metricName).map(_.toCsv)
 
-    position.source.path + "|" + name + "," +  fillCsvLine(metricString, headerSize).mkString(",")
+    position.source.path + "|" + name + "%{function}," +  fillCsvLine(metricString, headerSize).mkString(",")
   }
 
   def functionPath: String = {

@@ -1,6 +1,6 @@
 package ssca.validator
 
-import codeAnalysis.analyser.result.{ObjectResult, ResultUnit}
+import codeAnalysis.analyser.result.{FileResult, ObjectResult, ResultUnit}
 import dispatch.Http
 import gitCrawler.{Commit, Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
@@ -9,8 +9,8 @@ import main.scala.analyser.metric.Metric
 /**
   * Created by erikl on 4/25/2017.
   */
-class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                 instanceThreads: Int, metrics: List[Metric], labels: List[String])
+class ValidatorFileO(repoUser: String, repoName: String, repoPath: String, instances: Int,
+                     instanceThreads: Int, metrics: List[Metric], labels: List[String])
   extends Validator(repoPath, metrics){
 
   private val instanceIds: List[Int] = List.range(0, instances)
@@ -18,7 +18,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
 
   def run(): Unit = {
     /* Writes the headers to the file */
-    writeObjectHeaders()
+    writeFileHeaders()
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
 
@@ -114,19 +114,17 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
       case x::tail =>
         val lines = fault.commit.getPatchData(x.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
         x match {
-          case obj: ObjectResult =>
+          case file: FileResult =>
             lines match {
               case Some(patch) =>
-                if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  obj.objectPath :: recursive(obj.objects) ::: recursive(tail)
+                if (file.includes(patch._1, patch._2) || file.includes(patch._3, patch._4)) {
+                  file.filePath :: recursive(tail)
                 } else {
-                  recursive(obj.objects) ::: recursive(tail)
+                  recursive(tail)
                 }
               case _ =>
-                recursive(obj.objects) ::: recursive(tail)
+                recursive(tail)
             }
-          case y: ResultUnit =>
-            recursive(y.objects) ::: recursive(tail)
           case _ =>
             recursive(tail)
         }
@@ -142,11 +140,9 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         List()
       case x::tail =>
         x match {
-          case obj: ObjectResult =>
-            val count = faultyClasses.count(x => x == obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
-            "HEAD," + count + "," + obj.toCSV(headerLength) :: recursive(tail)
-          case y: ResultUnit =>
-            recursive(y.objects) ::: recursive(tail)
+          case file: FileResult =>
+            val count = faultyClasses.count(x => x == file.filePath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+            "HEAD," + count + "," + file.toCSV(headerLength) :: recursive(tail)
           case _ =>
             recursive(tail)
         }
@@ -154,7 +150,8 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     recursive(results)
   }
 
+
   override def headerLength: Int = {
-    objectHeaders.length + functionHeaders.length * 3
+    objectHeaders.length * 3
   }
 }

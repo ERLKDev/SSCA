@@ -87,7 +87,7 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     *
     * @return
     */
-  private def objectHeaders: List[String] = {
+  def objectHeaders: List[String] = {
     val (objHeader, _) = metricsHeader()
     objHeader
   }
@@ -96,16 +96,17 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     * Get the function headers
     * @return
     */
-  private def functionHeaders: List[String] = {
+  def functionHeaders: List[String] = {
     val (_, funHeader) = metricsHeader()
-    funHeader.map("functionAvr" + _.capitalize) ::: funHeader.map("functionSum" + _.capitalize) ::: funHeader.map("functionMax" + _.capitalize)
+    funHeader
   }
 
   /**
     * Writes the headers to a file
     */
-  def writeHeaders(): Unit = {
-    val header = objectHeaders:::functionHeaders
+  def writeObjectHeaders(): Unit = {
+    val funHeader = functionHeaders.map("functionAvr" + _.capitalize) ::: functionHeaders.map("functionSum" + _.capitalize) ::: functionHeaders.map("functionMax" + _.capitalize)
+    val header = objectHeaders:::funHeader
 
     fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
     faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
@@ -115,19 +116,27 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
     * Writes the headers to a file
     */
   def writeFunctionHeaders(): Unit = {
-    val (_, funHeader) = metricsHeader()
+    fullOutput.writeOutput(List("commit,faults,path," + functionHeaders.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path," + functionHeaders.mkString(",")))
+  }
 
-    fullOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
+  /**
+    * Writes the headers to a file
+    */
+  def writeFileHeaders(): Unit = {
+    val funHeader = functionHeaders.map("functionAvr" + _.capitalize) ::: functionHeaders.map("functionSum" + _.capitalize) ::: functionHeaders.map("functionMax" + _.capitalize)
+    val objHeader = objectHeaders.map("objectAvr" + _.capitalize) ::: objectHeaders.map("objectSum" + _.capitalize) ::: objectHeaders.map("objectMax" + _.capitalize)
+    val header = objHeader//:::funHeader
+
+    fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
   }
 
   /**
     * Function that returns the header length
     * @return
     */
-  def headerLength: Int = {
-    (objectHeaders ::: functionHeaders).length
-  }
+  def headerLength: Int
 
   /**
     * Writes to the fault output

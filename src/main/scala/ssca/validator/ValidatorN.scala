@@ -22,6 +22,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
   private var outputLines = 0
 
   def run() : Unit = {
+    writeObjectHeaders()
     totalCount = 0
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
@@ -189,5 +190,10 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
       (r, y) =>
         r ::: recursive(y)
     }
+  }
+
+
+  override def headerLength: Int = {
+    objectHeaders.length + functionHeaders.length * 3
   }
 }

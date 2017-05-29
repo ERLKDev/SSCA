@@ -158,4 +158,8 @@ class ValidatorFunctionO(repoUser: String, repoName: String, repoPath: String, i
     println("Fault percentage: " + counter + "/" + output.length + "(" + counter.toDouble / output.length.toDouble + ")")
     output
   }
+
+  override def headerLength: Int = {
+    functionHeaders.length
+  }
 }
