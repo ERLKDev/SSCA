@@ -10,7 +10,7 @@ import java.util.Scanner;
  * Created by erikl on 4/25/2017.
  */
 public class GitR {
-    public static void runCommand(Path directory, String... command) throws IOException, InterruptedException {
+    public static void runCommand(Path directory, String... command) throws IOException, InterruptedException, AssertionError {
         ProcessBuilder pb = new ProcessBuilder()
                 .command(command)
                 .directory(directory.toFile());

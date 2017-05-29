@@ -21,6 +21,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     writeObjectHeaders()
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
+    println(repoInfo.faults.length)
 
     val faultyClasses = instanceIds.par.map(x => runInstance(x, repoInfo)).foldLeft(List[String]())((a, b) => a ::: b)
 
@@ -69,7 +70,12 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     val res = chunk.foldLeft(List[String]()) {
       (r, x) =>
         /* Commit to previous commit. */
-        repo.checkoutPreviousCommit(x.commit)
+        try {
+          repo.checkoutPreviousCommit(x.commit)
+        }catch {
+          case _: Throwable =>
+            return List()
+        }
         an.refresh()
 
         /* Get the result. */
