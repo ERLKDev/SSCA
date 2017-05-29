@@ -58,6 +58,7 @@ trait FunctionalUtil {
 
   /**
     * Counts the number of functional function calls
+    *
     * @param tree
     * @return
     */
@@ -71,7 +72,12 @@ trait FunctionalUtil {
       tree.children.foldLeft(0)((a, b) => a + countFunctionalFuncCalls(b))
   }
 
-
+  /**
+    * Count the amount of higher order functions in the params or return type of a function
+    *
+    * @param tree the function
+    * @return
+    */
   def countHigherOrderParams(tree: FunctionDef) : Int = {
     def recursive(params: List[Param]) : Int = params match {
       case Nil =>
