@@ -85,17 +85,25 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
           else
             Val(getChildren(x), getRangePos(tree), name, getOwner(x.symbol.owner), x.symbol.isParameter)
         }
-        else if (x.symbol.isMethod) {
+        /*else if (x.symbol.isMethod) {
           if (isFor(x))
             For(getChildren(x), getRangePos(tree))
           else if (isFunctionCall(x)) {
             FunctionCall(getChildren(x), getRangePos(tree), x.symbol.name.toString, getOwner(x.symbol.owner))
           }else
             null
-        }
+        }*/
         else{
           null
         }
+
+      case x: Apply =>
+        if (isFor(x))
+          For(getChildren(x), getRangePos(tree))
+        else if (isFunctionCall(x))
+          FunctionCall(getChildren(x), getRangePos(tree), x.symbol.name.toString, getOwner(x.symbol.owner))
+        else
+          null
       case x: Assign =>
         if (isAssignment(x) && isVal(x.lhs))
           ValAssignment(getChildren(x), getRangePos(tree), x.lhs.symbol.name.toString, getOwner(x.symbol.owner), x.symbol.isParameter)
@@ -266,6 +274,8 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
     */
   def isFunctionCall(tree: Tree): Boolean = tree match {
     case x: Select =>
+      true
+    case x: Apply =>
       true
     case _ =>
       false

@@ -92,4 +92,28 @@ trait FunctionalUtil {
     }
     recursive(tree.params)
   }
+
+  def functionalScore(tree: FunctionDef) : Double = {
+    def count(tree: AST) : Int = tree match {
+      case _ =>
+        tree.children.foldLeft(1)((a,b) => a + count(b))
+    }
+
+    if (countSideEffects(tree) > 0)
+      return 0.0
+
+    val recursiveScore = if (isRecursive(tree)) 0.125 else 0.0
+    val nestedScore = if (isNested(tree)) 0.125 else 0.0
+    val higherOrderScore : Double = 0.125 * countHigherOrderParams(tree).toDouble / (tree.params.length + 1)
+
+    val score = 0.5 + recursiveScore + nestedScore + higherOrderScore + (countFunctionalFuncCalls(tree) / count(tree).toDouble)
+
+    if (score > 1.0)
+      1.0
+    else
+      score
+
+    //0.25 * recursiveScore + 0.25 * nestedScore + 0.25 * higherOrderScore + (countFunctionalFuncCalls(tree) / count(tree).toDouble)
+
+  }
 }
