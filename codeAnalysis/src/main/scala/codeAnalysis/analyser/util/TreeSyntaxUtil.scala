@@ -43,8 +43,17 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         ObjectDefinition(getChildren(x), getRangePos(tree), getParents(x.symbol),getName(x), getObjectPackage(x.symbol), isNested(x))
 
       case x: DefDef =>
-        if (x.symbol.isMethod && x.symbol.isSourceMethod && !x.symbol.isConstructor && !x.symbol.isSetter && !x.symbol.isGetter)
-          FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x))
+        if (x.symbol.isMethod && x.symbol.isSourceMethod && !x.symbol.isConstructor && !x.symbol.isSetter && !x.symbol.isGetter) {
+          val params = x.vparamss.flatten.foldLeft(List[Param]()){
+            (a, b) =>
+              val higher =  (""".*=>.*""".r findFirstIn b.tpt.toString()).nonEmpty
+
+              a ::: List(Param(b.symbol.nameString, b.tpt.toString(), higher))
+          }
+
+
+          FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x), params)
+        }
         else
           null
 

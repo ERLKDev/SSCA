@@ -70,4 +70,20 @@ trait FunctionalUtil {
     case _ =>
       tree.children.foldLeft(0)((a, b) => a + countFunctionalFuncCalls(b))
   }
+
+
+  def countHigherOrderParams(tree: FunctionDef) : Int = {
+    def recursive(params: List[Param]) : Int = params match {
+      case Nil =>
+        0
+      case x :: tail =>
+        if (x.higher)
+          1 + recursive(tail)
+        else
+          0 + recursive(tail)
+      case _ =>
+        0
+    }
+    recursive(tree.params)
+  }
 }

@@ -28,7 +28,7 @@ case class ObjectDefinition(override val children: List[AST], override val pos: 
 
 
 
-case class FunctionDef(override val children: List[AST], override val pos: RangePosition, name: String, owner: String, nested: Boolean, anonymous: Boolean) extends AST(children, pos)
+case class FunctionDef(override val children: List[AST], override val pos: RangePosition, name: String, owner: String, nested: Boolean, anonymous: Boolean, params: List[Param]) extends AST(children, pos)
 
 case class ValAssignment(override val children: List[AST], override val pos: RangePosition, override val name: String, override val owner: String, override val parameter: Boolean)
   extends Value(children, pos, name, owner, parameter)
@@ -77,3 +77,4 @@ case class ClassParent(override val name: String, override val pack: String, ove
 case class TraitParent(override val name: String, override val pack: String, override val parents: List[Parent]) extends Parent(name, pack, parents)
 
 
+case class Param(name: String, typeString: String, higher: Boolean)
