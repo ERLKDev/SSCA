@@ -36,7 +36,7 @@ class ValidatorFileO(repoUser: String, repoName: String, repoPath: String, insta
     val results = an.analyse()
 
 
-    val tmpOutput = getOutput(results, faultyClasses)
+    val tmpOutput = getOutput(results, faultyClasses) //.filter(f => """(akka-http-core\\src)|(akka-http-core\/src)""".r.findFirstIn(f).nonEmpty)
 
     val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
