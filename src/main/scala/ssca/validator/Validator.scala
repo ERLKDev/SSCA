@@ -28,9 +28,6 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
   private val fullOutputLock: Lock = new Lock
   val outputLock: Lock = new Lock
 
-  /* Writes the headers to the file */
-  writeHeaders()
-
   /**
     * Loads the Github token from the token file
     * @return
@@ -107,11 +104,21 @@ abstract class Validator (repoPath: String, metrics: List[Metric]) {
   /**
     * Writes the headers to a file
     */
-  private def writeHeaders(): Unit = {
+  def writeHeaders(): Unit = {
     val header = objectHeaders:::functionHeaders
 
     fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
     faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
+  }
+
+  /**
+    * Writes the headers to a file
+    */
+  def writeFunctionHeaders(): Unit = {
+    val (_, funHeader) = metricsHeader()
+
+    fullOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
+    faultOutput.writeOutput(List("commit,faults,path," + funHeader.mkString(",")))
   }
 
   /**

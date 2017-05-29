@@ -25,6 +25,6 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
   }
 
   def functionPath: String = {
-    position.source.path + "|" + name
+    position.source.path + "|" + name + "$Function"
   }
 }

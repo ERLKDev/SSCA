@@ -1,6 +1,6 @@
 package ssca.validator
 
-import codeAnalysis.analyser.result.{ObjectResult, ResultUnit}
+import codeAnalysis.analyser.result.{FunctionResult, ObjectResult, ResultUnit}
 import dispatch.Http
 import gitCrawler.{Commit, Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
@@ -9,8 +9,8 @@ import main.scala.analyser.metric.Metric
 /**
   * Created by erikl on 4/25/2017.
   */
-class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                 instanceThreads: Int, metrics: List[Metric], labels: List[String])
+class ValidatorFunctionO(repoUser: String, repoName: String, repoPath: String, instances: Int,
+                         instanceThreads: Int, metrics: List[Metric], labels: List[String])
   extends Validator(repoPath, metrics){
 
   private val instanceIds: List[Int] = List.range(0, instances)
@@ -18,7 +18,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
 
   def run(): Unit = {
     /* Writes the headers to the file */
-    writeHeaders()
+    writeFunctionHeaders()
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, "master", repoPath)
 
@@ -76,7 +76,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+        val output = getFaultyFunctions(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
         count += 1
 
@@ -106,7 +106,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
   }
 
 
-  def getFaultyClasses(instancePath: String, fault: Fault, results: List[ResultUnit]): List[String] = {
+  def getFaultyFunctions(instancePath: String, fault: Fault, results: List[ResultUnit]): List[String] = {
 
     def recursive(results: List[ResultUnit]) : List[String] = results match {
       case Nil =>
@@ -114,19 +114,19 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
       case x::tail =>
         val lines = fault.commit.getPatchData(x.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
         x match {
-          case obj: ObjectResult =>
+          case func: FunctionResult =>
             lines match {
               case Some(patch) =>
-                if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  obj.objectPath :: recursive(obj.objects) ::: recursive(tail)
+                if (func.includes(patch._1, patch._2) || func.includes(patch._3, patch._4)) {
+                  func.functionPath :: recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
                 } else {
-                  recursive(obj.objects) ::: recursive(tail)
+                  recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
                 }
               case _ =>
-                recursive(obj.objects) ::: recursive(tail)
+                recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
             }
           case y: ResultUnit =>
-            recursive(y.objects) ::: recursive(tail)
+            recursive(y.functions) ::: recursive(y.objects) ::: recursive(tail)
           case _ =>
             recursive(tail)
         }
@@ -136,21 +136,26 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
   }
 
   def getOutput(results: List[ResultUnit], faultyClasses: List[String]): List[String] = {
-
+    var counter = 0
     def recursive(results: List[ResultUnit]) : List[String] = results match {
       case Nil =>
         List()
       case x::tail =>
         x match {
-          case obj: ObjectResult =>
-            val count = faultyClasses.count(x => x == obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
-            "HEAD," + count + "," + obj.toCSV(headerLength) :: recursive(tail)
+          case func: FunctionResult =>
+            val count = faultyClasses.count(x => x == func.functionPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+            if (count > 0) counter += 1
+            "HEAD," + count + "," + func.toCSV(headerLength) :: recursive(tail)
           case y: ResultUnit =>
-            recursive(y.objects) ::: recursive(tail)
+            recursive(y.functions) ::: recursive(y.objects) ::: recursive(tail)
           case _ =>
             recursive(tail)
         }
     }
-    recursive(results)
+
+    val output = recursive(results)
+    println("Functions found: " + counter + "/" + faultyClasses.distinct.length + "(" + counter.toDouble / faultyClasses.distinct.length.toDouble + ")")
+    println("Fault percentage: " + counter + "/" + output.length + "(" + counter.toDouble / output.length.toDouble + ")")
+    output
   }
 }
