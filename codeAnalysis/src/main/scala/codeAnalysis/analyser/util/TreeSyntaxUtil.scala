@@ -46,13 +46,13 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
         if (x.symbol.isMethod && x.symbol.isSourceMethod && !x.symbol.isConstructor && !x.symbol.isSetter && !x.symbol.isGetter) {
           val params = x.vparamss.flatten.foldLeft(List[Param]()){
             (a, b) =>
-              val higher =  (""".*=>.*""".r findFirstIn b.tpt.toString()).nonEmpty
+              val higher =  isHigherOrder(b.tpt.toString())
 
               a ::: List(Param(b.symbol.nameString, b.tpt.toString(), higher))
           }
+          val higher =  isHigherOrder(x.tpt.toString())
 
-
-          FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x), params)
+          FunctionDef(getChildren(x), getRangePos(tree), getName(x), getOwner(x.symbol.owner), isNested(x), isAnonymousFunction(x), params, x.tpt.toString(), higher)
         }
         else
           null
@@ -422,5 +422,14 @@ class TreeSyntaxUtil(override val compiler: CompilerS) extends TreeUtil(compiler
       true
     case _ =>
       false
+  }
+
+  /**
+    * Checks if valdef is higher order function
+    * @param typeString the type string
+    * @return
+    */
+  def isHigherOrder(typeString: String) : Boolean = {
+    (""".*=>.*""".r findFirstIn typeString).nonEmpty
   }
 }
