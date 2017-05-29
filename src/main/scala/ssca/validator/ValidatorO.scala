@@ -33,17 +33,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     val results = an.analyse()
 
 
-    val tmpOutput = results.foldLeft(List[String]()){
-      (r, y) =>
-        r ::: y.results.foldLeft(List[String]()) {
-          (a, b) =>
-            b match {
-              case obj: ObjectResult =>
-                val count = faultyClasses.count(x => x == obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
-                a ::: List("HEAD," + count + "," + obj.toCSV(headerLength))
-            }
-        }
-    }
+    val tmpOutput = getOutput(results, faultyClasses)
 
     val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
@@ -83,7 +73,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = objectOutput(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+        val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
         count += 1
 
@@ -113,27 +103,51 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
   }
 
 
-  def objectOutput(instancePath: String, fault: Fault, results: List[ResultUnit]): List[String] = {
-    results.foldLeft(List[String]()) {
-      (r, y) =>
-        val lines = fault.commit.getPatchData(y.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
-        val res = y.results.foldLeft(List[String]()) {
-          (a, b) =>
-            b match {
-              case obj: ObjectResult =>
-                lines match {
-                  case Some(patch) =>
-                    if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                      a ::: List(obj.objectPath)
-                    } else {
-                      a
-                    }
-                  case _ =>
-                    a
+  def getFaultyClasses(instancePath: String, fault: Fault, results: List[ResultUnit]): List[String] = {
+
+    def recursive(results: List[ResultUnit]) : List[String] = results match {
+      case Nil =>
+        List()
+      case x::tail =>
+        val lines = fault.commit.getPatchData(x.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
+        x match {
+          case obj: ObjectResult =>
+            lines match {
+              case Some(patch) =>
+                if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
+                  obj.objectPath :: recursive(obj.objects) ::: recursive(tail)
+                } else {
+                  recursive(obj.objects) ::: recursive(tail)
                 }
+              case _ =>
+                recursive(obj.objects) ::: recursive(tail)
             }
+          case y: ResultUnit =>
+            recursive(y.objects) ::: recursive(tail)
+          case _ =>
+            recursive(tail)
         }
-        r:::res
+
     }
+    recursive(results)
+  }
+
+  def getOutput(results: List[ResultUnit], faultyClasses: List[String]): List[String] = {
+
+    def recursive(results: List[ResultUnit]) : List[String] = results match {
+      case Nil =>
+        List()
+      case x::tail =>
+        x match {
+          case obj: ObjectResult =>
+            val count = faultyClasses.count(x => x == obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+            "HEAD," + count + "," + obj.toCSV(headerLength) :: recursive(tail)
+          case y: ResultUnit =>
+            recursive(y.objects) ::: recursive(tail)
+          case _ =>
+            recursive(tail)
+        }
+    }
+    recursive(results)
   }
 }

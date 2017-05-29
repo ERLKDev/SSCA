@@ -26,7 +26,6 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
 
   def toCSV(headerSize: Int): String = {
     val norm = normalize()
-    val g = norm.metrics
     val metricString =
       norm.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(norm.functions).map(_.toCsv) ::: sum(norm.functions).map(_.toCsv) ::: max(norm.functions).map(_.toCsv)
 
