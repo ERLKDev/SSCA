@@ -4,6 +4,8 @@ import dispatch.github.{GhCommit, GhIssue}
 import gitCrawler.util.GitDataBase
 import java.text.SimpleDateFormat
 
+import scala.annotation.tailrec
+
 
 /**
   * Created by erikl on 4/26/2017.
@@ -24,14 +26,19 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
   val faults: List[Fault] = getFaults
 
 
-  def removeDuplicates[T](list: List[T], id: (T) => Any): List[T] = list match {
-    case Nil =>
-      List()
-    case x::tail =>
-      if (tail.exists(y => id(y) == id(x)))
-        removeDuplicates(tail, id)
-      else
-        x :: removeDuplicates(tail, id)
+  def removeDuplicates[T](list: List[T], id: (T) => Any): List[T] = {
+    @tailrec
+    def recursive(list: List[T], result: List[T]) : List[T] = list match {
+      case Nil =>
+        result
+      case x :: tail =>
+        if (tail.exists(y => id(y) == id(x)))
+          recursive(tail, x :: result)
+        else
+          recursive(tail, x :: result)
+    }
+
+    recursive(list, List())
   }
 
 
