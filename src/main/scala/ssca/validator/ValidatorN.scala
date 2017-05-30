@@ -10,7 +10,7 @@ import main.scala.analyser.metric.Metric
   * Created by erikl on 4/25/2017.
   */
 class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                 instanceThreads: Int, metrics: List[Metric], labels: List[String])
+                 instanceThreads: Int, metrics: List[Metric], labels: List[String], branch: String)
   extends Validator(repoPath, metrics){
 
 
@@ -31,7 +31,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
     println("Last phase")
     println("Start init repo last phase")
-    val repo = new Repo(repoUser, repoName, repoPath + 0, repoInfo)
+    val repo = new Repo(repoUser, repoName, repoPath + 0, branch, repoInfo)
     println("Done loading repo last phase")
 
     /* Init the analyser for the instance */
@@ -62,7 +62,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
 
     /* Init the repo for the instance */
     println("Start init repo: " + id)
-    val repo = new Repo(repoUser, repoName, instancePath, repoInfo)
+    val repo = new Repo(repoUser, repoName, instancePath, branch, repoInfo)
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
