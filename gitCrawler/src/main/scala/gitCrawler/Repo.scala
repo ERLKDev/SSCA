@@ -53,6 +53,7 @@ class Repo(userName: String, repoName: String, repoPath: String, branch: String,
     *
     * @param commit the commit
     */
+  @throws( classOf[AssertionError] )
   def checkoutPreviousCommit(commit: Commit): Unit = {
     GitR.runCommand(Paths.get(repoPath), "git", "reset", "--hard")
     GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", commit.sha + "~1")

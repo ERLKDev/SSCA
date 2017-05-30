@@ -21,6 +21,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     writeObjectHeaders()
 
     val repoInfo = new RepoInfo(repoUser, repoName, token, labels, branch, repoPath)
+    println(repoInfo.faults.length)
 
     val faultyClasses = instanceIds.par.map(x => runInstance(x, repoInfo)).foldLeft(List[String]())((a, b) => a ::: b)
 
@@ -72,36 +73,45 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     val res = chunk.foldLeft(List[String]()) {
       (r, x) =>
         /* Commit to previous commit. */
-        repo.checkoutPreviousCommit(x.commit)
-        an.refresh()
+        try {
+          repo.checkoutPreviousCommit(x.commit)
 
-        /* Get the result. */
-        val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
+          an.refresh()
 
-        /* Run output function. */
-        val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+          /* Get the result. */
+          val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
-        count += 1
+          /* Run output function. */
+          val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
 
-        outputLock.acquire()
-        totalCount += 1
-        outputLock.release()
+          count += 1
 
-        val nextSha = {
-          val index = chunk.indexOf(x) + 1
-          if (index < chunk.length)
-            chunk(index).commit.sha
-          else
-            "Last"
+          outputLock.acquire()
+          totalCount += 1
+          outputLock.release()
+
+          val nextSha = {
+            val index = chunk.indexOf(x) + 1
+            if (index < chunk.length)
+              chunk(index).commit.sha
+            else
+              "Last"
+          }
+
+          println(id + ":\t" + count + "/" + chunk.length + "(" + (count * 100) / chunk.length + "%)\t\tTotal: "
+            + totalCount + "/" + faults.length + "(" + (totalCount * 100) / faults.length + "%)\t\t"
+            + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
+
+          prevCommit = x.commit
+          x.unload()
+          r ::: output
+        }catch {
+          case _: Throwable =>
+            outputLock.acquire()
+            totalCount += 1
+            outputLock.release()
+            r
         }
-
-        println(id + ":\t" + count + "/" + chunk.length + "(" + (count * 100) / chunk.length + "%)\t\tTotal: "
-          + totalCount + "/" + faults.length + "(" + (totalCount * 100) / faults.length + "%)\t\t"
-          + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
-
-        prevCommit = x.commit
-        x.unload()
-        r ::: output
     }
     println(id + " Done!")
     an.close()
