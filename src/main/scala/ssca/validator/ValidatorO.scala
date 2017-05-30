@@ -60,6 +60,9 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
 
     /* Get the faults and select the correct chunk. */
     val faults = repoInfo.faults
+    if (faults.length <= id)
+      return List()
+
     val chunk = faults.grouped(math.ceil(faults.length.toDouble / instances).toInt).toList(id)
 
     var count = 0
