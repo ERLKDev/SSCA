@@ -10,7 +10,7 @@ import main.scala.analyser.metric.Metric
   * Created by erikl on 4/25/2017.
   */
 class ValidatorFunctionO(repoUser: String, repoName: String, repoPath: String, instances: Int,
-                         instanceThreads: Int, metrics: List[Metric], labels: List[String])
+                         instanceThreads: Int, metrics: List[Metric], labels: List[String], branch: String)
   extends Validator(repoPath, metrics){
 
   private val instanceIds: List[Int] = List.range(0, instances)
@@ -24,7 +24,7 @@ class ValidatorFunctionO(repoUser: String, repoName: String, repoPath: String, i
 
     val faultyClasses = instanceIds.par.map(x => runInstance(x, repoInfo)).foldLeft(List[String]())((a, b) => a ::: b)
 
-    val repo = new Repo(repoUser, repoName, repoPath + "0", repoInfo)
+    val repo = new Repo(repoUser, repoName, repoPath + "0", branch, repoInfo)
     println("Done loading repo")
 
     val an = new Analyser(createMetrics(), repoPath + "0", instanceThreads)
@@ -50,7 +50,7 @@ class ValidatorFunctionO(repoUser: String, repoName: String, repoPath: String, i
     val instancePath = repoPath + id
 
     /* Init the repo for the instance */
-    val repo = new Repo(repoUser, repoName, instancePath, repoInfo)
+    val repo = new Repo(repoUser, repoName, instancePath, branch, repoInfo)
     println("Done loading repo: " + id)
 
     /* Init the analyser for the instance */
