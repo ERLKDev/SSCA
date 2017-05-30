@@ -25,7 +25,7 @@ trait ProjectUtil {
     if (System.getenv("testing") == "y")
       listFiles(new File(projectPath))
     else
-      listFiles(new File(projectPath)).filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f.getPath).isEmpty)
+      listFiles(new File(projectPath)).filter(f => """(\\test\\)|(\/test\/)""".r.findFirstIn(f.getPath).isEmpty)
   }
 
   /**
