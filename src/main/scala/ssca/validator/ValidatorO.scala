@@ -75,39 +75,43 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         /* Commit to previous commit. */
         try {
           repo.checkoutPreviousCommit(x.commit)
+
+          an.refresh()
+
+          /* Get the result. */
+          val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
+
+          /* Run output function. */
+          val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+
+          count += 1
+
+          outputLock.acquire()
+          totalCount += 1
+          outputLock.release()
+
+          val nextSha = {
+            val index = chunk.indexOf(x) + 1
+            if (index < chunk.length)
+              chunk(index).commit.sha
+            else
+              "Last"
+          }
+
+          println(id + ":\t" + count + "/" + chunk.length + "(" + (count * 100) / chunk.length + "%)\t\tTotal: "
+            + totalCount + "/" + faults.length + "(" + (totalCount * 100) / faults.length + "%)\t\t"
+            + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
+
+          prevCommit = x.commit
+          x.unload()
+          r ::: output
         }catch {
           case _: Throwable =>
-            return List()
+            outputLock.acquire()
+            totalCount += 1
+            outputLock.release()
+            r
         }
-        an.refresh()
-
-        /* Get the result. */
-        val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
-
-        /* Run output function. */
-        val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
-
-        count += 1
-
-        outputLock.acquire()
-        totalCount += 1
-        outputLock.release()
-
-        val nextSha = {
-          val index = chunk.indexOf(x) + 1
-          if (index < chunk.length)
-            chunk(index).commit.sha
-          else
-            "Last"
-        }
-
-        println(id + ":\t" + count + "/" + chunk.length + "(" + (count * 100) / chunk.length + "%)\t\tTotal: "
-          + totalCount + "/" + faults.length + "(" + (totalCount * 100) / faults.length + "%)\t\t"
-          + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
-
-        prevCommit = x.commit
-        x.unload()
-        r ::: output
     }
     println(id + " Done!")
     an.close()

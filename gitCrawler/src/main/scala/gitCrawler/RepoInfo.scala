@@ -85,11 +85,11 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
   private def getIssueCommits(issue: Issue) : List[Commit] = {
     def recursive(page: Int, number: Int) : List[Commit] = {
       val commitsRes =  GhPullCommit.get_pull_commits(userName, repoName, number,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100"))()
-      val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, info, null)))
-      if (commits.isEmpty || (debug && page > debugTreshhold))
-        commits
+      val commitsF = commitsRes.filter(x => commits.exists(y => y.sha == x.sha)).foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, info, null)))
+      if (commitsF.isEmpty || (debug && page > debugTreshhold))
+        commitsF
       else
-        commits ::: recursive(page + 1, number)
+        commitsF ::: recursive(page + 1, number)
     }
 
 

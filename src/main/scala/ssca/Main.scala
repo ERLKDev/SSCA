@@ -2,7 +2,6 @@ package ssca
 
 import codeAnalysis.STimer
 import codeAnalysis.metrics._
-import dispatch.github.GhIssueComment
 import ssca.validator._
 
 import scala.io.Source
