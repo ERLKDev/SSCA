@@ -4,6 +4,8 @@ import codeAnalysis.analyser.AST._
 import main.scala.analyser.metric.ObjectMetric
 import main.scala.analyser.result.MetricResult
 
+import scala.annotation.tailrec
+
 /**
   * Created by erikl on 5/10/2017.
   */
@@ -76,15 +78,16 @@ class LCOM extends ObjectMetric {
   }
 
   def getPairsFunction(tree: Module, nested: Boolean): List[(FunctionDef, FunctionDef)] = {
-    def recursive(tree1: List[FunctionDef], tree2: List[FunctionDef]) : List[(FunctionDef, FunctionDef)] = (tree1, tree2) match {
+    @tailrec
+    def recursive(tree1: List[FunctionDef], tree2: List[FunctionDef], runningResult: List[(FunctionDef, FunctionDef)] = List()) : List[(FunctionDef, FunctionDef)] = (tree1, tree2) match {
       case (Nil, Nil) =>
-        List()
+        runningResult
       case ((x::Nil), Nil) =>
-        List()
+        runningResult
       case ((x::tail), Nil) =>
-        recursive(tail, tail.tail)
+        recursive(tail, tail.tail, runningResult)
       case (x, (y::tail)) =>
-        (x.head, y) :: recursive(x, tail)
+        recursive(x, tail,(x.head, y) :: runningResult)
     }
 
     val functions = getFunctions(tree, nested)

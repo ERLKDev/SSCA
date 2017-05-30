@@ -22,7 +22,7 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
     */
   private def getCommits: List[Commit] = {
     def recursive(page: Int) : List[Commit] = {
-      val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100"))()
+      val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100", "sha" -> info("branch")))()
       val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, info, null)))
       if (commits.isEmpty || (debug && page > debugTreshhold))
         commits
