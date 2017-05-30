@@ -1,6 +1,9 @@
 package gitCrawler
 
 import dispatch.github.{GhCommit, GhIssue}
+import gitCrawler.util.GitDataBase
+import java.text.SimpleDateFormat
+
 
 /**
   * Created by erikl on 4/26/2017.
@@ -10,9 +13,26 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
   private val debugTreshhold = 15
   private val info = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath, "branch" -> branch)
 
-  val commits: List[Commit] = getCommits
-  val issues: List[Issue] = getIssues
+  private val dataBase = new GitDataBase(info("repoPath"))
+  private val iso8601DateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+
+  val dbCommits: List[Commit] = dataBase.readList[Commit]("Commits").sortBy(x => x.date).reverse
+  val dbIssues: List[Issue] = dataBase.readList[Issue]("Issues").sortBy(x => x.date).reverse
+
+  val commits: List[Commit] = removeDuplicates[Commit]((getCommits ::: dbCommits).distinct.sortBy(x => x.date).reverse, x => x.sha)
+  val issues: List[Issue] = removeDuplicates[Issue]((getIssues ::: dbIssues).sortBy(x => x.date).reverse, x => x.number)
   val faults: List[Fault] = getFaults
+
+
+  def removeDuplicates[T](list: List[T], id: (T) => Any): List[T] = list match {
+    case Nil =>
+      List()
+    case x::tail =>
+      if (tail.exists(y => id(y) == id(x)))
+        removeDuplicates(tail, id)
+      else
+        x :: removeDuplicates(tail, id)
+  }
 
 
   /**
@@ -21,15 +41,33 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
     * @return
     */
   private def getCommits: List[Commit] = {
-    def recursive(page: Int) : List[Commit] = {
-      val commitsRes = GhCommit.get_commits(userName, repoName,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100", "sha" -> info("branch")))()
+    def recursive(page: Int, since: String = null, until: String = null) : List[Commit] = {
+
+      val commitsRes = if (since == null && until != null) {
+        GhCommit.get_commits(userName, repoName, Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100", "sha" -> info("branch"), "until" -> until))()
+      } else if (since != null && until == null) {
+        GhCommit.get_commits(userName, repoName, Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100", "sha" -> info("branch"), "since" -> since))()
+      } else {
+        GhCommit.get_commits(userName, repoName, Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100", "sha" -> info("branch")))()
+      }
+
       val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, info, null)))
-      if (commits.isEmpty || (debug && page > debugTreshhold))
+      dataBase.writeList[Commit]("Commits", commits, x => x.sha)
+      if (commits.isEmpty || (debug && page > debugTreshhold)){
         commits
-      else
-        commits ::: recursive(page + 1)
+      }else{
+        commits ::: recursive(page + 1, since = since, until = until)
+      }
     }
-    recursive(1)
+
+    if (dbCommits.nonEmpty) {
+      val start = iso8601DateFormatter.format(dbCommits.head.date)
+      val stop = iso8601DateFormatter.format(dbCommits.last.date)
+      recursive(1, since = start) ::: recursive(1, until = stop)
+    }
+    else {
+      recursive(1)
+    }
   }
 
 
@@ -39,16 +77,27 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
     * @return
     */
   private def getIssues: List[Issue] = {
-    def recursive(page: Int, label: String) : List[Issue] = {
-      val issuesRes = GhIssue.get_issues(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label))()
+    def recursive(page: Int, label: String, since: String = null) : List[Issue] = {
+      val issuesRes = if (since != null) {
+        GhIssue.get_issues(userName, repoName,
+          Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label, "sort" -> "created_at", "direction" -> "asc", "since" -> since))()
+      }else{
+        GhIssue.get_issues(userName, repoName,
+          Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label, "sort" -> "created_at", "direction" -> "asc"))()
+      }
       val issues = issuesRes.foldLeft(List[Issue]())((a, b) => a ::: List(new Issue(b)))
+      dataBase.writeList[Issue]("Issues", issues, x => x.number.toString)
       if (issues.isEmpty || (debug && page > debugTreshhold))
         issues
       else
-        issues ::: recursive(page + 1, label)
+        issues ::: recursive(page + 1, label, since)
     }
-
-    labels.foldLeft(List[Issue]())((a,b) => a ::: recursive(1, b))
+    if (dbIssues.nonEmpty) {
+      val start = iso8601DateFormatter.format(dbIssues.head.date)
+      labels.foldLeft(List[Issue]())((a,b) => a ::: recursive(1, b, start))
+    }else{
+      labels.foldLeft(List[Issue]())((a,b) => a ::: recursive(1, b))
+    }
   }
 
 
