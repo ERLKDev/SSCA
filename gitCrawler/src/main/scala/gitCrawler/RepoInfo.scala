@@ -1,16 +1,16 @@
 package gitCrawler
 
-import dispatch.github.{GhCommit, GhIssue}
+import dispatch.github.{GhCommit, GhIssue, GhIssueComment, GhPullCommit}
 
 /**
   * Created by erikl on 4/26/2017.
   */
 class RepoInfo(userName: String, repoName: String, token: String, labels: List[String], branch: String, repoPath: String) {
-  private val debug = false
-  private val debugTreshhold = 15
+  private val debug = true
+  private val debugTreshhold = 1
   private val info = Map("user" -> userName, "repo" -> repoName, "token" -> token, "repoPath" -> repoPath, "branch" -> branch)
 
-  val commits: List[Commit] = getCommits
+  lazy val commits: List[Commit] = getCommits
   val issues: List[Issue] = getIssues
   val faults: List[Fault] = getFaults
 
@@ -40,7 +40,7 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
     */
   private def getIssues: List[Issue] = {
     def recursive(page: Int, label: String) : List[Issue] = {
-      val issuesRes = GhIssue.get_issues(userName, repoName,  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all", "labels" -> label))()
+      val issuesRes = GhIssue.get_issues("scala", "bug",  Map("page" -> page.toString, "per_page" -> "100", "access_token" -> token, "state" -> "all"))()
       val issues = issuesRes.foldLeft(List[Issue]())((a, b) => a ::: List(new Issue(b)))
       if (issues.isEmpty || (debug && page > debugTreshhold))
         issues
@@ -58,44 +58,55 @@ class RepoInfo(userName: String, repoName: String, token: String, labels: List[S
     * @return
     */
   private def getFaults: List[Fault] = {
-    commits.filter(isIssue).foldLeft(List[Fault]())((a, b) => a ::: List(new Fault(b, getIssues(b))))
+    issues.filter(isIssue).foldLeft(List[Fault]()){
+      (a, b) =>
+        val commits = getIssueCommits(b)
+        a ::: commits.foldLeft(List[Fault]())((x, y) => x ::: List(new Fault(y, List(b))))
+    }
   }
 
 
-  /**
-    * Checks if a commit fixes a issue or not
-    *
-    * @param commit the commit
-    * @return
-    */
-  private def isIssue(commit: Commit) : Boolean = {
-    val pattern = """(?i)(clos(e[sd]?|ing)|fix(e[sd]|ing)?|resolv(e[sd]?))""".r
 
-    if ((pattern findAllIn commit.message).isEmpty)
-      return false
-
-    if (getIssues(commit).isEmpty)
-      return false
-    true
+  private def isIssue(issue: Issue) : Boolean = {
+    val comments = GhIssueComment.get_comments("scala", "bug", issue.number, Map("access_token" -> token))()
+    comments.exists{
+      x =>
+        ("""github\.com\/scala\/scala\/pull\/(\d*)""".r findAllIn x.body).nonEmpty
+    }
   }
 
 
   /**
     * Gets a list of issues that are mentioned as fixed in the commit
     *
-    * @param commit the commit
+    * @param issue the commit
     * @return
     */
-  private def getIssues(commit: Commit) : List[Issue] = {
-    val pattern = """#(\d+)""".r
-    val possibleNumbers = pattern findAllIn commit.message
+  private def getIssueCommits(issue: Issue) : List[Commit] = {
+    def recursive(page: Int, number: Int) : List[Commit] = {
+      val commitsRes =  GhPullCommit.get_pull_commits(userName, repoName, number,  Map("page" -> page.toString, "access_token" -> token, "per_page" -> "100"))()
+      val commits = commitsRes.foldLeft(List[Commit]())((a, b) => a ::: List(new Commit(b, info, null)))
+      if (commits.isEmpty || (debug && page > debugTreshhold))
+        commits
+      else
+        commits ::: recursive(page + 1, number)
+    }
 
-    if (possibleNumbers.isEmpty)
-      return List[Issue]()
 
-    val numbers = possibleNumbers.matchData.map(x => x.group(1).toInt).toList
+    val comments = GhIssueComment.get_comments("scala", "bug", issue.number, Map("access_token" -> token))()
+    val numbers = comments.foldLeft(List[Int]()){
+      (a, b) =>
+        val matches ="""github\.com\/scala\/scala\/pull\/(\d*)""".r findAllIn b.body
+        if (matches.isEmpty)
+          a
+        else
+          a ::: matches.matchData.map(x => x.group(1).toInt).toList
+    }
 
-    issues.filter(x => numbers contains x.number)
+    numbers.foldLeft(List[Commit]()){
+      (a, b) =>
+        a ::: recursive(1, b)
+    }
   }
 }
 
