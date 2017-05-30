@@ -13,11 +13,10 @@ import main.scala.analyser.util.{ProjectUtil, ResultUtil}
   */
 class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends ProjectUtil with ResultUtil{
 
-  private val comp = new CompilerS
   private var projectFiles: List[File] = List()
-  private var projectContext: ProjectContext = _
 
   private val compilers: List[CompilerS] = List.fill(threads)(new CompilerS)
+  private val metricsList: List[List[Metric]] = List.fill(threads)(metrics.foldLeft(List[Metric]())((a, b) => a ::: List(b.newInstance())))
 
   /* Always refresh the context on init*/
   refresh()
@@ -27,8 +26,6 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     */
   def refresh(): Unit = {
     projectFiles = getProjectFiles(projectPath).toList
-    projectContext = new ProjectContext(comp, projectFiles, true, 50)
-    metrics.foreach(_.init(projectContext))
   }
 
 
@@ -46,7 +43,9 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     val chunks = paths.grouped(math.ceil(paths.length.toDouble / (if (threads < paths.length) threads else paths.length)).toInt).toList
     val result = chunks.zipWithIndex.par.map{
       case (x, i) =>
-        val metricRunner = new MetricRunner(compilers(i), metrics, projectContext)
+        val projectContext = new ProjectContext(compilers(i), projectFiles, true, 50)
+        metricsList(i).foreach(_.init(projectContext))
+        val metricRunner = new MetricRunner(compilers(i), metricsList(i), projectContext)
 
         metricRunner.runFiles(metrics, x)
     }.fold(List[ResultUnit]())((a, b) => a ::: b)
@@ -87,7 +86,6 @@ class Analyser(metrics: List[Metric], projectPath: String, threads: Int) extends
     */
   def close(): Unit = {
     compilers.foreach(x => x.global.askShutdown())
-    comp.global.askShutdown()
   }
 }
 
