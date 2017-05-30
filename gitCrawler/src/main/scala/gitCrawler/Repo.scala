@@ -11,7 +11,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 /**
   * Created by ErikL on 4/11/2017.
   */
-class Repo(userName: String, repoName: String, repoPath: String, repoInfo: RepoInfo) {
+class Repo(userName: String, repoName: String, repoPath: String, branch: String, repoInfo: RepoInfo) {
   val git: Git = initGitRepo
 
   /**
@@ -34,7 +34,7 @@ class Repo(userName: String, repoName: String, repoPath: String, repoInfo: RepoI
     */
   def checkoutHead(): Unit = {
     GitR.runCommand(Paths.get(repoPath), "git", "reset", "--hard")
-    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", "HEAD")
+    GitR.runCommand(Paths.get(repoPath), "git", "checkout", "-f", branch)
   }
 
   /**
