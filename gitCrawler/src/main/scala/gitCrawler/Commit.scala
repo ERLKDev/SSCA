@@ -44,7 +44,7 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     */
   def scalaFiles: List[String] = {
     commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename))
-      .filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined).filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f).isEmpty)
+      .filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined).filter(f => """(\\test\\)|(\/test\/)""".r.findFirstIn(f).isEmpty)
   }
 
 
