@@ -176,7 +176,7 @@ class Analysis:
 
 
 		if self.args.ols:
-			result = reg.olsRegression(df_train[numtypes], df_train[self.dependentVar])
+			result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.ols)
 		else:
 			result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.logit)
 
