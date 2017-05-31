@@ -35,10 +35,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
 
     val results = an.analyse()
 
-
-    val tmpOutput = getOutput(results, faultyClasses)
-
-    val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+    val output = getOutput(results, faultyClasses)
 
     writeFullOutput(output)
 
@@ -79,7 +76,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         val results = an.analyse(x.commit.files.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val output = getFaultyClasses(instancePath, x, results).map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+        val output = getFaultyClasses(instancePath, x, results)
 
         count += 1
 
@@ -146,7 +143,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
       case x::tail =>
         x match {
           case obj: ObjectResult =>
-            val count = faultyClasses.count(x => x == obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+            val count = faultyClasses.count(x => x == obj.objectPath)
             "HEAD," + count + "," + obj.toCSV(headerLength) :: recursive(tail)
           case y: ResultUnit =>
             recursive(y.objects) ::: recursive(tail)

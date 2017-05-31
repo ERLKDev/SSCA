@@ -29,11 +29,11 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
     val metricString =
       norm.metrics.sortWith(_.metricName < _.metricName).map(_.toCsv) ::: avr(norm.functions).map(_.toCsv) ::: sum(norm.functions).map(_.toCsv) ::: max(norm.functions).map(_.toCsv)
 
-    norm.position.source.path + "|" + norm.name + "%{" + norm.objectType + "}," +  fillCsvLine(metricString, headerSize).mkString(",")
+    objectPath+ "," +  fillCsvLine(metricString, headerSize).mkString(",")
   }
 
   def objectPath: String = {
-    position.source.path + "|" + name + "%{" + objectType + "}"
+    name + "%{" + objectType + "}"
   }
 
   def avr(functions: List[FunctionResult]) : List[MetricResult] = {

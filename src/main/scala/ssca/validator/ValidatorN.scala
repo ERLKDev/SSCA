@@ -41,8 +41,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
     println("analyse")
     val results = an.analyse()
 
-    val tmpOutput = objectOutput2(faultyClasses, results)
-    val output = tmpOutput.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
+    val output = objectOutput2(faultyClasses, results)
 
     println(results.length + "    " + output.length)
     writeFullOutput(output)
@@ -88,12 +87,7 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
         val results = an.analyse(x.commit.scalaFiles.map(instancePath + "\\" + _))
 
         /* Run output function. */
-        val tmpOutput = objectOutput(instancePath, x, results)
-        val output = (
-          tmpOutput._1.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath)),
-          tmpOutput._2.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath)),
-          tmpOutput._3.map(x => x.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))
-        )
+        val output = objectOutput(instancePath, x, results)
 
         count += 1
 
@@ -137,21 +131,20 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
         (a, b) =>
           b match {
             case obj: ObjectResult =>
-              val out = recursive(obj)
               lines match {
                 case Some(patch) =>
                   if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                    (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)),
-                      a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)), obj.objectPath :: a._3)
+                    val out = recursive(obj)
+                    (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)) ::: out._1,
+                      a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength))::: out._2, obj.objectPath :: a._3 ::: out._3)
                   } else {
-                    (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
+                    recursive(obj)
                   }
                 case _ =>
-                  (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
+                  recursive(obj)
               }
             case unit: ResultUnit =>
-              val out = recursive(unit)
-              (a._1 ::: out._1, a._2 ::: out._2, a._3 ::: out._3)
+              recursive(unit)
             case _ =>
               a
           }
@@ -172,10 +165,10 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
         (a, b) =>
           b match {
             case obj: ObjectResult =>
-              if (faultyClasses.contains(obj.objectPath.replaceAll(repoPath.replace("\\", "\\\\") + """\d""", repoPath))) {
+              if (faultyClasses.contains(obj.objectPath)) {
                 a ::: recursive(obj)
               } else {
-                a ::: List("HEAD," + 0 + "," + obj.toCSV(headerLength))::: recursive(obj)
+                a ::: List("HEAD," + 0 + "," + obj.toCSV(headerLength)) ::: recursive(obj)
               }
             case unit: ResultUnit =>
               a ::: recursive(unit)

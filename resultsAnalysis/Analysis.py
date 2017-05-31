@@ -84,7 +84,7 @@ class Analysis:
 		tableData = [["Metric", "Constant", "Coefficient", "P-value", "R^2", "Completeness", "Correctness"]]# np.zeros([0, 8])
 
 		df = df.copy()
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 
 		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
@@ -158,7 +158,7 @@ class Analysis:
 
 		df = df.copy()
 
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 
 		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
@@ -224,7 +224,7 @@ class Analysis:
 		for x in group.keys():
 			if str(x) == self.dependentKey:
 				r.append(group[self.dependentKey].sum())
-			elif x == "path":
+			elif x == "path" or x =="commit":
 				r.append(group[x])
 			else:
 				r.append(group[x].mean())
