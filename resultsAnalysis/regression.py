@@ -6,29 +6,35 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from sklearn import linear_model
 
-def forward_selected(data, response):
+def forward_selected(data, response, op):
+    iters = 0
     remaining = set(data.columns)
     remaining.remove(response)
     selected = []
-    current_score, best_new_score = 0.0, 0.0
-    while remaining and current_score == best_new_score:
+    current_score, best_new_score = float('Inf'), float('Inf')
+    running = True
+    while remaining and running:
         scores_with_candidates = []
         for candidate in remaining:
             formula = "{} ~ {} + 1".format(response,
                                            ' + '.join(selected + [candidate]))
-            score = smf.logit(formula, data).fit().prsquared
+            score = op(formula, data).fit().aic
             scores_with_candidates.append((score, candidate))
         scores_with_candidates.sort()
+        scores_with_candidates.reverse()
         best_new_score, best_candidate = scores_with_candidates.pop()
-        if current_score < best_new_score:
+        if current_score > best_new_score:
             remaining.remove(best_candidate)
             selected.append(best_candidate)
             current_score = best_new_score
+        else:
+        	running = False
+
+        iters += 1
     formula = "{} ~ {} + 1".format(response,
                                    ' + '.join(selected))
 
-    print formula
-    model = smf.logit(formula, data).fit()
+    model = op(formula, data).fit()
     return model
 
 

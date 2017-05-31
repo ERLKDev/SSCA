@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
+import statsmodels.formula.api as smf
 import os
 import regression as reg
 import tablegen as tg
@@ -84,7 +85,7 @@ class Analysis:
 		tableData = [["Metric", "Constant", "Coefficient", "P-value", "R^2", "Completeness", "Correctness"]]# np.zeros([0, 8])
 
 		df = df.copy()
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 
 		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
@@ -158,13 +159,12 @@ class Analysis:
 
 		df = df.copy()
 
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 
 		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
 		else:
 			df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
-
 
 		if self.args.trainSize is not None:
 			testSize = int(len(df) * (1.0 - self.args.trainSize))
@@ -178,7 +178,7 @@ class Analysis:
 		if self.args.ols:
 			result = reg.olsRegression(df_train[numtypes], df_train[self.dependentVar])
 		else:
-			result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
+			result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.logit)
 
 		print result.summary()
 		print ""
@@ -340,14 +340,19 @@ class Analysis:
 			for x in self.args.cross:
 				df = pd.concat(pd.read_csv(x, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)
 
+				if self.args.ols:
+					df[self.dependentVar] = df[self.dependentKey]
+				else:
+					df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+
 				print self.seperationLine
 				print "Cross validation --" + x + "\n\n"
 
 				numtypes = self.getNumTypes(df)
-				print reg.printResultMatrix(result, df, numtypes, self.dependentKey, threshold=0.5)
+				reg.printResultMatrix(result, df, numtypes, self.dependentKey, self.dependentVar, threshold=0.5)
 				print "\n\n"
 
-				fig, ax = reg.createComCorGraph(result, df, numtypes, self.dependentKey)
+				fig, ax = reg.createComCorGraph(result, df, numtypes, self.dependentKey, self.dependentVar)
 
 				if (self.args.store):
 					self.storePlt("", x + "-CrossLogitRegressionCompCorr", fig)
