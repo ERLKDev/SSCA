@@ -55,12 +55,8 @@ class NewValidatorFunctionO(path: String, repoUser: String, repoName: String, br
   def processOutput(results: List[ResultUnit], faultyUnits: List[String]) : List[String] = {
     getResultFunctions(results).foldLeft(List[String]()) {
       (out, obj) =>
-        if (("""akka-http-core[\\\/]""".r findFirstIn obj.position.source.path).nonEmpty) {
-          val count = faultyUnits.count(x => x == obj.functionPath)
-          out ::: List("HEAD," + count + "," + obj.toCSV(headerLength))
-        }else{
-          out
-        }
+        val count = faultyUnits.count(x => x == obj.functionPath)
+        out ::: List("HEAD," + count + "," + obj.toCSV(headerLength))
     }
   }
 }
