@@ -1,173 +1,136 @@
 package ssca.validator
 
-import java.io.File
-
-import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
-import ssca.validator.output.Output
-
-import scala.concurrent.Lock
-import scala.io.Source
-
+import codeAnalysis.analyser.result.ResultUnit
+import dispatch.Http
+import gitCrawler.{Fault, Repo, RepoInfo}
+import main.scala.analyser.Analyser
+import main.scala.analyser.metric.Metric
 
 /**
-  * Created by erikl on 5/26/2017.
+  * Created by erikl on 6/1/2017.
   */
-abstract class Validator (repoPath: String, metrics: List[Metric]) {
+abstract class Validator(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
+  extends ValidatorBase(path, repoUser, repoName, metrics){
 
-  val token: String = loadToken()
-  private val OutputDir: String = repoPath + "Output"
-
-  createOutputDir()
-
-  /* Creates fault and full outputs */
-  private val fullOutput = new Output(OutputDir + "\\fullOutput.csv", true)
-  private val faultOutput = new Output(OutputDir + "\\faultOutput.csv", true)
-
-  /* Output locks*/
-  private val faultOutputLock: Lock = new Lock
-  private val fullOutputLock: Lock = new Lock
-  val outputLock: Lock = new Lock
+  private val repoInfo = new RepoInfo(repoUser, repoName, token, labels, branch, repoPath)
+  private var progress = 0
 
   /**
-    * Loads the Github token from the token file
-    * @return
+    * Function to start the metrics validation
     */
-  private def loadToken(): String = {
-    val tokenFile = Source.fromFile("github.token")
-    val githubToken = tokenFile.getLines.mkString
-    tokenFile.close()
-    githubToken
+  override def run(): Unit = {
+    /* Create instance ids */
+    val instanceIds: List[Int] = List.range(0, instances)
+
+    val faultyUnits = instanceIds.par.map(x => runInstance(x)).foldLeft(List[String]())((a, b) => a ::: b)
+
+    /* Initialize */
+    val repo = new Repo(repoUser, repoName, repoPath + "0", branch, repoInfo)
+    val analyser = new Analyser(createMetrics(), repoPath + "0", instances)
+
+    repo.checkoutHead()
+    analyser.refresh()
+
+    val results = analyser.analyse()
+
+    val output = processOutput(results, faultyUnits)
+
+    writeFullOutput(output)
+
+    closeOutputs()
+    Http.shutdown()
   }
 
-  /**
-    * Creates the output directory
-    */
-  private def createOutputDir(): Unit = {
-    val outputDir = new File(OutputDir)
-    outputDir.mkdirs()
-  }
 
   /**
-    * Function to create the metric instances
+    * Runs an instance
     *
+    * The instance executes a chunk of the complete payload.
+    * The instance ID determines wich chunk the instance will process.
+    *
+    * @param id The id of the instance
     * @return
     */
-  def createMetrics(): List[Metric] = {
-    metrics.foldLeft(List[Metric]())((a, b) => a ::: List(b.newInstance()))
-  }
+  def runInstance(id: Int): List[String] = {
+    val instanceRepoPath = repoPath + id
+    var instanceProgress = 0
 
-  /**
-    * Function to get the metric headers
-    * @return
-    */
-  private def metricsHeader(): (List[String], List[String]) = {
-    val (objHeader, funHeader) = metrics.foldLeft((List[String](), List[String]())){
-      (a, b) =>
-        a match {
-          case (i, k) =>
-            /* If metric is both a function as an object metric */
-            if (b.isInstanceOf[ObjectMetric] && b.isInstanceOf[FunctionMetric])
-              (i:::b.asInstanceOf[ObjectMetric].objectHeader, k:::b.asInstanceOf[FunctionMetric].functionHeader)
-            else
-              b match {
-                case x: ObjectMetric =>
-                  (i:::x.objectHeader, k)
-                case x: FunctionMetric =>
-                  (i, k:::x.functionHeader)
-              }
+    /* Initialize instance */
+    val instanceRepo = new Repo(repoUser, repoName, instanceRepoPath, branch, repoInfo)
+    val instanceAnalyser = new Analyser(createMetrics(), instanceRepoPath, threads)
+
+    println("Instance " + id + " Initialized")
+
+    /* Checks if there are faults to process for this instance. */
+    val faults = repoInfo.faults
+    if (faults.length <= id)
+      return List()
+
+    /* Gets the chunk the instance should process */
+    val chunk = faults.grouped(math.ceil(faults.length.toDouble / instances).toInt).toList(id)
+
+    /* Analyse each fault */
+    val result = chunk.foldLeft(List[String]()) {
+      (r, x) =>
+
+        /* Commit to previous commit. */
+        instanceRepo.checkoutPreviousCommit(x.commit)
+        instanceAnalyser.refresh()
+
+        /* Get the result. */
+        val results = instanceAnalyser.analyse(x.commit.files.map(instanceRepoPath + "\\" + _))
+
+        //val output = processResults(results, x, instanceRepoPath)
+        val output = getFaultyUnits(results, x, instanceRepoPath)
+
+        val nextSha = {
+          val index = chunk.indexOf(x) + 1
+          if (index < chunk.length)
+            chunk(index).commit.sha
+          else
+            "Last"
         }
+
+        /* Handles the output and progress */
+        consoleLock.acquire()
+
+        progress += 1
+        instanceProgress += 1
+
+        println(id + ":\t" + instanceProgress + "/" + chunk.length + "(" + (instanceProgress * 100) / chunk.length + "%)\t\tTotal: "
+          + progress + "/" + faults.length + "(" + (progress * 100) / faults.length + "%)\t\t"
+          + results.length + "\t\t=>\t" + x.commit.sha + "\t->\t" + nextSha)
+
+        consoleLock.release()
+
+        x.unload()
+        r ::: output
     }
 
-    /* Sort headers */
-    (objHeader.sortWith(_ < _), funHeader.sortWith(_ < _))
+    instanceAnalyser.close()
+    println("Instance " + id + " Done!")
+    result
   }
 
+
   /**
-    * Gets the object headers
+    * Gets the faulty units
+    * This function gets all the units that contained the fault
     *
+    * @param results the list of results
+    * @param fault the fault
+    * @param instanceRepoPath the path of the repository
     * @return
     */
-  def objectHeaders: List[String] = {
-    val (objHeader, _) = metricsHeader()
-    objHeader
-  }
+  def getFaultyUnits(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String]
+
 
   /**
-    * Get the function headers
+    * Creates a CSV from the faultyUnits data and the results
+    *
+    * @param results the results
+    * @param faultyUnits the information about faulty units
     * @return
     */
-  def functionHeaders: List[String] = {
-    val (_, funHeader) = metricsHeader()
-    funHeader
-  }
-
-  /**
-    * Writes the headers to a file
-    */
-  def writeObjectHeaders(): Unit = {
-    val funHeader = functionHeaders.map("functionAvr" + _.capitalize) ::: functionHeaders.map("functionSum" + _.capitalize) ::: functionHeaders.map("functionMax" + _.capitalize)
-    val header = objectHeaders:::funHeader
-
-    fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
-  }
-
-  /**
-    * Writes the headers to a file
-    */
-  def writeFunctionHeaders(): Unit = {
-    fullOutput.writeOutput(List("commit,faults,path," + functionHeaders.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + functionHeaders.mkString(",")))
-  }
-
-  /**
-    * Writes the headers to a file
-    */
-  def writeFileHeaders(): Unit = {
-    val funHeader = functionHeaders.map("functionAvr" + _.capitalize) ::: functionHeaders.map("functionSum" + _.capitalize) ::: functionHeaders.map("functionMax" + _.capitalize)
-    val objHeader = objectHeaders.map("objectAvr" + _.capitalize) ::: objectHeaders.map("objectSum" + _.capitalize) ::: objectHeaders.map("objectMax" + _.capitalize)
-    val header = objHeader//:::funHeader
-
-    fullOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
-    faultOutput.writeOutput(List("commit,faults,path," + header.mkString(",")))
-  }
-
-  /**
-    * Function that returns the header length
-    * @return
-    */
-  def headerLength: Int
-
-  /**
-    * Writes to the fault output
-    * @param output
-    */
-  def writeFaultOutput(output: List[String]) : Unit = {
-    faultOutputLock.acquire()
-    faultOutput.writeOutput(output)
-    faultOutputLock.release()
-  }
-
-  /**
-    * Writes to the full output
-    * @param output
-    */
-  def writeFullOutput(output: List[String]) : Unit = {
-    fullOutputLock.acquire()
-    fullOutput.writeOutput(output)
-    fullOutputLock.release()
-  }
-
-  /**
-    * Closes the outputs
-    */
-  def closeOutputs(): Unit= {
-    faultOutput.close()
-    fullOutput.close()
-  }
-
-  /**
-    * Function to run the validator
-    */
-  def run(): Unit
+  def processOutput(results: List[ResultUnit], faultyUnits: List[String]) : List[String]
 }

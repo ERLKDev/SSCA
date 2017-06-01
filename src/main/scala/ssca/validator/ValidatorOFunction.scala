@@ -7,8 +7,8 @@ import main.scala.analyser.metric.Metric
 /**
   * Created by erikl on 6/1/2017.
   */
-class NewValidatorFunctionO(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
-  extends NewValidatorO(path, repoUser, repoName, branch, labels, instances, threads, metrics){
+class ValidatorOFunction(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
+  extends Validator(path, repoUser, repoName, branch, labels, instances, threads, metrics){
 
   /**
     * Function that returns the header length
@@ -34,11 +34,11 @@ class NewValidatorFunctionO(path: String, repoUser: String, repoName: String, br
     */
   def getFaultyUnits(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
     getResultFunctions(results).foldLeft(List[String]()) {
-      (res, obj) =>
+      (res, func) =>
         /* Gets the lines that changed in the file. */
-        val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-        if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))){
-          res ::: List(obj.functionPath)
+        val lines = fault.commit.getPatchData(func.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
+        if (lines.exists(patch => func.includes(patch._1, patch._2) || func.includes(patch._3, patch._4))){
+          res ::: List(func.functionPath)
         } else {
           res
         }
@@ -54,9 +54,9 @@ class NewValidatorFunctionO(path: String, repoUser: String, repoName: String, br
     */
   def processOutput(results: List[ResultUnit], faultyUnits: List[String]) : List[String] = {
     getResultFunctions(results).foldLeft(List[String]()) {
-      (out, obj) =>
-        val count = faultyUnits.count(x => x == obj.functionPath)
-        out ::: List("HEAD," + count + "," + obj.toCSV(headerLength))
+      (out, func) =>
+        val count = faultyUnits.count(x => x == func.functionPath)
+        out ::: List("HEAD," + count + "," + func.toCSV(headerLength))
     }
   }
 }

@@ -85,7 +85,7 @@ class Analysis:
 		tableData = [["Metric", "Constant", "Coefficient", "P-value", "R^2", "Completeness", "Correctness"]]# np.zeros([0, 8])
 
 		df = df.copy()
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 
 		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]
@@ -159,7 +159,7 @@ class Analysis:
 
 		df = df.copy()
 
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 
 		if self.args.ols:
 			df[self.dependentVar] = df[self.dependentKey]

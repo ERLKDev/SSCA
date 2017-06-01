@@ -7,8 +7,8 @@ import main.scala.analyser.metric.Metric
 /**
   * Created by erikl on 6/1/2017.
   */
-class NewValidatorObjectO(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
-  extends NewValidatorO(path, repoUser, repoName, branch, labels, instances, threads, metrics){
+class ValidatorOObject(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
+  extends Validator(path, repoUser, repoName, branch, labels, instances, threads, metrics){
 
   /**
     * Function that returns the header length

@@ -12,7 +12,7 @@ import scala.io.Source
 /**
   * Created by erikl on 6/1/2017.
   */
-abstract class NewValidator(path: String, repoUser: String, repoName: String, metrics: List[Metric]) {
+abstract class ValidatorBase(path: String, repoUser: String, repoName: String, metrics: List[Metric]) {
 
   /* Paths */
   val repoPath: String = path +"\\" + repoUser.capitalize + repoName.capitalize
