@@ -55,7 +55,15 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
   }
 
 
-
+  /**
+    * Runs an instance
+    *
+    * The instance executes a chunk of the complete payload.
+    * The instance ID determines wich chunk the instance will process.
+    *
+    * @param id The id of the instance
+    * @return
+    */
   def runInstance(id: Int): List[String] = {
     val instanceRepoPath = repoPath + id
     var instanceProgress = 0
@@ -86,7 +94,7 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
         val results = instanceAnalyser.analyse(x.commit.files.map(instanceRepoPath + "\\" + _))
 
         //val output = processResults(results, x, instanceRepoPath)
-        val output = processResults(results, x, instanceRepoPath)
+        val output = getFaultyClasses(results, x, instanceRepoPath)
 
         val nextSha = {
           val index = chunk.indexOf(x) + 1
@@ -118,7 +126,16 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
   }
 
 
-  def processResults(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
+  /**
+    * Gets the faulty classes
+    * This function gets all the classes that contained the fault
+    *
+    * @param results the list of results
+    * @param fault the fault
+    * @param instanceRepoPath the path of the repository
+    * @return
+    */
+  def getFaultyClasses(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
     getObjects(results).foldLeft(List[String]()) {
       (res, obj) =>
         /* Gets the lines that changed in the file. */
@@ -131,6 +148,13 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
     }
   }
 
+  /**
+    * Creates a CSV from the faultyClasses data and the results
+    *
+    * @param results the results
+    * @param faultyClasses the information about faulty classes
+    * @return
+    */
   def processOutput(results: List[ResultUnit], faultyClasses: List[String]) : List[String] = {
     getObjects(results).foldLeft(List[String]()) {
       (out, obj) =>
@@ -139,7 +163,13 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
     }
   }
 
-  private def getObjects(remain: List[Result]) : List[ObjectResult] = remain match {
+  /**
+    * Function that gets all the objects in the results
+    *
+    * @param results the list of results
+    * @return
+    */
+  private def getObjects(results: List[Result]) : List[ObjectResult] = results match {
     case Nil =>
       List()
     case x::tail =>
