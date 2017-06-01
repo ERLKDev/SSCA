@@ -115,15 +115,10 @@ class ValidatorFunctionO(repoUser: String, repoName: String, repoPath: String, i
         val lines = fault.commit.getPatchData(x.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
         x match {
           case func: FunctionResult =>
-            lines match {
-              case Some(patch) =>
-                if (func.includes(patch._1, patch._2) || func.includes(patch._3, patch._4)) {
-                  func.functionPath :: recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
-                } else {
-                  recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
-                }
-              case _ =>
-                recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
+            if (lines.exists(patch => func.includes(patch._1, patch._2) || func.includes(patch._3, patch._4))){
+              func.functionPath :: recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
+            } else {
+              recursive(func.functions) ::: recursive(func.objects) ::: recursive(tail)
             }
           case y: ResultUnit =>
             recursive(y.functions) ::: recursive(y.objects) ::: recursive(tail)

@@ -3,6 +3,7 @@ package main.scala.analyser.util
 import java.io.File
 
 import codeAnalysis.analyser.result._
+import main.scala.Utils.SourceCodeUtil
 
 import scala.reflect.internal.util.RangePosition
 import scala.tools.nsc.io.AbstractFile
@@ -11,7 +12,7 @@ import scala.tools.nsc.util
 /**
   * Created by ErikL on 4/7/2017.
   */
-trait ResultUtil {
+trait ResultUtil extends SourceCodeUtil{
 
   /**
     * Fills the csv line with tailing zeros if the line is of a shorter length
@@ -24,6 +25,12 @@ trait ResultUtil {
       return line
 
     fillCsvLine(line, size - 1) ::: List("0")
+  }
+
+
+  def offsetToLine(code: String, offset: Int): Int = {
+    val (first, _) = code.splitAt(offset)
+    stringToLines(first).length - 1
   }
 
   /**

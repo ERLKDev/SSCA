@@ -115,15 +115,10 @@ class ValidatorFileO(repoUser: String, repoName: String, repoPath: String, insta
         val lines = fault.commit.getPatchData(x.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
         x match {
           case file: FileResult =>
-            lines match {
-              case Some(patch) =>
-                if (file.includes(patch._1, patch._2) || file.includes(patch._3, patch._4)) {
-                  file.filePath :: recursive(tail)
-                } else {
-                  recursive(tail)
-                }
-              case _ =>
-                recursive(tail)
+            if (lines.exists(patch => file.includes(patch._1, patch._2) || file.includes(patch._3, patch._4))){
+              file.filePath :: recursive(tail)
+            } else {
+              recursive(tail)
             }
           case _ =>
             recursive(tail)

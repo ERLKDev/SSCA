@@ -131,17 +131,12 @@ class ValidatorN(repoUser: String, repoName: String, repoPath: String, instances
         (a, b) =>
           b match {
             case obj: ObjectResult =>
-              lines match {
-                case Some(patch) =>
-                  if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                    val out = recursive(obj)
-                    (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)) ::: out._1,
-                      a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength))::: out._2, obj.objectPath :: a._3 ::: out._3)
-                  } else {
-                    recursive(obj)
-                  }
-                case _ =>
-                  recursive(obj)
+              if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))){
+                val out = recursive(obj)
+                (a._1 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength)) ::: out._1,
+                  a._2 ::: List(fault.commit.sha + "," + 1 + "," + obj.toCSV(headerLength))::: out._2, obj.objectPath :: a._3 ::: out._3)
+              } else {
+                recursive(obj)
               }
             case unit: ResultUnit =>
               recursive(unit)

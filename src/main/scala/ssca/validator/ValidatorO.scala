@@ -115,15 +115,10 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         val lines = fault.commit.getPatchData(x.position.source.path.substring(instancePath.length + 1).replace("\\", "/"))
         x match {
           case obj: ObjectResult =>
-            lines match {
-              case Some(patch) =>
-                if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-                  obj.objectPath :: recursive(obj.objects) ::: recursive(tail)
-                } else {
-                  recursive(obj.objects) ::: recursive(tail)
-                }
-              case _ =>
-                recursive(obj.objects) ::: recursive(tail)
+            if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))){
+              obj.objectPath :: recursive(obj.objects) ::: recursive(tail)
+            } else {
+              recursive(obj.objects) ::: recursive(tail)
             }
           case y: ResultUnit =>
             recursive(y.objects) ::: recursive(tail)
