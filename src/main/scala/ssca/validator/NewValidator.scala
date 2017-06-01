@@ -63,6 +63,14 @@ abstract class NewValidator(path: String, repoUser: String, repoName: String, me
     githubToken
   }
 
+  /**
+    * Function to create the metric instances
+    *
+    * @return
+    */
+  def createMetrics(): List[Metric] = {
+    metrics.foldLeft(List[Metric]())((a, b) => a ::: List(b.newInstance()))
+  }
 
   /**
     * Function to get the metric headers
@@ -114,7 +122,7 @@ abstract class NewValidator(path: String, repoUser: String, repoName: String, me
     * Function that writes the output headers
     */
   private def writeHeaders(): Unit = {
-    val headers = outputHeaders().mkString(",")
+    val headers = "commit,faults,path," + outputHeaders().mkString(",")
     writeFaultOutput(List(headers))
     writeFullOutput(List(headers))
   }

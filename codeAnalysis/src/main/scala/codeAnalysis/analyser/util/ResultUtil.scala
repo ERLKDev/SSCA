@@ -28,6 +28,13 @@ trait ResultUtil extends SourceCodeUtil{
   }
 
 
+  /**
+    * Gets the line number from an offset
+    *
+    * @param code the source code
+    * @param offset the offset
+    * @return
+    */
   def offsetToLine(code: String, offset: Int): Int = {
     val (first, _) = code.splitAt(offset)
     stringToLines(first).length - 1

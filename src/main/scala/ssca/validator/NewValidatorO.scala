@@ -1,6 +1,7 @@
 package ssca.validator
 
 import codeAnalysis.analyser.result.{ObjectResult, Result, ResultUnit}
+import dispatch.Http
 import gitCrawler.{Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.Metric
@@ -31,7 +32,26 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
     * Function to start the metrics validation
     */
   override def run(): Unit = {
+    /* Create instance ids */
+    val instanceIds: List[Int] = List.range(0, instances)
 
+    val faultyClasses = instanceIds.par.map(x => runInstance(x)).foldLeft(List[String]())((a, b) => a ::: b)
+
+    /* Initialize */
+    val repo = new Repo(repoUser, repoName, repoPath + "0", branch, repoInfo)
+    val analyser = new Analyser(createMetrics(), repoPath + "0", instances)
+
+    repo.checkoutHead()
+    analyser.refresh()
+
+    val results = analyser.analyse()
+
+    val output = processOutput(results, faultyClasses)
+
+    writeFullOutput(output)
+
+    closeOutputs()
+    Http.shutdown()
   }
 
 
@@ -42,7 +62,7 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
 
     /* Initialize instance */
     val instanceRepo = new Repo(repoUser, repoName, instanceRepoPath, branch, repoInfo)
-    val instanceAnalyser = new Analyser(metrics, instanceRepoPath, threads)
+    val instanceAnalyser = new Analyser(createMetrics(), instanceRepoPath, threads)
 
     println("Instance " + id + " Initialized")
 
@@ -65,6 +85,7 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
         /* Get the result. */
         val results = instanceAnalyser.analyse(x.commit.files.map(instanceRepoPath + "\\" + _))
 
+        //val output = processResults(results, x, instanceRepoPath)
         val output = processResults(results, x, instanceRepoPath)
 
         val nextSha = {
@@ -98,36 +119,37 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
 
 
   def processResults(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
-    /* Gets all the object results from the results. */
-    def getObjects(remain: List[Result]) : List[ObjectResult] = remain match {
-      case Nil =>
-        List()
-      case x::tail =>
-        x match {
-          case x: ObjectResult =>
-            x :: getObjects(x.results.toList) ::: getObjects(tail)
-          case x: ResultUnit =>
-            getObjects(x.results.toList) ::: getObjects(tail)
-          case _ =>
-            getObjects(tail)
-        }
-    }
-
     getObjects(results).foldLeft(List[String]()) {
       (res, obj) =>
         /* Gets the lines that changed in the file. */
         val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-        List()
-/*        lines match {
-          case Some(patch) =>
-            if (obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4)) {
-              res ::: List(obj.objectPath)
-            } else {
-              List()
-            }
-          case None =>
-            List()
-        }*/
+        if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))){
+          res ::: List(obj.objectPath)
+        } else {
+          res
+        }
     }
+  }
+
+  def processOutput(results: List[ResultUnit], faultyClasses: List[String]) : List[String] = {
+    getObjects(results).foldLeft(List[String]()) {
+      (out, obj) =>
+        val count = faultyClasses.count(x => x == obj.objectPath)
+        out ::: List("HEAD," + count + "," + obj.toCSV(headerLength) )
+    }
+  }
+
+  private def getObjects(remain: List[Result]) : List[ObjectResult] = remain match {
+    case Nil =>
+      List()
+    case x::tail =>
+      x match {
+        case x: ObjectResult =>
+          x :: getObjects(x.objects) ::: getObjects(tail)
+        case x: ResultUnit =>
+          getObjects(x.objects) ::: getObjects(tail)
+        case _ =>
+          getObjects(tail)
+      }
   }
 }

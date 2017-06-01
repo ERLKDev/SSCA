@@ -140,7 +140,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
         x match {
           case obj: ObjectResult =>
             val count = faultyClasses.count(x => x == obj.objectPath)
-            "HEAD," + count + "," + obj.toCSV(headerLength) :: recursive(tail)
+            "HEAD," + count + "," + obj.toCSV(headerLength) :: recursive(obj.objects) ::: recursive(tail)
           case y: ResultUnit =>
             recursive(y.objects) ::: recursive(tail)
           case _ =>
