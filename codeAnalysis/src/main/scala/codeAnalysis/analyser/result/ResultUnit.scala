@@ -21,7 +21,10 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
   }
 
   def includes(startLine: Int, stopLine: Int) : Boolean = {
-    position.includes(createPosition(position.source.path, startLine, startLine))
+    val code = position.source.content.array.mkString
+    val start = offsetToLine(code, position.start)
+    val stop = offsetToLine(code, position.end)
+    start <= startLine && stopLine <= stop
   }
 
   def metrics: List[MetricResult] = {

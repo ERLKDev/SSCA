@@ -18,7 +18,11 @@ def forward_selected(data, response, op):
         for candidate in remaining:
             formula = "{} ~ {} + 1".format(response,
                                            ' + '.join(selected + [candidate]))
-            score = op(formula, data).fit().aic
+            try:
+                score = op(formula, data, missing='drop').fit().aic
+            except Exception as e:
+                score = float('Inf')
+
             scores_with_candidates.append((score, candidate))
         scores_with_candidates.sort()
         scores_with_candidates.reverse()
@@ -34,7 +38,7 @@ def forward_selected(data, response, op):
     formula = "{} ~ {} + 1".format(response,
                                    ' + '.join(selected))
 
-    model = op(formula, data).fit()
+    model = op(formula, data, missing='drop').fit()
     return model
 
 

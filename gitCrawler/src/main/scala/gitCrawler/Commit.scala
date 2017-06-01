@@ -74,28 +74,26 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     * @param file The file name of a changed file
     * @return
     */
-  def getPatchData(file: String): Option[(Int, Int, Int, Int)] = {
+  def getPatchData(file: String): List[(Int, Int, Int, Int)] = {
     commitData.files.find(x => x.filename == file) match {
       case Some(commitFile) =>
         commitFile.patch match {
           case Some(patchValue) =>
-            val patchMatch = """@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""".r findFirstMatchIn patchValue
-
-            patchMatch match {
-              case Some(value) =>
+            val patchMatch = """@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""".r findAllMatchIn  patchValue
+            patchMatch.foldLeft(List[(Int, Int, Int, Int)]()){
+              (a, value) =>
                 val startLineDel = value.group(2).toInt
                 val stopLineDel = value.group(2).toInt + value.group(3).toInt
                 val startLineAdd = value.group(5).toInt
                 val stopLineAdd = value.group(5).toInt + value.group(6).toInt
-                Some(startLineDel, stopLineDel, startLineAdd, stopLineAdd)
-              case _ =>
-                None
+                a ::: List((startLineDel, stopLineDel, startLineAdd, stopLineAdd))
+
             }
           case _ =>
-            None
+            List()
         }
       case _ =>
-        None
+        List()
     }
   }
 }
