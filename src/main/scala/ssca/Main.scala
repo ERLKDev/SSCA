@@ -17,7 +17,7 @@ object Main {
     val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new LCOM, new RFC, new NPVS, new PATC, new DON)
     val labels = List("bug")
 
-    val validator = new NewValidatorO(repoPath, repoUser, repoName, "master", labels, 3, 5, metrics)
+    val validator = new NewValidatorObjectO(repoPath, repoUser, repoName, "master", labels, 3, 5, metrics)
 
     //STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
     STimer.time("Analysis", validator.run())
