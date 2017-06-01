@@ -175,10 +175,17 @@ class Analysis:
 			df_train = df
 
 
-		if self.args.ols:
-			result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.ols)
+		if (self.args.select):
+			if self.args.ols:
+				result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.ols)
+			else:
+				result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.logit)
 		else:
-			result = reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.logit)
+			if self.args.ols:
+				result = reg.olsRegression(df_train[numtypes], df_train[self.dependentVar])
+			else:
+				result = reg.logitRegression(df_train[numtypes], df_train[self.dependentVar])
+
 
 		print result.summary()
 		print ""
@@ -375,6 +382,7 @@ if __name__ == "__main__":
 	parser.add_argument("--eps" , help="Use image type eps", dest="eps", action="store_true")
 	parser.add_argument("--pdf" , help="Use image type pdf", dest="pdf", action="store_true")
 	parser.add_argument("--ols" , help="Use ols instead of logit", dest="ols", action="store_true")
+	parser.add_argument("--select" , help="Use stepwise selection", dest="select", action="store_true")
 	parser.add_argument("-t", "--train", help="The training size", dest="trainSize", type=float)
 	args = parser.parse_args()
 
