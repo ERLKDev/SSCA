@@ -135,6 +135,7 @@ class ValidatorO(repoUser: String, repoName: String, repoPath: String, instances
     recursive(results)
   }
 
+  //TODO check recursive objects call?
   def getOutput(results: List[ResultUnit], faultyClasses: List[String]): List[String] = {
 
     def recursive(results: List[ResultUnit]) : List[String] = results match {
