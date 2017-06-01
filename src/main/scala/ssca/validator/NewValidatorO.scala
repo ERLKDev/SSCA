@@ -136,7 +136,7 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
     * @return
     */
   def getFaultyClasses(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
-    getObjects(results).foldLeft(List[String]()) {
+    getResultObjects(results).foldLeft(List[String]()) {
       (res, obj) =>
         /* Gets the lines that changed in the file. */
         val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
@@ -156,30 +156,10 @@ class NewValidatorO(path: String, repoUser: String, repoName: String, branch: St
     * @return
     */
   def processOutput(results: List[ResultUnit], faultyClasses: List[String]) : List[String] = {
-    getObjects(results).foldLeft(List[String]()) {
+    getResultObjects(results).foldLeft(List[String]()) {
       (out, obj) =>
         val count = faultyClasses.count(x => x == obj.objectPath)
         out ::: List("HEAD," + count + "," + obj.toCSV(headerLength) )
     }
-  }
-
-  /**
-    * Function that gets all the objects in the results
-    *
-    * @param results the list of results
-    * @return
-    */
-  private def getObjects(results: List[Result]) : List[ObjectResult] = results match {
-    case Nil =>
-      List()
-    case x::tail =>
-      x match {
-        case x: ObjectResult =>
-          x :: getObjects(x.objects) ::: getObjects(tail)
-        case x: ResultUnit =>
-          getObjects(x.objects) ::: getObjects(tail)
-        case _ =>
-          getObjects(tail)
-      }
   }
 }

@@ -2,6 +2,7 @@ package ssca.validator
 
 import java.io.File
 
+import codeAnalysis.analyser.result._
 import main.scala.analyser.metric.{FunctionMetric, Metric, ObjectMetric}
 import ssca.validator.output.Output
 
@@ -155,6 +156,64 @@ abstract class NewValidator(path: String, repoUser: String, repoName: String, me
     fullOutput.close()
   }
 
+
+  /**
+    * Function that gets all the objects in the results
+    *
+    * @param results the list of results
+    * @return
+    */
+  def getResultObjects(results: List[Result]) : List[ObjectResult] = results match {
+    case Nil =>
+      List()
+    case x::tail =>
+      x match {
+        case x: ObjectResult =>
+          x :: getResultObjects(x.objects) ::: getResultObjects(tail)
+        case x: ResultUnit =>
+          getResultObjects(x.objects) ::: getResultObjects(tail)
+        case _ =>
+          getResultObjects(tail)
+      }
+  }
+
+  /**
+    * Function that gets all the files in the results
+    *
+    * @param results the list of results
+    * @return
+    */
+  def getResultFiles(results: List[Result]) : List[FileResult] = results match {
+    case Nil =>
+      List()
+    case x::tail =>
+      x match {
+        case x: FileResult =>
+          x :: getResultFiles(tail)
+        case _ =>
+          getResultFiles(tail)
+      }
+  }
+
+  /**
+    * Function that gets all the functions in the results
+    *
+    * @param results the list of results
+    * @return
+    */
+  def getResultFunctions(results: List[Result]) : List[FunctionResult] = results match {
+    case Nil =>
+      List()
+    case x::tail =>
+      x match {
+        case x: FunctionResult =>
+          x :: getResultFunctions(x.functions) ::: getResultFunctions(tail)
+        case x: ResultUnit =>
+          getResultFunctions(x.functions) ::: getResultFunctions(tail)
+        case _ =>
+          getResultFunctions(tail)
+      }
+  }
 
   /**
     * Function that returns the header length
