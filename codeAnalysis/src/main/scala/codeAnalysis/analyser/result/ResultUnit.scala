@@ -27,7 +27,15 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
     start <= startLine && stopLine <= stop
   }
 
+  def overlaps(startLine: Int, stopLine: Int) : Boolean = {
+    val code = position.source.content.array.mkString
+    val start = offsetToLine(code, position.start)
+    val stop = offsetToLine(code, position.end)
+    startLine <= stop && stopLine >= start
+  }
+
   def childIncludes(startLine: Int, stopLine: Int) : Boolean = false
+
   def metrics: List[MetricResult] = {
     results.toList.filter{
       case _: MetricResult => true

@@ -10,8 +10,8 @@ import ssca.validator._
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    val repoUser = "shadowsocks"
-    val repoName = "shadowsocks-android"
+    val repoUser = "gitbucket"
+    val repoName = "gitbucket"
     val repoPath = "..\\tmp"
 
     val metrics = List(new Loc, new Complex, new DIT, new Inheritance, new OutDegree, new PatternSize, new WMC, new LCOM, new RFC, new NPVS, new PATC, new DON)
