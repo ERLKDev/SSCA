@@ -19,16 +19,7 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())
 
   override def childIncludes(startLine: Int, stopLine: Int): Boolean = {
-    def getChildObjects(resultUnit: ResultUnit): List[ResultUnit] = resultUnit match {
-      case x: ObjectResult =>
-        x :: (x.objects ::: x.functions).foldLeft(List[ResultUnit]())((a, b) => a ::: getChildObjects(b))
-      case x: ResultUnit =>
-        (x.objects ::: x.functions).foldLeft(List[ResultUnit]())((a, b) => a ::: getChildObjects(b))
-      case _ =>
-        List()
-    }
-    (objects ::: functions).foldLeft(List[ResultUnit]())((a, b) => a ::: getChildObjects(b))
-      .exists(x => x.includes(startLine, stopLine) || x.childIncludes(startLine, stopLine))
+    nestedObjects.exists(x => x.includes(startLine, stopLine) || x.childIncludes(startLine, stopLine))
   }
 
   def normalize(): ObjectResult = {
