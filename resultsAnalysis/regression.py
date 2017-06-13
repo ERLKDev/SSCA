@@ -7,7 +7,6 @@ import statsmodels.formula.api as smf
 from sklearn import linear_model
 
 def forward_selected(data, response, op):
-    iters = 0
     remaining = set(data.columns)
     remaining.remove(response)
     selected = []
@@ -19,14 +18,16 @@ def forward_selected(data, response, op):
             formula = "{} ~ {} + 1".format(response,
                                            ' + '.join(selected + [candidate]))
             try:
-                score = op(formula, data, missing='drop').fit().aic
+                score = abs(op(formula, data, missing='drop').fit().aic)
             except Exception as e:
                 score = float('Inf')
 
             scores_with_candidates.append((score, candidate))
+
         scores_with_candidates.sort()
         scores_with_candidates.reverse()
         best_new_score, best_candidate = scores_with_candidates.pop()
+
         if current_score > best_new_score:
             remaining.remove(best_candidate)
             selected.append(best_candidate)
@@ -34,13 +35,85 @@ def forward_selected(data, response, op):
         else:
         	running = False
 
-        iters += 1
     formula = "{} ~ {} + 1".format(response,
                                    ' + '.join(selected))
 
     model = op(formula, data, missing='drop').fit()
     return model
 
+def forward_selected_rev(data, response, op):
+    remaining = list(set(data.columns))
+    remaining.remove(response)
+    selected = []
+    current_score, best_new_score = float('Inf'), float('Inf')
+    running = True
+    while remaining and running:
+        scores_with_candidates = []
+        for candidate in remaining:
+            formula = "{} ~ {} + 1".format(response,
+                                           ' + '.join(selected + [candidate]))
+            try:
+                score = abs(op(formula, data, missing='drop').fit().aic)
+            except Exception as e:
+                score = float('Inf')
+
+            scores_with_candidates.append((score, candidate))
+
+        scores_without_candidates = []
+        for candidate in selected:
+            selected_tmp = selected[:]
+            selected_tmp.remove(candidate)
+
+            formula = "{} ~ {} + 1".format(response,
+                                           ' + '.join(selected_tmp))
+            try:
+                score = abs(op(formula, data, missing='drop').fit().aic)
+            except Exception as e:
+                score = float('Inf')
+
+            scores_without_candidates.append((score, candidate))
+
+        scores_with_candidates.sort()
+        scores_with_candidates.reverse()
+
+        scores_without_candidates.sort()
+        scores_without_candidates.reverse()
+
+        best_new_score1, best_candidate1 = scores_with_candidates.pop()
+
+        if scores_without_candidates:
+            best_new_score2, best_candidate2 = scores_without_candidates.pop()
+
+            if best_new_score1 < best_new_score2:
+                best_new_score = best_new_score1
+                best_candidate = best_candidate1
+                list1 = remaining
+                list2 = selected
+            else:
+                best_new_score = best_new_score2
+                best_candidate = best_candidate2
+                list1 = selected
+                list2 = remaining
+        else:
+            best_new_score = best_new_score1
+            best_candidate = best_candidate1
+            list1 = remaining
+            list2 = selected
+
+        if current_score > best_new_score:
+            print list1
+            print list2
+            list1.remove(best_candidate)
+            list2.append(best_candidate)
+            current_score = best_new_score
+        else:
+            running = False
+
+    formula = "{} ~ {} + 1".format(response,
+                                   ' + '.join(selected))
+
+    model = op(formula, data, missing='drop').fit()
+    return model
 
 def correctness(predTable):
 	if (predTable[0, 1] + predTable[1, 1]) > 0.0:

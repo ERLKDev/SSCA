@@ -36,7 +36,7 @@ class Analysis:
 		print "\n" + self.seperationLine
 
 		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
-		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
+		b = np.vstack([np.append([""], np.asarray(result.keys())), a]).T
 
 		if (self.tables):
 			tg.createTable(b, file=open(self.args.destination + "/" +"descriptve-table.txt", 'w'), caption="Descriptive statistics")
@@ -50,7 +50,7 @@ class Analysis:
 		print "\n" + self.seperationLine
 
 		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
-		b = np.vstack([np.append([""], np.asarray(result.keys())), a])
+		b = np.vstack([np.append([""], np.asarray(result.keys())), a]).T
 
 		if (self.tables):
 			tg.createTable(b, file=open(self.args.destination + "/" +"fault-descriptve-table.txt", 'w'),caption="Fault Descriptive statistics")
