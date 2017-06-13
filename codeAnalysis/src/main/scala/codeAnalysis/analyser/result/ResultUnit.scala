@@ -27,6 +27,7 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
     start <= startLine && stopLine <= stop
   }
 
+  def childIncludes(startLine: Int, stopLine: Int) : Boolean = false
   def metrics: List[MetricResult] = {
     results.toList.filter{
       case _: MetricResult => true

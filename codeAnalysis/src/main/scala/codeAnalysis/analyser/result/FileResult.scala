@@ -13,7 +13,6 @@ class FileResult(position: RangePosition, val name : String) extends ResultUnit(
 
   override def flatten(): List[MetricResult] = results.foldLeft(List[MetricResult]())((a, b) => a ::: b.flatten())
 
-
   def isFileByName(name: String): Boolean = {
     name == this.name
   }
