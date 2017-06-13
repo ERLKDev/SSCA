@@ -58,8 +58,12 @@ class ValidatorOObject(path: String, repoUser: String, repoName: String, branch:
   def processOutput(results: List[ResultUnit], faultyUnits: List[String]) : List[String] = {
     getResultObjects(results).foldLeft(List[String]()) {
       (out, obj) =>
-        val count = faultyUnits.count(x => x == obj.objectPath)
-        out ::: List("HEAD," + count + "," + obj.toCSV(headerLength))
+        if (("""[\\\/]akka-http[\\\/]""".r findFirstIn obj.position.source.path).nonEmpty) {
+          val count = faultyUnits.count(x => x == obj.objectPath)
+          out ::: List("HEAD," + count + "," + obj.toCSV(headerLength))
+        }else{
+          out
+        }
     }
   }
 }
