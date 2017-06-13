@@ -101,8 +101,6 @@ def forward_selected_rev(data, response, op):
             list2 = selected
 
         if current_score > best_new_score:
-            print list1
-            print list2
             list1.remove(best_candidate)
             list2.append(best_candidate)
             current_score = best_new_score
@@ -177,6 +175,18 @@ def createComCorGraph(result, df, x_label, y_label, dep):
 	ax.set_ylabel('Percentage %')
 	legend = ax.legend(loc='upper left')
 	return fig, ax
+
+def createComCorGraphData(comp, corr):
+    fig, ax = plt.subplots()
+    xpts = np.linspace(0, 1, len(comp))
+
+    ax.plot(xpts, comp, "-r", label="completeness")
+    ax.plot(xpts, corr, "-b", label="correctness")
+    ax.grid(True)
+    ax.set_xlabel('Threshold $\pi$')
+    ax.set_ylabel('Percentage %')
+    legend = ax.legend(loc='upper left')
+    return fig, ax
 
 
 def plotLogisticRegression(df, result, x_label, y_label):
