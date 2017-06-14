@@ -32,9 +32,10 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     * Returns a list of files that where changed by the commit
     * @return
     */
-  def files: List[String] = {
-    commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename))
-      .filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f).isEmpty)
+  def files: List[(String, String)] = {
+    commitData.files.filter(x => x.status == "modified").foldLeft(List[(String, String)]())((a, b) => a ::: List((b.sha, b.filename)))
+      .filter(f => """(\\src\\test\\)|(\/src\/test\/)""".r.findFirstIn(f._2).isEmpty)
+
   }
 
 
@@ -42,9 +43,9 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     * Returns a list of scala files that where changed by the commit
     * @return
     */
-  def scalaFiles: List[String] = {
-    commitData.files.filter(x => x.status == "modified").foldLeft(List[String]())((a, b) => a ::: List(b.filename))
-      .filter(f => """.*\.scala$""".r.findFirstIn(f).isDefined).filter(f => """(\\test\\)|(\/test\/)""".r.findFirstIn(f).isEmpty)
+  def scalaFiles: List[(String, String)] = {
+    commitData.files.filter(x => x.status == "modified").foldLeft(List[(String, String)]())((a, b) => a ::: List((b.sha, b.filename)))
+      .filter(f => """.*\.scala$""".r.findFirstIn(f._2).isDefined).filter(f => """(\\test\\)|(\/test\/)""".r.findFirstIn(f._2).isEmpty)
   }
 
 

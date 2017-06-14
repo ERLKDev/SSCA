@@ -1,10 +1,13 @@
 package ssca.validator
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 import codeAnalysis.analyser.result.ResultUnit
 import dispatch.Http
 import gitCrawler.{Fault, Repo, RepoInfo}
 import main.scala.analyser.Analyser
 import main.scala.analyser.metric.Metric
+
 
 /**
   * Created by erikl on 6/1/2017.
@@ -14,6 +17,7 @@ abstract class Validator(path: String, repoUser: String, repoName: String, branc
 
   private val repoInfo = new RepoInfo(repoUser, repoName, token, labels, branch, repoPath)
   private var progress = 0
+  private var scannedFiles = new ConcurrentLinkedQueue[String]()
 
   /**
     * Function to start the metrics validation
@@ -77,8 +81,15 @@ abstract class Validator(path: String, repoUser: String, repoName: String, branc
         instanceRepo.checkoutPreviousCommit(x.commit)
         instanceAnalyser.refresh()
 
+
+        val scanFiles = x.commit.scalaFiles.filter(x => !scannedFiles.contains(x._1))
+        scanFiles.foreach{
+          x =>
+            scannedFiles.add(x._1)
+        }
+
         /* Get the result. */
-        val results = instanceAnalyser.analyse(x.commit.files.map(instanceRepoPath + "\\" + _))
+        val results = instanceAnalyser.analyse(scanFiles.map(instanceRepoPath + "\\" + _._2))
 
         //val output = processResults(results, x, instanceRepoPath)
         val output = getFaultyUnits(results, x, instanceRepoPath)
