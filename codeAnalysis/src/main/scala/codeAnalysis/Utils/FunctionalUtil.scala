@@ -7,6 +7,7 @@ import codeAnalysis.analyser.AST._
   */
 trait FunctionalUtil {
   private val functionalFuncs = List("foldLeft", "foldRight", "fold", "map", "filter", "count", "exist", "find")
+  private val impFuncs = List("foreach")
 
   /**
     * Checks whether the function is recursive or not
@@ -60,16 +61,26 @@ trait FunctionalUtil {
     * Counts the number of functional function calls
     *
     * @param tree
-    * @return
+    * @return (functional, imperative)
     */
-  def countFunctionalFuncCalls(tree: AST): Int = tree match {
+  def countFuncCalls(tree: AST): (Int, Int) = tree match {
     case node: FunctionCall =>
       if (functionalFuncs.contains(node.name))
-        tree.children.foldLeft(1)((a, b) => a + countFunctionalFuncCalls(b))
+        tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1 + 1, a._2 + res._2) }
+      else if (impFuncs.contains(node.name))
+        tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1, a._2 + res._2 + 1) }
       else
-        tree.children.foldLeft(0)((a, b) => a + countFunctionalFuncCalls(b))
+        tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1, a._2 + res._2) }
+    case x: MatchCase =>
+      tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1 + 1, a._2 + res._2) }
+    case x: For =>
+      tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1, a._2 + res._2 + 1) }
+    case x: While =>
+      tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1, a._2 + res._2 + 1) }
+    case x: DoWhile =>
+      tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1, a._2 + res._2 + 1) }
     case _ =>
-      tree.children.foldLeft(0)((a, b) => a + countFunctionalFuncCalls(b))
+      tree.children.foldLeft((0, 0)){(a, b) => val res = countFuncCalls(b); (a._1 + res._1, a._2 + res._2) }
   }
 
   /**
@@ -94,26 +105,16 @@ trait FunctionalUtil {
   }
 
   def functionalScore(tree: FunctionDef) : Double = {
-    def count(tree: AST) : Int = tree match {
-      case _ =>
-        tree.children.foldLeft(1)((a,b) => a + count(b))
-    }
+    val recursive = if (isRecursive(tree)) 1 else 0
+    val nested = if (isNested(tree)) 1 else 0
+    val (func, imp) = countFuncCalls(tree)
 
-    if (countSideEffects(tree) > 0)
-      return 0.0
+    val funcPoints = recursive + nested + func + countHigherOrderParams(tree)
+    val impPoints = imp + countSideEffects(tree)
 
-    val recursiveScore = if (isRecursive(tree)) 0.125 else 0.0
-    val nestedScore = if (isNested(tree)) 0.125 else 0.0
-    val higherOrderScore : Double = 0.125 * countHigherOrderParams(tree).toDouble / (tree.params.length + 1)
-
-    val score = 0.5 + recursiveScore + nestedScore + higherOrderScore + (countFunctionalFuncCalls(tree) / count(tree).toDouble)
-
-    if (score > 1.0)
-      1.0
+    if (impPoints + funcPoints > 0)
+      funcPoints.toDouble / (impPoints.toDouble + funcPoints.toDouble)
     else
-      score
-
-    //0.25 * recursiveScore + 0.25 * nestedScore + 0.25 * higherOrderScore + (countFunctionalFuncCalls(tree) / count(tree).toDouble)
-
+      0
   }
 }

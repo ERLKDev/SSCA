@@ -9,7 +9,7 @@ import main.scala.analyser.result.MetricResult
   * Created by erikl on 6/1/2017.
   */
 class FunctionalMetrics extends FunctionMetric with FunctionalUtil{
-  override def functionHeader: List[String] = List("SideEffects", "Recursive", "Nested", "FunctionalCalls", "HigherOrder")
+  override def functionHeader: List[String] = List("SideEffects", "Recursive", "Nested", "FunctionalCalls", "ImperativeCalls", "HigherOrder", "FunctionalScore")
 
   /**
     * Function that should be called to run a function metric
@@ -26,8 +26,10 @@ class FunctionalMetrics extends FunctionMetric with FunctionalUtil{
       new MetricResult(tree.pos, tree.name, "SideEffects", countSideEffects(tree)),
       new MetricResult(tree.pos, tree.name, "Recursive", recursive),
       new MetricResult(tree.pos, tree.name, "Nested", nested),
-      new MetricResult(tree.pos, tree.name, "FunctionalCalls", countFunctionalFuncCalls(tree)),
-      new MetricResult(tree.pos, tree.name, "HigherOrder", countHigherOrderParams(tree))
+      new MetricResult(tree.pos, tree.name, "FunctionalCalls", countFuncCalls(tree)._1),
+      new MetricResult(tree.pos, tree.name, "ImperativeCalls", countFuncCalls(tree)._2),
+      new MetricResult(tree.pos, tree.name, "HigherOrder", countHigherOrderParams(tree)),
+      new MetricResult(tree.pos, tree.name, "FunctionalScore", functionalScore(tree))
     )
   }
 }

@@ -29,7 +29,7 @@ class Analyser:
 			elif x == "path" or x =="commit":
 				r.append(group[x])
 			else:
-				r.append(group[x].mean())
+				r.append(group[x].median())
 		return pd.Series(r, index=group.keys())
 
 	def getNumTypes(self, df):
@@ -173,7 +173,7 @@ class Analyser:
 	def multiRegression(self, df):
 		# Makes a copy of the dataframe
 		df = df.copy()
-		# df = df.groupby(['path']).apply(self.wavg)
+		df = df.groupby(['path']).apply(self.wavg)
 
 		numtypes = self.getNumTypes(df)
 
@@ -212,7 +212,7 @@ class Analyser:
 							df_train = pd.concat([df_train, chunk])
 						else:
 							df_train = chunk
-				
+
 				result = self.runMultiReg(df_train, numtypes, formula)
 
 
