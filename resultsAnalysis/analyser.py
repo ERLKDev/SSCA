@@ -51,7 +51,17 @@ class Analyser:
 			testSize = int(len(df) * (1.0 - self.args.holdout))
 			return df.iloc[testSize:, :], df.iloc[:testSize, :]
 		elif self.args.cross:
-			pass
+			if (self.args.columns != None):
+				df_test = pd.concat(pd.read_csv(self.args.cross, usecols=self.args.columns, chunksize=1000, iterator=True), ignore_index=True)
+			else:
+				df_test = pd.concat(pd.read_csv(self.args.cross, chunksize=1000, iterator=True), ignore_index=True)
+			df_test = df_test.groupby(['path']).apply(self.wavg)
+			if self.args.ols:
+				df_test[self.dependentVar] = df_test[self.dependentKey]
+			else:
+				df_test[self.dependentVar] = df_test[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		
+			return df, df_test
 		else:
 			return df, df
 
@@ -146,13 +156,14 @@ class Analyser:
 		tg.createTable(tableData, file=open(self.args.destination + "/" +"univariate-regression-table.txt", 'w'), caption="Univariate regression")
 			
 
-	def runMultiReg(self, df_train, numtypes):
+
+	def runMultiReg(self, df_train, numtypes, formula=None):
 		# Get the regression results
 		if (self.args.select):
 			if self.args.ols:
-				return reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.ols)
+				return smf.ols(formula, df_train, missing='drop').fit()
 			else:
-				return reg.forward_selected(df_train[numtypes + [self.dependentVar]], self.dependentVar, smf.logit)
+				return smf.logit(formula, df_train, missing='drop').fit()
 		else:
 			if self.args.ols:
 				return reg.olsRegression(df_train[numtypes], df_train[self.dependentVar])
@@ -162,9 +173,12 @@ class Analyser:
 	def multiRegression(self, df):
 		# Makes a copy of the dataframe
 		df = df.copy()
-		df = df.groupby(['path']).apply(self.wavg)
+		# df = df.groupby(['path']).apply(self.wavg)
 
 		numtypes = self.getNumTypes(df)
+
+		if self.standardizing:
+			df = self.standardizing(df)
 
 		# Prepares the dataframe for ols or logit regression
 		if self.args.ols:
@@ -172,6 +186,12 @@ class Analyser:
 		else:
 			df[self.dependentVar] = df[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
 
+		formula = None
+		if (self.args.select):
+			if self.args.ols:
+				formula = reg.forward_selected(df[numtypes + [self.dependentVar]], self.dependentVar, smf.ols)
+			else:
+				formula = reg.forward_selected(df[numtypes + [self.dependentVar]], self.dependentVar, smf.logit)
 
 		if self.args.kfold:
 			print "Kfold started"
@@ -193,7 +213,8 @@ class Analyser:
 						else:
 							df_train = chunk
 				
-				result = self.runMultiReg(df_train, numtypes)
+				result = self.runMultiReg(df_train, numtypes, formula)
+
 
 				table_tmp = []
 				for x in xpts:
@@ -215,7 +236,7 @@ class Analyser:
 
 		else:
 			df_train, df_test = self.validate(df)
-			result = self.runMultiReg(df_train, numtypes)
+			result = self.runMultiReg(df_train, numtypes, formula)
 
 			predTable = reg.genPredTable(result, df_test, numtypes, self.dependentKey, self.dependentVar, threshold=0.5)
 
@@ -255,6 +276,7 @@ class Analyser:
 
 
 	def getStatistics(self):
+		np.random.seed()
 		df = None
 
 		# Get the dataframe
@@ -284,10 +306,6 @@ class Analyser:
 
 			self.correlation(df)
 
-		if self.standardizing:
-			df = self.standardizing(df)
-
-		if not self.args.multireg:
 			self.unRegression(df)
 
 		self.multiRegression(df)

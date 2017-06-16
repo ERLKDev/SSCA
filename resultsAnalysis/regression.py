@@ -38,6 +38,41 @@ def forward_selected(data, response, op):
     formula = "{} ~ {} + 1".format(response,
                                    ' + '.join(selected))
 
+    return formula
+
+def forward_selected_al(data, response, op):
+    remaining = set(data.columns)
+    remaining.remove(response)
+    selected = []
+    current_score, best_new_score = 0.0, 0.0
+    running = True
+    while remaining and running:
+        scores_with_candidates = []
+        for candidate in remaining:
+            formula = "{} ~ {} + 1".format(response,
+                                           ' + '.join(selected + [candidate]))
+            try:
+                score = op(formula, data, missing='drop').fit().prsquared
+
+            except Exception as e:
+                score = 0.0
+
+            scores_with_candidates.append((score, candidate))
+
+        scores_with_candidates.sort()
+        best_new_score, best_candidate = scores_with_candidates.pop()
+
+        print current_score, best_new_score
+        if current_score < best_new_score:
+            remaining.remove(best_candidate)
+            selected.append(best_candidate)
+            current_score = best_new_score
+        else:
+        	running = False
+
+    formula = "{} ~ {} + 1".format(response,
+                                   ' + '.join(selected))
+
     model = op(formula, data, missing='drop').fit()
     return model
 
