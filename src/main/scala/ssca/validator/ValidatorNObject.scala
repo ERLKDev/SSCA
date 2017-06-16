@@ -8,7 +8,7 @@ import main.scala.analyser.metric.Metric
   * Created by erikl on 6/1/2017.
   */
 class ValidatorNObject(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
-  extends Validator(path, repoUser, repoName, branch, labels, instances, threads, metrics){
+  extends ValidatorN(path, repoUser, repoName, branch, labels, instances, threads, metrics){
 
   /**
     * Function that returns the header length
@@ -25,6 +25,20 @@ class ValidatorNObject(path: String, repoUser: String, repoName: String, branch:
 
 
   /**
+    * Gets the current units
+    * This function gets all the units of the head version
+    *
+    * @param results the list of results
+    * @return
+    */
+  override def getCurrentUnits(results: List[ResultUnit]): List[String] = {
+    getResultObjects(results).foldLeft(List[String]()) {
+      (out, obj) =>
+        out ::: List(obj.objectPath)
+    }
+  }
+
+  /**
     * Gets the faulty classes
     * This function gets all the classes that contained the fault
     *
@@ -33,17 +47,21 @@ class ValidatorNObject(path: String, repoUser: String, repoName: String, branch:
     * @param instanceRepoPath the path of the repository
     * @return
     */
-  def getFaultyUnits(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
+  def getFaultyUnits(results: List[ResultUnit], currentUnits: List[String], fault: Fault, instanceRepoPath: String): List[String] = {
     getResultObjects(results).foldLeft(List[String]()) {
       (res, obj) =>
-        /* Gets the lines that changed in the file. */
-        val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-        if (lines.exists(patch => obj.childIncludes(patch._1, patch._2) || obj.childIncludes(patch._3, patch._4))){
-          res
-        } else if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))){
-          writeFullOutput(List("HEAD,1," + obj.toCSV(headerLength)))
-          writeFaultOutput(List("HEAD,1," + obj.toCSV(headerLength)))
-          res ::: List(obj.objectPath)
+        if (currentUnits.contains(obj.objectPath)) {
+          /* Gets the lines that changed in the file. */
+          val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
+          if (lines.exists(patch => obj.childIncludes(patch._1, patch._2) || obj.childIncludes(patch._3, patch._4))) {
+            res
+          } else if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))) {
+            writeFullOutput(List("HEAD,1," + obj.toCSV(headerLength)))
+            writeFaultOutput(List("HEAD,1," + obj.toCSV(headerLength)))
+            res ::: List(obj.objectPath)
+          } else {
+            res
+          }
         } else {
           res
         }
@@ -60,11 +78,11 @@ class ValidatorNObject(path: String, repoUser: String, repoName: String, branch:
   def processOutput(results: List[ResultUnit], faultyUnits: List[String]) : List[String] = {
     getResultObjects(results).foldLeft(List[String]()) {
       (out, obj) =>
-        if(!faultyUnits.contains(obj.objectPath))
+        if (!faultyUnits.contains(obj.objectPath))
           out ::: List("HEAD,0," + obj.toCSV(headerLength))
         else
           out
-
     }
   }
+
 }
