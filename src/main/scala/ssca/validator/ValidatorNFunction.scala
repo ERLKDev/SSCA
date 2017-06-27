@@ -37,7 +37,7 @@ class ValidatorNFunction(path: String, repoUser: String, repoName: String, branc
       (res, func) =>
         /* Gets the lines that changed in the file. */
         val lines = fault.commit.getPatchData(func.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-        if (lines.exists(patch => func.includes(patch._1, patch._2) || func.includes(patch._3, patch._4))){
+        if (func.includesPatch(lines)){
           writeFullOutput(List("HEAD,1," + func.toCSV(headerLength)))
           writeFaultOutput(List("HEAD,1," + func.toCSV(headerLength)))
           res ::: List(func.functionPath)

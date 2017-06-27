@@ -53,9 +53,9 @@ class ValidatorNObject(path: String, repoUser: String, repoName: String, branch:
         if (currentUnits.contains(obj.objectPath)) {
           /* Gets the lines that changed in the file. */
           val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-          if (lines.exists(patch => obj.childIncludes(patch._1, patch._2) || obj.childIncludes(patch._3, patch._4))) {
+          if (obj.includesPatch(lines)) {
             res
-          } else if (lines.exists(patch => obj.includes(patch._1, patch._2) || obj.includes(patch._3, patch._4))) {
+          } else if (obj.includesPatch(lines)) {
             writeFullOutput(List("HEAD,1," + obj.toCSV(headerLength)))
             writeFaultOutput(List("HEAD,1," + obj.toCSV(headerLength)))
             res ::: List(obj.objectPath)

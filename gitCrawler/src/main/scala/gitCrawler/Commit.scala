@@ -74,20 +74,28 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     * @param file The file name of a changed file
     * @return
     */
-  def getPatchData(file: String): List[(Int, Int, Int, Int)] = {
+  def getPatchData(file: String): List[Int] = {
     commitData.files.find(x => x.filename == file) match {
       case Some(commitFile) =>
         commitFile.patch match {
           case Some(patchValue) =>
-            val patchMatch = """@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""".r findAllMatchIn  patchValue
-            patchMatch.foldLeft(List[(Int, Int, Int, Int)]()){
-              (a, value) =>
-                val startLineDel = value.group(2).toInt
-                val stopLineDel = value.group(2).toInt + value.group(3).toInt
-                val startLineAdd = value.group(5).toInt
-                val stopLineAdd = value.group(5).toInt + value.group(6).toInt
-                a ::: List((startLineDel, stopLineDel, startLineAdd, stopLineAdd))
 
+            val headers = ("""@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""".r findAllIn patchValue).toList
+            val patchMatches = headers.zip(patchValue.split("""@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""").filter(x => x != "")).map(x => x._1 + x._2)
+            patchMatches.foldLeft(List[Int]()){
+              (a, b) =>
+                val patchMatch = """@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@((.|\n)*)""".r findFirstMatchIn b
+                val res = patchMatch match {
+                  case Some(value) =>
+                    val startLineDel = value.group(2).toInt
+                    val code = value.group(7)
+                    val lines = code.split("\n")
+
+                    linesToRows(lines.toList, startLineDel, startLineDel)
+                  case None =>
+                    List()
+                }
+                a ::: res
             }
           case _ =>
             List()
@@ -95,5 +103,17 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
       case _ =>
         List()
     }
+  }
+
+  def linesToRows(lines: List[String], n: Int, k: Int): List[Int] = lines match {
+    case Nil =>
+      List()
+    case x::tail =>
+      if (x.startsWith("-"))
+        n :: linesToRows(tail, n + 1, k)
+      else if (x.startsWith("+"))
+        k :: linesToRows(tail, n, k)
+      else
+        linesToRows(tail, n + 1, n + 1)
   }
 }

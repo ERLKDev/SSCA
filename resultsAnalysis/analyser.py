@@ -101,6 +101,28 @@ class Analyser:
 		tg.createTable(b, file=open(self.args.destination + "/" +"correlations-table.txt", 'w'), caption="Metric correlation")
 
 
+	def distribution(self, df):
+		size = 20
+
+		df1 = df.copy()
+		df1 = df.groupby(['path']).apply(self.wavg)
+		df2 = df1[(df1[self.dependentKey] > 0.0)].copy()
+		for a in self.getNumTypes(df):
+			
+			fig1, ax1 = plt.subplots()
+			df1[a].hist(ax=ax1)
+			ax1.set_title(a + "-Distribution")
+
+			fig2, ax2 = plt.subplots()
+			df2[a].hist(ax=ax2)
+			ax2.set_title(a + "-Fault-Distribution")
+
+
+			self.storePlt(a, a + "-Distribution", fig1)
+			self.storePlt(a, a + "-Fault-Distribution", fig2)
+
+			plt.close(fig1)
+			plt.close(fig2)
 
 
 	def unRegression(self, df):
@@ -305,6 +327,8 @@ class Analyser:
 			self.descriptive(df)
 
 			self.correlation(df)
+
+			self.distribution(df)
 
 			self.unRegression(df)
 

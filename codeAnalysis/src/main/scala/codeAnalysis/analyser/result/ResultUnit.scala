@@ -20,6 +20,15 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
     this.results ++= results
   }
 
+  def includesPatch(patch: List[Int]) : Boolean = {
+    val code = position.source.content.array.mkString
+    val start = offsetToLine(code, position.start)
+    val stop = offsetToLine(code, position.end)
+    val lines = List.range(start, stop)
+    lines.intersect(patch).nonEmpty
+  }
+
+
   def includes(startLine: Int, stopLine: Int) : Boolean = {
     val code = position.source.content.array.mkString
     val start = offsetToLine(code, position.start)
