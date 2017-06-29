@@ -5,6 +5,8 @@ import java.util.Date
 import dispatch.github.{GhCommit, GhCommitSummary}
 import gitCrawler.util.GitDataBase
 
+import scala.annotation.tailrec
+
 
 /**
   * Created by ErikL on 4/11/2017.
@@ -79,22 +81,18 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
       case Some(commitFile) =>
         commitFile.patch match {
           case Some(patchValue) =>
+            val pattern = """@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@"""
 
-            val headers = ("""@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""".r findAllIn patchValue).toList
-            val patchMatches = headers.zip(patchValue.split("""@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@""").filter(x => x != "")).map(x => x._1 + x._2)
-            patchMatches.foldLeft(List[Int]()){
-              (a, b) =>
-                val patchMatch = """@@ -((\d*),(\d*)) \+((\d*),(\d*)) @@((.|\n)*)""".r findFirstMatchIn b
-                val res = patchMatch match {
-                  case Some(value) =>
-                    val startLineDel = value.group(2).toInt
-                    val code = value.group(7)
-                    val lines = code.split("\n")
+            val patchMatches = pattern.r findAllMatchIn patchValue
+            val code = patchValue.split(pattern).drop(1)
+            val matches = patchMatches.toList.zip(code)
+            matches.foldLeft(List[Int]()){
+              (a, patchMatch) =>
 
-                    linesToRows(lines.toList, startLineDel, startLineDel)
-                  case None =>
-                    List()
-                }
+                val startLineDel = patchMatch._1.group(2).toInt
+                val lines = patchMatch._2.split("\n")
+
+                val res = linesToRows(lines.toList, startLineDel, startLineDel)
                 a ::: res
             }
           case _ =>
@@ -105,15 +103,16 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
     }
   }
 
-  def linesToRows(lines: List[String], n: Int, k: Int): List[Int] = lines match {
+  @tailrec
+  private def linesToRows(lines: List[String], n: Int, k: Int, res: List[Int] = List()): List[Int] = lines match {
     case Nil =>
-      List()
+      res
     case x::tail =>
       if (x.startsWith("-"))
-        n :: linesToRows(tail, n + 1, k)
+        linesToRows(tail, n + 1, k, n :: res)
       else if (x.startsWith("+"))
-        k :: linesToRows(tail, n, k)
+        linesToRows(tail, n, k, k :: res)
       else
-        linesToRows(tail, n + 1, n + 1)
+        linesToRows(tail, n + 1, n + 1, res)
   }
 }

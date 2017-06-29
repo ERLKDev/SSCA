@@ -28,6 +28,8 @@ abstract class ResultUnit(position: RangePosition) extends Result(position) with
     lines.intersect(patch).nonEmpty
   }
 
+  def includesPatchExclusive(patch: List[Int]) : Boolean = false
+
 
   def includes(startLine: Int, stopLine: Int) : Boolean = {
     val code = position.source.content.array.mkString

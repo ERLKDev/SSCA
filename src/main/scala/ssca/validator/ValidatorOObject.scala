@@ -38,9 +38,7 @@ class ValidatorOObject(path: String, repoUser: String, repoName: String, branch:
       (res, obj) =>
         /* Gets the lines that changed in the file. */
         val lines = fault.commit.getPatchData(obj.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-        if (obj.includesPatch(lines)){
-          res
-        } else if (obj.includesPatch(lines)){
+        if (obj.includesPatch(lines)) {
           res ::: List(obj.objectPath)
         } else {
           res

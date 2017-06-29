@@ -22,6 +22,21 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
     nestedObjects.exists(x => x.includes(startLine, stopLine) || x.childIncludes(startLine, stopLine))
   }
 
+  override def includesPatchExclusive(patch: List[Int]) : Boolean = {
+    def recursive(x: ResultUnit, patch: List[Int]): List[Int] = {
+      x.nestedObjects.foldLeft(patch){
+        (a, b) =>
+          val code = b.position.source.content.array.mkString
+          val start = offsetToLine(code, b.position.start)
+          val stop = offsetToLine(code, b.position.end)
+          val lines = List.range(start, stop)
+          recursive(b, a.filter(!lines.contains(_)))
+      }
+    }
+
+    includesPatch(recursive(this, patch))
+  }
+
   def normalize(): ObjectResult = {
     val obj = new ObjectResult(position, name, objectType)
     obj.addResult(metrics ::: nestedFunctions)
