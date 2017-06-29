@@ -171,7 +171,7 @@ abstract class ValidatorBase(path: String, repoUser: String, repoName: String, m
         case x: ObjectResult =>
           x :: getResultObjects(x.objects) ::: getResultObjects(tail)
         case x: ResultUnit =>
-          getResultObjects(x.objects) ::: getResultObjects(tail)
+          getResultObjects(x.results.toList) ::: getResultObjects(tail)
         case _ =>
           getResultObjects(tail)
       }
@@ -209,7 +209,7 @@ abstract class ValidatorBase(path: String, repoUser: String, repoName: String, m
         case x: FunctionResult =>
           x :: getResultFunctions(x.functions) ::: getResultFunctions(tail)
         case x: ResultUnit =>
-          getResultFunctions(x.functions) ::: getResultFunctions(tail)
+          getResultFunctions(x.results.toList) ::: getResultFunctions(tail)
         case _ =>
           getResultFunctions(tail)
       }

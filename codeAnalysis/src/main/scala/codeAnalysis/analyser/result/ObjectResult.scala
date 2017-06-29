@@ -8,7 +8,7 @@ import scala.reflect.internal.util.RangePosition
 /**
   * Created by erikl on 4/20/2017.
   */
-class ObjectResult(position : RangePosition, val name : String, val objectType: ObjectType) extends ResultUnit(position){
+class ObjectResult(position : RangePosition, parent: ResultUnit, val name : String, val objectType: ObjectType) extends ResultUnit(position, parent){
 
   def isObjectByName(name: String): Boolean = {
     name == this.name
@@ -38,7 +38,7 @@ class ObjectResult(position : RangePosition, val name : String, val objectType: 
   }
 
   def normalize(): ObjectResult = {
-    val obj = new ObjectResult(position, name, objectType)
+    val obj = new ObjectResult(position, parent, name, objectType)
     obj.addResult(metrics ::: nestedFunctions)
     obj
   }

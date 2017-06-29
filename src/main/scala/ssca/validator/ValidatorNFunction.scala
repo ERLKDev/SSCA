@@ -8,7 +8,7 @@ import main.scala.analyser.metric.Metric
   * Created by erikl on 6/1/2017.
   */
 class ValidatorNFunction(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
-  extends Validator(path, repoUser, repoName, branch, labels, instances, threads, metrics){
+  extends ValidatorN(path, repoUser, repoName, branch, labels, instances, threads, metrics){
 
   /**
     * Function that returns the header length
@@ -24,6 +24,20 @@ class ValidatorNFunction(path: String, repoUser: String, repoName: String, branc
 
 
   /**
+    * Gets the current units
+    * This function gets all the units of the head version
+    *
+    * @param results the list of results
+    * @return
+    */
+  override def getCurrentUnits(results: List[ResultUnit]): List[String] = {
+    getResultFunctions(results).foldLeft(List[String]()) {
+      (out, func) =>
+        out ::: List(func.functionPath)
+    }
+  }
+
+  /**
     * Gets the faulty classes
     * This function gets all the classes that contained the fault
     *
@@ -32,15 +46,19 @@ class ValidatorNFunction(path: String, repoUser: String, repoName: String, branc
     * @param instanceRepoPath the path of the repository
     * @return
     */
-  def getFaultyUnits(results: List[ResultUnit], fault: Fault, instanceRepoPath: String): List[String] = {
+  def getFaultyUnits(results: List[ResultUnit], currentUnits: List[String], fault: Fault, instanceRepoPath: String): List[String] = {
     getResultFunctions(results).foldLeft(List[String]()) {
       (res, func) =>
-        /* Gets the lines that changed in the file. */
-        val lines = fault.commit.getPatchData(func.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
-        if (func.includesPatch(lines)){
-          writeFullOutput(List("HEAD,1," + func.toCSV(headerLength)))
-          writeFaultOutput(List("HEAD,1," + func.toCSV(headerLength)))
-          res ::: List(func.functionPath)
+        if (currentUnits.contains(func.functionPath)) {
+          /* Gets the lines that changed in the file. */
+          val lines = fault.commit.getPatchData(func.position.source.path.substring(instanceRepoPath.length + 1).replace("\\", "/"))
+          if (func.includesPatch(lines)) {
+            writeFullOutput(List("HEAD,1," + func.toCSV(headerLength)))
+            writeFaultOutput(List("HEAD,1," + func.toCSV(headerLength)))
+            res ::: List(func.functionPath)
+          } else {
+            res
+          }
         } else {
           res
         }
@@ -57,10 +75,11 @@ class ValidatorNFunction(path: String, repoUser: String, repoName: String, branc
   def processOutput(results: List[ResultUnit], faultyUnits: List[String]) : List[String] = {
     getResultFunctions(results).foldLeft(List[String]()) {
       (out, func) =>
-        if(!faultyUnits.contains(func.functionPath))
+        if (!faultyUnits.contains(func.functionPath))
           out ::: List("HEAD,0," + func.toCSV(headerLength))
         else
           out
     }
   }
+
 }

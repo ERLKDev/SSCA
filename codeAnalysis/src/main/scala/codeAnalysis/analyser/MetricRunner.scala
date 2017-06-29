@@ -28,7 +28,7 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
         parent
 
       case node: ClassDefinition =>
-        val result = new ObjectResult(node.pos, node.name, ObjectType.ClassT)
+        val result = new ObjectResult(node.pos, parent, node.name, ObjectType.ClassT)
         result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
@@ -36,7 +36,7 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
         parent
 
       case node: ObjectDefinition =>
-        val result = new ObjectResult(node.pos, node.name, ObjectType.ObjectT)
+        val result = new ObjectResult(node.pos, parent, node.name, ObjectType.ObjectT)
         result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
@@ -44,7 +44,7 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
         parent
 
       case node: TraitDefinition =>
-        val result = new ObjectResult(node.pos, node.name, ObjectType.TraitT)
+        val result = new ObjectResult(node.pos, parent, node.name, ObjectType.TraitT)
         result.addResult(executeObjectMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 
@@ -52,7 +52,7 @@ class MetricRunner(compiler: CompilerS, metrics : List[Metric], context: Project
         parent
 
       case node: FunctionDef =>
-        val result = new FunctionResult(node.pos, node.name)
+        val result = new FunctionResult(node.pos, parent, node.name)
         result.addResult(executeFunctionMetrics(node))
         tree.children.foreach(x => traverse(x, result))
 

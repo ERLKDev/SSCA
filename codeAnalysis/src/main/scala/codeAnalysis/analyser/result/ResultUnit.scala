@@ -9,7 +9,7 @@ import scala.reflect.internal.util.RangePosition
 /**
   * Created by erikl on 4/20/2017.
   */
-abstract class ResultUnit(position: RangePosition) extends Result(position) with ResultUtil {
+abstract class ResultUnit(position: RangePosition, val parent: ResultUnit) extends Result(position) with ResultUtil {
   val results: ListBuffer[Result] = ListBuffer.empty[Result]
 
   def addResult(result: Result): Unit = {

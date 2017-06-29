@@ -8,7 +8,7 @@ import scala.reflect.internal.util.RangePosition
 /**
   * Created by erikl on 4/20/2017.
   */
-class FunctionResult(position : RangePosition, val name : String) extends ResultUnit(position) with ResultUtil{
+class FunctionResult(position : RangePosition, parent: ResultUnit, val name : String) extends ResultUnit(position, parent) with ResultUtil{
 
   def isFunctionByName(name: String): Boolean = {
     name == this.name
@@ -25,6 +25,11 @@ class FunctionResult(position : RangePosition, val name : String) extends Result
   }
 
   def functionPath: String = {
-    position.source.path + "|" + name + "$Function"
+    parent match {
+      case x: ObjectResult =>
+        x.objectPath + "|" + name + "%{function}"
+      case x: FunctionResult =>
+        x.functionPath + "|" + name + "%{function}"
+    }
   }
 }
