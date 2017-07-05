@@ -92,7 +92,7 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
                 val startLineDel = patchMatch._1.group(2).toInt
                 val lines = patchMatch._2.split("\n")
 
-                val res = linesToRows(lines.toList, startLineDel, startLineDel)
+                val res = linesToRows(lines.toList, startLineDel, false)
                 a ::: res
             }
           case _ =>
@@ -104,15 +104,17 @@ class Commit(commitSummary: GhCommitSummary, info: Map[String, String], data: Gh
   }
 
   @tailrec
-  private def linesToRows(lines: List[String], n: Int, k: Int, res: List[Int] = List()): List[Int] = lines match {
+  private def linesToRows(lines: List[String], n: Int, isRemove: Boolean, res: List[Int] = List()): List[Int] = lines match {
     case Nil =>
       res
     case x::tail =>
       if (x.startsWith("-"))
-        linesToRows(tail, n + 1, k, n :: res)
-      else if (x.startsWith("+"))
-        linesToRows(tail, n, k, k :: res)
+        linesToRows(tail, n + 1, true, n :: res)
+      else if (x.startsWith("+") && isRemove)
+        linesToRows(tail, n, isRemove, res)
+      else if (x.startsWith("+") && !isRemove)
+        linesToRows(tail, n, false, n :: res)
       else
-        linesToRows(tail, n + 1, n + 1, res)
+        linesToRows(tail, n + 1, false, res)
   }
 }
