@@ -29,16 +29,22 @@ object Main {
 
 
   def main(args: Array[String]): Unit = {
-    val repoUser = "gitbucket"
-    val repoName = "gitbucket"
+    val repoUser = "shadowsocks"
+    val repoName = "shadowsocks-android"
     val repoPath = "..\\tmp"
+    val project = "SHA"
+    val version = "005"
+    val branch = "master"
+    val labels = List("bug")
 
     dataSets.foreach{
       x =>
-        val labels = List("bug")
-        val validator = new ValidatorNObject(repoPath, repoUser, repoName, "master", labels, 3, 5, x._2, "fullOutputGIT004" + x._1)
-
-        //STimer.time("Analysis", validator.run(validator.writeHeaders, validator.objectOutput))
+        val validator = new ValidatorNObject(repoPath, repoUser, repoName, branch, labels, 3, 5, x._2, "fullOutput" + project + version + "New" + x._1)
+        STimer.time("Analysis", validator.run())
+    }
+    dataSets.foreach{
+      x =>
+        val validator = new ValidatorOObject(repoPath, repoUser, repoName, branch, labels, 3, 5, x._2, "fullOutput" + project + version + "Old" + x._1)
         STimer.time("Analysis", validator.run())
     }
     Http.shutdown()
