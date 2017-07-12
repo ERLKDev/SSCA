@@ -9,8 +9,8 @@ import main.scala.analyser.metric.Metric
 /**
   * Created by erikl on 6/1/2017.
   */
-abstract class Validator(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric])
-  extends ValidatorBase(path, repoUser, repoName, metrics){
+abstract class Validator(path: String, repoUser: String, repoName: String, branch: String, labels: List[String], instances: Int, threads: Int, metrics: List[Metric], outputName: String = "fullOutput")
+  extends ValidatorBase(path, repoUser, repoName, metrics, outputName){
 
   private val repoInfo = new RepoInfo(repoUser, repoName, token, labels, branch, repoPath)
   private var progress = 0
@@ -38,7 +38,6 @@ abstract class Validator(path: String, repoUser: String, repoName: String, branc
     writeFullOutput(output)
 
     closeOutputs()
-    Http.shutdown()
   }
 
 

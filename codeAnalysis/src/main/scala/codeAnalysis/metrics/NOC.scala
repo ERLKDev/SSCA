@@ -28,6 +28,8 @@ class NOC extends ObjectMetric with SourceCodeUtil{
   }
 
 
+  def searchString(name: String): String = "(extends " + name + ")|(with " + name + ")"
+
   /**
     * Counts the amount of children from a class or trait
     *

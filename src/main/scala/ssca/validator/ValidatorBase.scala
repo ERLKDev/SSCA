@@ -12,7 +12,7 @@ import scala.io.Source
 /**
   * Created by erikl on 6/1/2017.
   */
-abstract class ValidatorBase(path: String, repoUser: String, repoName: String, metrics: List[Metric]) {
+abstract class ValidatorBase(path: String, repoUser: String, repoName: String, metrics: List[Metric], outputName: String) {
 
   /* Paths */
   val repoPath: String = path +"\\" + repoUser.capitalize + repoName.capitalize
@@ -25,7 +25,7 @@ abstract class ValidatorBase(path: String, repoUser: String, repoName: String, m
 
 
   /* Creates the outputs*/
-  private val fullOutput: Output = new Output(outputPath + "\\fullOutput.csv", true)
+  private val fullOutput: Output = new Output(outputPath + "\\" + outputName + ".csv", true)
   private val faultOutput: Output = new Output(outputPath + "\\faultOutput.csv", true)
 
 
