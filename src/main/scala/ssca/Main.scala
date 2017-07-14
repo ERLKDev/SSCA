@@ -12,12 +12,12 @@ import ssca.validator._
 object Main {
 
   def main(args: Array[String]): Unit = {
-    val repoUser = "shadowsocks"
-    val repoName = "shadowsocks-android"
+    val repoUser = "akka"
+    val repoName = "akka"
     val repoPath = "..\\tmp"
-    val project = "SHA"
-    val version = "005"
-    val branch = "master"
+    val project = "HTTP"
+    val version = "Final"
+    val branch = "release-2.4-http"
     val labels = List("bug")
 
     val metrics = List(new DIT, new LCOM, new RFC, new WMC, new NOC, new CBO, new PatternSize, new OutDegree, new NPVS, new DON, new Loc, new Complex, new FunctionalMetrics)

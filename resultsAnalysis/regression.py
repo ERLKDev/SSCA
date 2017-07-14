@@ -18,7 +18,7 @@ def forward_selected(data, response, op):
             formula = "{} ~ {} + 1".format(response,
                                            ' + '.join(selected + [candidate]))
             try:
-                score = abs(op(formula, data, missing='drop').fit().aic)
+                score = abs(op(formula, data, missing='drop').fit_regularized().aic)
             except Exception as e:
                 score = float('Inf')
 
@@ -145,8 +145,7 @@ def forward_selected_rev(data, response, op):
     formula = "{} ~ {} + 1".format(response,
                                    ' + '.join(selected))
 
-    model = op(formula, data, missing='drop').fit()
-    return model
+    return formula
 
 def correctness(predTable):
 	if (predTable[0, 1] + predTable[1, 1]) > 0.0:

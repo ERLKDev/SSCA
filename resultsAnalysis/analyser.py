@@ -67,7 +67,8 @@ class Analyser:
 
 	def standardizing(self, df):
 		for x in self.getNumTypes(df):
-			df[x] = (df[x] - df[x].mean()) / df[x].std()
+			if x != self.dependentKey:
+				df[x] = (df[x] - df[x].mean()) / df[x].std()
 
 		return df
 
@@ -76,7 +77,7 @@ class Analyser:
 
 		# Descriptive statistics
 		result = df[numtypes].describe()
-		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
+		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.2f'), x), result.as_matrix())).T]).T
 		b = np.vstack([np.append([""], np.asarray(result.keys())), a]).T
 
 		tg.createTable(b, file=open(self.args.destination + "/" +"descriptve-table.txt", 'w'), caption="Descriptive statistics")
@@ -84,7 +85,7 @@ class Analyser:
 
 		# Fault descriptive statistics
 		result = df[df[self.dependentKey] > 0][numtypes].describe()
-		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.6f'), x), result.as_matrix())).T]).T
+		a = np.vstack([np.asarray(map(re.escape, result.index)), np.asarray(map(lambda x: map(lambda y: format(y, '.2f'), x), result.as_matrix())).T]).T
 		b = np.vstack([np.append([""], np.asarray(result.keys())), a]).T
 
 		tg.createTable(b, file=open(self.args.destination + "/" +"fault-descriptve-table.txt", 'w'),caption="Fault Descriptive statistics")			
@@ -183,9 +184,9 @@ class Analyser:
 		# Get the regression results
 		if (self.args.select):
 			if self.args.ols:
-				return smf.ols(formula, df_train, missing='drop').fit()
+				return smf.ols(formula, df_train, missing='drop').fit_regularized()
 			else:
-				return smf.logit(formula, df_train, missing='drop').fit()
+				return smf.logit(formula, df_train, missing='drop').fit_regularized()
 		else:
 			if self.args.ols:
 				return reg.olsRegression(df_train[numtypes], df_train[self.dependentVar])
@@ -199,7 +200,7 @@ class Analyser:
 
 		numtypes = self.getNumTypes(df)
 
-		if self.standardizing:
+		if self.args.standardizing:
 			df = self.standardizing(df)
 
 		# Prepares the dataframe for ols or logit regression
