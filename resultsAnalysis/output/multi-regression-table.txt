@@ -1,0 +1,28 @@
+\begin{table}[]
+\centering
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Metric & Coefficient & P-value\\
+\midrule
+Intercept & -2.7075 & \textbf{0.0000}\\ 
+objectLOC & -0.3333 & \textbf{0.0163}\\ 
+ClassInheritance & -1.2638 & \textbf{0.0050}\\ 
+objectCLOC & 0.3702 & \textbf{0.0079}\\ 
+objectSLOC & 0.3335 & \textbf{0.0151}\\ 
+CBO & 0.0883 & \textbf{0.0027}\\ 
+TraitInheritance & -0.4916 & \textbf{0.0224}\\ 
+functionSumDON & 0.0946 & \textbf{0.0000}\\ 
+NOC & -0.3592 & 0.1103\\ 
+functionAvrFunctionCLOC & 0.1490 & 0.2700\\ 
+functionSumPatternSize & -0.0301 & \textbf{0.0000}\\ 
+WMCnormalInit & -0.2166 & \textbf{0.0095}\\ 
+functionSumCC & 0.1325 & \textbf{0.0031}\\ 
+functionAvrNPVS & 0.1617 & \textbf{0.0117}\\ 
+functionSumFunctionSLOC & 0.0379 & \textbf{0.0445}\\ 
+functionAvrDON & -0.2183 & 0.1087\\ 
+LCOMneg & -0.0035 & 0.0678\\
+\bottomrule
+\end{tabular}
+\caption{Multivariate regression}
+\label{my-label}
+\end{table}

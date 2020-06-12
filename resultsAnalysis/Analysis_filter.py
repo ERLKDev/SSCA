@@ -196,9 +196,8 @@ class Analyser:
 	def multiRegression(self, df):
 		# Makes a copy of the dataframe
 		df = df.copy()
-		# df1 = pd.concat(pd.read_csv("fullOutputGITFinalNew.csv", chunksize=1000, iterator=True), ignore_index=True)
 		df1 = df.copy()
-		df1[self.dependentVar] = df1[self.dependentKey].map(lambda x: 1 if x > self.faultTreshold else 0)
+		df1[self.dependentVar] = df1[self.dependentKey]
 		df = df.groupby(['path']).apply(self.wavg)
 
 

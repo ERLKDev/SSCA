@@ -13,7 +13,7 @@ def createTable(data, method="np", header=None, caption="My caption", label="my-
 	headerSize = len(headerData)
 	headerRow = ' & '.join(map(str, headerData)) + "\\\\"
 
-	colls = "".join(["l" for _ in range(headerSize)])
+	colls = "l" + "".join(["r" for _ in range(headerSize - 1)])
 
 	bodyData = data[1:, :] if header is None else data
 	bodyRows = "\\\\ \n".join([" & ".join(map(str, x)) for x in bodyData]) + "\\\\"

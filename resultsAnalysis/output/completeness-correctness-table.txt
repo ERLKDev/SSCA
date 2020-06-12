@@ -1,0 +1,12 @@
+\begin{table}[]
+\centering
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Completeness & Correctness\\
+\midrule
+Multi. reg. & 53.25\% & 83.67\%\\
+\bottomrule
+\end{tabular}
+\caption{Multivariate regression: Completeness and correctness}
+\label{my-label}
+\end{table}

@@ -1,0 +1,13 @@
+\begin{table}[]
+\centering
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Not Faulty & Faulty\\
+\midrule
+Not Faulty & 967 & 16\\ 
+Faulty & 72 (72) & 82 (82)\\
+\bottomrule
+\end{tabular}
+\caption{Prediction table}
+\label{my-label}
+\end{table}
